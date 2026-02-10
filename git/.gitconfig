@@ -1,0 +1,11 @@
+[includeIf "gitdir:/Users/kdvu/Documents/"]
+    path = ~/.gitconfig-company
+[includeIf "gitdir:/Users/kdvu/Personal/"]
+    path = ~/.gitconfig-personal
+
+[alias]
+	root = rev-parse --show-toplevel
+
+; [user]
+; 	email = khoavu.its@gmail.com
+; 	name = Khoa Vu

@@ -1,0 +1,106 @@
+<keymap version="1" name="Kris" parent="Mac OS X 10.5+">
+  <action id="ActivateBookmarksToolWindow" />
+  <action id="ActivateBuildToolWindow">
+    <keyboard-shortcut first-keystroke="meta 5" />
+  </action>
+  <action id="ActivateCommitToolWindow">
+    <keyboard-shortcut first-keystroke="meta 2" />
+  </action>
+  <action id="ActivateDatabaseToolWindow">
+    <keyboard-shortcut first-keystroke="meta 8" />
+  </action>
+  <action id="ActivateDebugToolWindow" />
+  <action id="ActivateFindToolWindow" />
+  <action id="ActivateGradleToolWindow">
+    <keyboard-shortcut first-keystroke="meta 7" />
+  </action>
+  <action id="ActivateProblemsViewToolWindow" />
+  <action id="ActivateRunToolWindow">
+    <keyboard-shortcut first-keystroke="meta 6" />
+  </action>
+  <action id="ActivateServicesToolWindow">
+    <keyboard-shortcut first-keystroke="meta 4" />
+  </action>
+  <action id="ActivateStructureToolWindow" />
+  <action id="ActivateTerminalToolWindow">
+    <keyboard-shortcut first-keystroke="meta 9" />
+  </action>
+  <action id="ActivateVersionControlToolWindow">
+    <keyboard-shortcut first-keystroke="meta 3" />
+  </action>
+  <action id="CloseProject">
+    <keyboard-shortcut first-keystroke="meta escape" />
+  </action>
+  <action id="EditorDecreaseFontSize">
+    <keyboard-shortcut first-keystroke="ctrl minus" />
+    <keyboard-shortcut first-keystroke="alt minus" />
+  </action>
+  <action id="EditorIncreaseFontSize">
+    <keyboard-shortcut first-keystroke="ctrl equals" />
+    <keyboard-shortcut first-keystroke="alt equals" />
+  </action>
+  <action id="EditorResetFontSize">
+    <keyboard-shortcut first-keystroke="alt 0" />
+  </action>
+  <action id="ExternalSystem.ProjectRefreshAction" />
+  <action id="FileChooser.LightEditGotoOpenedFile">
+    <keyboard-shortcut first-keystroke="meta alt 1" />
+    <keyboard-shortcut first-keystroke="alt 1" />
+  </action>
+  <action id="MoveTabDown">
+    <keyboard-shortcut first-keystroke="shift ctrl meta s" />
+  </action>
+  <action id="MoveTabRight">
+    <keyboard-shortcut first-keystroke="shift ctrl meta d" />
+  </action>
+  <action id="NextTab">
+    <keyboard-shortcut first-keystroke="shift meta close_bracket" />
+  </action>
+  <action id="OpenFile">
+    <keyboard-shortcut first-keystroke="ctrl meta o" />
+  </action>
+  <action id="PreviousTab">
+    <keyboard-shortcut first-keystroke="shift meta open_bracket" />
+  </action>
+  <action id="Refactorings.QuickListPopupAction" />
+  <action id="Scala.ExpandImplicits">
+    <keyboard-shortcut first-keystroke="shift ctrl alt minus" />
+    <keyboard-shortcut first-keystroke="shift ctrl alt subtract" />
+  </action>
+  <action id="Scala.ShowImplicits">
+    <keyboard-shortcut first-keystroke="shift ctrl alt equals" />
+    <keyboard-shortcut first-keystroke="shift ctrl alt add" />
+  </action>
+  <action id="SelectInProjectView">
+    <keyboard-shortcut first-keystroke="meta 5" />
+  </action>
+  <action id="StretchSplitToBottom">
+    <keyboard-shortcut first-keystroke="ctrl alt j" />
+  </action>
+  <action id="StretchSplitToLeft">
+    <keyboard-shortcut first-keystroke="ctrl alt h" />
+  </action>
+  <action id="StretchSplitToRight">
+    <keyboard-shortcut first-keystroke="ctrl alt l" />
+  </action>
+  <action id="StretchSplitToTop">
+    <keyboard-shortcut first-keystroke="ctrl alt k" />
+  </action>
+  <action id="Terminal.OpenInTerminal">
+    <keyboard-shortcut first-keystroke="ctrl t" />
+  </action>
+  <action id="Terminal.RenameSession">
+    <keyboard-shortcut first-keystroke="meta r" />
+  </action>
+  <action id="Vcs.ShowTabbedFileHistory">
+    <keyboard-shortcut first-keystroke="shift ctrl meta h" />
+  </action>
+  <action id="ViewInplaceComments">
+    <keyboard-shortcut first-keystroke="meta f14" />
+  </action>
+  <action id="copilot.nes.tab">
+    <keyboard-shortcut first-keystroke="tab" />
+    <keyboard-shortcut first-keystroke="shift ctrl a" />
+  </action>
+  <action id="openAssertEqualsDiff" />
+</keymap>

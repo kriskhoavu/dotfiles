@@ -1,0 +1,74 @@
+# Performance optimizations 
+ZSH_DISABLE_COMPFIX="true"
+DISABLE_AUTO_UPDATE="true"
+DISABLE_MAGIC_FUNCTIONS="true"
+
+# Oh My Zsh Configuration
+export ZSH="$HOME/.oh-my-zsh"
+
+# Versioned dump avoids stale cache after zsh upgrades
+ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-${ZSH_VERSION}"
+
+# Completion caching
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+
+# Skip OMZ's internal compinit — we manage it manually below
+skip_global_compinit=true
+
+ZSH_THEME="spaceship-prompt/spaceship"
+
+# Spaceship settings - async for performance
+SPACESHIP_CHAR_SYMBOL="⭐️ "
+SPACESHIP_TIME_SHOW=true
+SPACESHIP_PROMPT_ASYNC=true
+SPACESHIP_PROMPT_ADD_NEWLINE=false
+SPACESHIP_PROMPT_SEPARATE_LINE=false
+
+# Minimal spaceship sections for performance
+SPACESHIP_PROMPT_ORDER=(
+  time
+  user
+  dir
+  git
+  char
+)
+
+# Plugins - syntax highlighting must be last
+plugins=(
+    zsh-history-substring-search
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+)
+
+source $ZSH/oh-my-zsh.sh
+
+# Initialize completions - use cache (-C) if dump is fresh, else rebuild and recompile
+autoload -Uz compinit
+if [[ -s "${ZSH_COMPDUMP}.zwc" && "$ZSH_COMPDUMP" -ot "${ZSH_COMPDUMP}.zwc" ]]; then
+    compinit -C -d "$ZSH_COMPDUMP"   # fast path: skip dump rewrite (~500ms saved)
+else
+    compinit -d "$ZSH_COMPDUMP"
+    zcompile "$ZSH_COMPDUMP" &!      # recompile in background, non-blocking
+fi
+
+# Autosuggest performance settings
+ZSH_AUTOSUGGEST_USE_ASYNC=1
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
+
+# PATH Configuration
+export DEFAULT_USER="$USER"
+export DOCKER_MIN_API_VERSION=1.24
+export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+export JAVA_HOME=/Users/kdvu/Library/Java/JavaVirtualMachines/temurin-21.0.4/Contents/Home
+export PATH="$JAVA_HOME/bin:$PATH"
+export PDF_GENERATOR_EXECUTABLE="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
+
+# Source Development Configuration (lazy-loaded where possible)
+ZSHRC_DIR="${${(%):-%x}:A:h}"
+[[ -f "$ZSHRC_DIR/development.zsh" ]] && source "$ZSHRC_DIR/development.zsh"
+[[ -f "$ZSHRC_DIR/git-stuff.zsh" ]] && source "$ZSHRC_DIR/git-stuff.zsh"
+[[ -f "$ZSHRC_DIR/navigation.zsh" ]] && source "$ZSHRC_DIR/navigation.zsh"
+
+# Load machine-local credentials (not tracked in git)
+[[ -f "$HOME/.creds.zsh" ]] && source "$HOME/.creds.zsh"

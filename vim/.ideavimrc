@@ -1,0 +1,66 @@
+set incsearch
+set expandtab
+set tabstop=4
+set scrolloff=5
+set shiftwidth=4
+
+map Q gq
+
+" Cursor settings
+set ttimeout
+set ttimeoutlen=10
+set clipboard=unnamed,unnamedplus
+let &t_EI = "\e[2 q"
+let &t_SI = "\e[6 q
+set guicursor=n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50
+
+" Replace helpers
+nnoremap gR gD:%s/<C-R>///gc<left><left><left> " whole file
+nnoremap gr gd[{V%::s/<C-R>///gc<left><left><left> " inside block
+
+" Wrap helpers () {} '' ""
+vnoremap <leader>( <Esc>`<i(<Esc>`>a)<Esc>
+vnoremap <leader>[ <Esc>`<i[<Esc>`>a]<Esc>
+vnoremap <leader>q <Esc>`<i'<Esc>`>a'<Esc>
+vnoremap <leader>" <Esc>`<i"<Esc>`>a"<Esc>
+" Paste without overwriting yank buffer
+xnoremap <leader>p "_dP"
+
+" Move selected lines
+xnoremap J :m '>+1<CR>gv=gv
+xnoremap K :m '<-2<CR>gv=gv
+
+" Move between splitters (tabs) like Vim
+nnoremap <C-l> :action NextSplitter<CR>
+nnoremap <C-h> :action NextSplitter<CR>
+
+" Move between file in groups of tabs
+nnoremap H :action PreviousTab<CR>
+nnoremap L :action NextTab<CR>
+
+nnoremap <leader>ff :action GotoFile<CR>
+nnoremap <leader>fg :action GotoSymbol<CR>
+nnoremap <leader>ft :action FindInPath<CR>
+nnoremap <leader>f. :action SelectInProjectView<CR>
+
+" Git/VCS helpers
+nnoremap <leader>hd :action Compare.SameVersion<CR>
+nnoremap <leader>hD :action Vcs.ShowTabbedFileHistory<CR>
+nnoremap <leader>hv :action ActivateCommitToolWindow<CR>
+nnoremap ]h :action VcsShowNextChangeMarker<CR>
+nnoremap [h :action VcsShowPrevChangeMarker<CR>
+
+" Window resize (like Neovim/Tmux)
+nnoremap <leader>wh :action StretchSplitToLeft<CR>
+nnoremap <leader>wl :action StretchSplitToRight<CR>
+nnoremap <leader>wj :action StretchSplitToBottom<CR>
+nnoremap <leader>wk :action StretchSplitToTop<CR>
+
+" Tool windows navigation
+nnoremap <leader>1 :action ActivateProjectToolWindow<CR>
+nnoremap <leader>2 :action ActivateCommitToolWindow<CR>
+nnoremap <leader>3 :action ActivateGitToolWindow<CR>
+nnoremap <leader>4 :action ActivateServicesToolWindow<CR>
+nnoremap <leader>7 :action ActivateGradleToolWindow<CR>
+nnoremap <leader>8 :action ActivateDatabaseToolWindow<CR>
+nnoremap <leader>9 :action ActivateTerminalToolWindow<CR>
