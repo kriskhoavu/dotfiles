@@ -1,6 +1,8 @@
 return {
 	{
 		"williamboman/mason.nvim",
+		-- Loads on demand (:Mason) or as a dep of mason-lspconfig
+		cmd = { "Mason", "MasonInstall", "MasonUninstall", "MasonUpdate", "MasonLog" },
 		config = function()
 			require("mason").setup({
 				ui = {
@@ -17,7 +19,8 @@ return {
 	},
 	{
 		"williamboman/mason-lspconfig.nvim",
-		lazy = false,
+		lazy = true, -- loads only as a dep of nvim-lspconfig
+		dependencies = { "williamboman/mason.nvim" },
 		config = function()
 			require("mason-lspconfig").setup({
 				auto_install = true,
@@ -28,7 +31,13 @@ return {
 	},
 	{
 		"neovim/nvim-lspconfig",
-		lazy = false,
+		-- BufReadPre fires before FileType detection, so vim.lsp.enable() autocmds
+		-- are in place before LSP needs to attach for the first opened file
+		event = { "BufReadPre", "BufNewFile" },
+		dependencies = {
+			"williamboman/mason-lspconfig.nvim",
+			"hrsh7th/cmp-nvim-lsp", -- must be loaded before lsp capabilities are built
+		},
 		config = function()
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)

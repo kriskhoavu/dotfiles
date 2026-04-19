@@ -1,9 +1,4 @@
 return {
-	-- Standalone sources so lsp-config can require cmp_nvim_lsp at startup
-	{ "hrsh7th/cmp-nvim-lsp" },
-	{ "hrsh7th/cmp-buffer" },
-	{ "hrsh7th/cmp-path" },
-
 	{
 		"L3MON4D3/LuaSnip",
 		event = "InsertEnter",
