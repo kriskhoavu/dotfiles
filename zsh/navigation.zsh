@@ -66,14 +66,18 @@ function op() {
     base="${base%/}"  # normalize trailing slash
     local start_base="$base"
     while true; do
+        local -a subdirs
+        subdirs=("$base"/*(N/:))  # zsh glob: dirs and symlinks-to-dirs, null on empty
+        subdirs=("${subdirs[@]##*/}")  # strip path prefix, keep only names
+
         local dirs=""
-        dirs="$(find "$base" -mindepth 1 -maxdepth 1 \( -type d -o -type l \) -exec test -d {} \; -print 2>/dev/null | sort -Vf | sed 's|.*/||')"
-        
+        dirs=$(printf '%s\n' "${subdirs[@]}" | sort -Vf)
+
         # Add ".." option if we're deeper than start
         if [[ "$base" != "$start_base" ]]; then
             dirs=$'..\n'"$dirs"
         fi
-        
+
         choice="$(printf '%s\n' "$dirs" | fzf --prompt="In $(basename "$base") > " --reverse)" || break
         [[ -z "$choice" ]] && break
         

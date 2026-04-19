@@ -9,12 +9,9 @@ export ZSH="$HOME/.oh-my-zsh"
 # Versioned dump avoids stale cache after zsh upgrades
 ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-${ZSH_VERSION}"
 
-# Completion caching
+# Completion caching (must be set before compinit runs inside OMZ)
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-
-# Skip OMZ's internal compinit — we manage it manually below
-skip_global_compinit=true
 
 ZSH_THEME="spaceship-prompt/spaceship"
 
@@ -43,14 +40,9 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
-# Initialize completions - use cache (-C) if dump is fresh, else rebuild and recompile
-autoload -Uz compinit
-if [[ -s "${ZSH_COMPDUMP}.zwc" && "$ZSH_COMPDUMP" -ot "${ZSH_COMPDUMP}.zwc" ]]; then
-    compinit -C -d "$ZSH_COMPDUMP"   # fast path: skip dump rewrite (~500ms saved)
-else
-    compinit -d "$ZSH_COMPDUMP"
-    zcompile "$ZSH_COMPDUMP" &!      # recompile in background, non-blocking
-fi
+# OMZ already called compinit; compile the dump in background so future loads are faster
+# (zsh automatically prefers the .zwc over the text dump when present)
+[[ ! "${ZSH_COMPDUMP}.zwc" -nt "$ZSH_COMPDUMP" ]] && zcompile "$ZSH_COMPDUMP" &!
 
 # Autosuggest performance settings
 ZSH_AUTOSUGGEST_USE_ASYNC=1
