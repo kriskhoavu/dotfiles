@@ -70,7 +70,7 @@
     "Green Component" : 0.61643811750502131
   },
   "Only The Default BG Color Uses Transparency" : true,
-  "Scrollback Lines" : 0,
+  "Scrollback Lines" : 10000,
   "Badge Color (Dark)" : {
     "Red Component" : 1,
     "Color Space" : "P3",
@@ -181,7 +181,7 @@
     "Green Component" : 0.98431372549019602
   },
   "Description" : "Default",
-  "Unlimited Scrollback" : true,
+  "Unlimited Scrollback" : false,
   "Use Italic Font" : false,
   "Working Directory" : "\/Users\/kdvu\/Documents\/3. happy-learning",
   "Selected Text Color (Dark)" : {
