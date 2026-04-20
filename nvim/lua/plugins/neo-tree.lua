@@ -27,15 +27,18 @@ return {
         local function drill(current)
           if not current then return end
 
-          local children = state.tree:get_nodes(current:get_id())
-
-          -- Expand if needed, then recurse via callback
-          if not current:is_expanded() or not children or #children == 0 then
+          -- Expand first, then retry via callback
+          if not current:is_expanded() then
             fs.toggle_directory(state, current, nil, true, false, function()
               vim.schedule(function()
                 drill(state.tree:get_node(current:get_id()))
-              end) end) return
+              end)
+            end)
+            return
           end
+
+          local children = state.tree:get_nodes(current:get_id())
+          if not children or #children == 0 then return end
 
           -- Continue drilling if single directory child, otherwise stop
           local first = children[1]
