@@ -8,6 +8,46 @@ alias k="kubectl"
 alias kd="kubectl describe"
 alias kjava="pkill -9 java"
 
+# ---------- K8S Namespace Helpers ----------
+# Pattern used by kns when no arg given — override in ~/.creds.zsh if needed
+KUBE_NS_PATTERN="${KUBE_NS_PATTERN:-chefsculinar-discoverysap}"
+
+# kns [pattern]: fuzzy-pick a namespace matching pattern, set as kubectl default
+function kns() {
+  local ns
+  ns=$(kubectl get ns --no-headers -o custom-columns=":metadata.name" \
+    | grep "${1:-$KUBE_NS_PATTERN}" \
+    | fzf --prompt="namespace> " --height=40% --reverse --select-1)
+  [[ -z "$ns" ]] && return 1
+  kubectl config set-context --current --namespace="$ns"
+  echo "→ namespace: $ns"
+}
+
+# kp: list pods in current namespace (pass extra kubectl flags freely)
+function kp() { kubectl get pods -o wide "$@"; }
+
+# kl: fuzzy-pick a pod by name+status, then stream its logs
+function kl() {
+  local pod
+  pod=$(kubectl get pods --no-headers \
+    | awk '{printf "%-55s %s\n", $1, $3}' \
+    | fzf --prompt="logs> " --height=40% --reverse \
+    | awk '{print $1}')
+  [[ -z "$pod" ]] && return 1
+  kubectl logs -f --tail=200 "$pod" "$@"
+}
+
+# ke: fuzzy-pick a pod, exec a shell into it (default: sh)
+function ke() {
+  local pod
+  pod=$(kubectl get pods --no-headers \
+    | awk '{printf "%-55s %s\n", $1, $3}' \
+    | fzf --prompt="exec> " --height=40% --reverse \
+    | awk '{print $1}')
+  [[ -z "$pod" ]] && return 1
+  kubectl exec -it "$pod" -- "${@:-sh}"
+}
+
 function kdocker() { 
     docker rm -vf $(docker ps -a -q)
 }
