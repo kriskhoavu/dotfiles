@@ -39,8 +39,7 @@ return {
 			"hrsh7th/cmp-nvim-lsp", -- must be loaded before lsp capabilities are built
 		},
 		config = function()
-			local capabilities = vim.lsp.protocol.make_client_capabilities()
-			capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
+			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 			local simple_servers = { "ts_ls", "eslint", "yamlls", "bashls", "helm_ls" }
 
 			for _, server in ipairs(simple_servers) do
@@ -58,7 +57,7 @@ return {
 						diagnostics = { globals = { "vim" } },
 						workspace = {
 							checkThirdParty = false,
-							library = vim.api.nvim_get_runtime_file("", true),
+							library = { vim.env.VIMRUNTIME },
 						},
 						telemetry = { enable = false },
 					},
@@ -84,21 +83,19 @@ return {
 			vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, {})
 			vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, {})
 
-            vim.keymap.set("n", "<leader>fm", function()
-                local filetype = vim.bo.filetype
-                local symbols_map = {
-                    python = "Function",
-                    javascript = "Function",
-                    typescript = "Function",
-                    java = "Class",
-                    lua = "Function",
-                    go = { "Method", "Struct", "Interface" },
-                }
-                local symbols = symbols_map[filetype] or "Function"
-                require("fzf-lua").lsp_document_symbols({
-                    symbols = symbols,
-                })
-            end, {})
+			vim.keymap.set("n", "<leader>fm", function()
+				local filetype = vim.bo.filetype
+				local symbols_map = {
+					python = "Function",
+					javascript = "Function",
+					typescript = "Function",
+					java = "Class",
+					lua = "Function",
+					go = { "Method", "Struct", "Interface" },
+				}
+				local symbols = symbols_map[filetype] or "Function"
+				require("fzf-lua").lsp_document_symbols({ symbols = symbols })
+			end, {})
 
 			-- Diagnostic UI config
 			vim.diagnostic.config({
