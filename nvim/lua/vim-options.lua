@@ -28,8 +28,8 @@ vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selected lines up" }
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selected lines down" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<cr><Esc>", { silent = true, desc = "Clear search highlight" })
 
--- Terminal mode: Escape exits to normal mode
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+-- Terminal mode: double-Esc exits to normal mode (single Esc passes through to CLI tools)
+vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Open current file in browser
 vim.keymap.set("n", "<leader>ob", function()
