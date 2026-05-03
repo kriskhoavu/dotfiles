@@ -29,6 +29,7 @@ local function toggle_term()
 
 	if vim.bo[state.buf].buftype ~= "terminal" then
 		vim.cmd.terminal()
+		vim.bo[state.buf].buflisted = false -- prevent it from appearing in bufferline
 	end
 
 	-- Ensure the terminal starts in insert mode
