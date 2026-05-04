@@ -62,5 +62,13 @@ ZSHRC_DIR="${${(%):-%x}:A:h}"
 [[ -f "$ZSHRC_DIR/git-stuff.zsh" ]] && source "$ZSHRC_DIR/git-stuff.zsh"
 [[ -f "$ZSHRC_DIR/navigation.zsh" ]] && source "$ZSHRC_DIR/navigation.zsh"
 
+# Dynamically set iTerm2 tab title to current directory name
+function _set_iterm_tab_title() {
+  echo -ne "\e]1;${PWD##*/}\a"
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd _set_iterm_tab_title
+_set_iterm_tab_title  # Set on shell startup
+
 # Load machine-local credentials (not tracked in git)
 [[ -f "$HOME/.creds.zsh" ]] && source "$HOME/.creds.zsh"
