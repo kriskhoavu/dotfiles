@@ -22,6 +22,7 @@ require("vim-window")
 require("vim-clipboard")
 require("floating-helpers")
 require("floating-terminal")
+require("markdown-runner")
 require("lazy").setup({
     { import = "plugins" },
     { import = "themes" },
