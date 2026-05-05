@@ -4,6 +4,17 @@ set -e
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Wrapper around cp that skips when source and destination resolve to the same file
+# (avoids "are the same file" errors when configs are symlinked back to dotfiles)
+safe_cp() {
+    local src="$1"
+    local dst="$2"
+    if [ "$(realpath "$src" 2>/dev/null)" = "$(realpath "$dst" 2>/dev/null)" ]; then
+        return 0
+    fi
+    cp "$src" "$dst"
+}
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -23,14 +34,14 @@ sync_git() {
     if [ -L "$HOME/.gitconfig" ]; then
         log_info "  .gitconfig is symlinked - auto-synced!"
     else
-        cp "$HOME/.gitconfig" "$DOTFILES_DIR/git/.gitconfig"
+        safe_cp "$HOME/.gitconfig" "$DOTFILES_DIR/git/.gitconfig"
         log_info "  ✓ .gitconfig synced"
     fi
 
     if [ -L "$HOME/.gitconfig-personal" ]; then
         log_info "  .gitconfig-personal is symlinked - auto-synced!"
     else
-        cp "$HOME/.gitconfig-personal" "$DOTFILES_DIR/git/.gitconfig-personal"
+        safe_cp "$HOME/.gitconfig-personal" "$DOTFILES_DIR/git/.gitconfig-personal"
         log_info "  ✓ .gitconfig-personal synced"
     fi
 }
@@ -49,12 +60,12 @@ sync_vscode() {
     fi
     
     if [ -f "$vscode_user_dir/settings.json" ]; then
-        cp "$vscode_user_dir/settings.json" "$DOTFILES_DIR/vscode/settings.json"
+        safe_cp "$vscode_user_dir/settings.json" "$DOTFILES_DIR/vscode/settings.json"
         log_info "  ✓ settings.json synced"
     fi
     
     if [ -f "$vscode_user_dir/keybindings.json" ]; then
-        cp "$vscode_user_dir/keybindings.json" "$DOTFILES_DIR/vscode/keybindings.json"
+        safe_cp "$vscode_user_dir/keybindings.json" "$DOTFILES_DIR/vscode/keybindings.json"
         log_info "  ✓ keybindings.json synced"
     fi
     
@@ -88,7 +99,7 @@ sync_intellij() {
     if [ -d "$intellij_dir/keymaps" ]; then
         for keymap in "$intellij_dir/keymaps"/*.xml; do
             if [ -f "$keymap" ]; then
-                cp "$keymap" "$DOTFILES_DIR/intellij/"
+                safe_cp "$keymap" "$DOTFILES_DIR/intellij/"
                 log_info "  ✓ $(basename "$keymap") synced"
             fi
         done
@@ -147,7 +158,7 @@ sync_zsh() {
     if [ -L "$HOME/.zshrc" ]; then
         log_info "  .zshrc is symlinked - auto-synced!"
     else
-        cp "$HOME/.zshrc" "$DOTFILES_DIR/zsh/.zshrc"
+        safe_cp "$HOME/.zshrc" "$DOTFILES_DIR/zsh/.zshrc"
         log_info "  ✓ .zshrc synced"
     fi
 }
@@ -161,14 +172,14 @@ sync_vim() {
     if [ -L "$HOME/.vimrc" ]; then
         log_info "  .vimrc is symlinked - auto-synced!"
     else
-        cp "$HOME/.vimrc" "$DOTFILES_DIR/vim/.vimrc"
+        safe_cp "$HOME/.vimrc" "$DOTFILES_DIR/vim/.vimrc"
         log_info "  ✓ .vimrc synced"
     fi
     
     if [ -L "$HOME/.ideavimrc" ]; then
         log_info "  .ideavimrc is symlinked - auto-synced!"
     else
-        cp "$HOME/.ideavimrc" "$DOTFILES_DIR/vim/.ideavimrc"
+        safe_cp "$HOME/.ideavimrc" "$DOTFILES_DIR/vim/.ideavimrc"
         log_info "  ✓ .ideavimrc synced"
     fi
 }
@@ -182,7 +193,7 @@ sync_tmux() {
     if [ -L "$HOME/.tmux.conf" ]; then
         log_info "  .tmux.conf is symlinked - auto-synced!"
     else
-        cp "$HOME/.tmux.conf" "$DOTFILES_DIR/tmux/.tmux.conf"
+        safe_cp "$HOME/.tmux.conf" "$DOTFILES_DIR/tmux/.tmux.conf"
         log_info "  ✓ .tmux.conf synced"
     fi
 }
