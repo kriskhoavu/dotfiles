@@ -2,7 +2,6 @@ asciidoctor-intellij-plugin
 clouds-docker-gateway
 clouds-docker-impl
 clouds-kubernetes
-CodeGPT
 copyright
 diagrams.net-intellij-plugin
 editorconfig-plugin
@@ -21,6 +20,7 @@ JPA Buddy
 JsonHelper
 jupyter-plugin
 Kotlin
+makefile
 maven
 mcpserver
 microservices-ui
@@ -29,6 +29,7 @@ one-dark-theme
 packageChecker
 plantuml4idea
 properties
+ProxyAI
 react
 remoteRun
 restClient
@@ -43,7 +44,9 @@ vcs-github
 vcs-github-IU
 vcs-github-ultimate
 vcs-gitlab
+vcs-perforce
 vcs-svn
 velocity
+webDeployment
 wiremock
 yaml

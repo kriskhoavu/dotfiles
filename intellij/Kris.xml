@@ -53,6 +53,9 @@
   <action id="MoveTabRight">
     <keyboard-shortcut first-keystroke="shift ctrl meta d" />
   </action>
+  <action id="MoveWindowBuiltinDisplayAction">
+    <keyboard-shortcut first-keystroke="shift ctrl meta r" />
+  </action>
   <action id="NextTab">
     <keyboard-shortcut first-keystroke="shift meta close_bracket" />
   </action>

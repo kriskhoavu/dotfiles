@@ -732,17 +732,19 @@
 		<integer>1</integer>
 	</dict>
 	<key>NSWindow Frame NSColorPanel</key>
-	<string>160 81 224 278 0 0 2560 1415 </string>
+	<string>191 81 224 278 0 0 3008 1667 </string>
 	<key>NSWindow Frame NSNavPanelAutosaveName</key>
 	<string>893 624 800 448 0 0 2560 1415 </string>
 	<key>NSWindow Frame ProfilesPanel</key>
 	<string>214 250 735 388 0 0 1512 944 </string>
 	<key>NSWindow Frame SUStatusFrame</key>
-	<string>3640 830 400 135 2560 190 2560 1415 </string>
+	<string>556 404 400 135 0 0 1512 944 </string>
 	<key>NSWindow Frame SUUpdateAlert</key>
 	<string>3530 698 620 398 2560 190 2560 1415 </string>
 	<key>NSWindow Frame iTerm Window 0</key>
-	<string>247 77 2065 1260 0 0 2560 1415 </string>
+	<string>146 84 2620 1500 0 0 3008 1667 </string>
+	<key>NSWindow Frame iTerm Window 1</key>
+	<string>-1613 418 665 578 -2560 0 2560 1415 </string>
 	<key>New Bookmarks</key>
 	<array>
 		<dict>
@@ -2026,9 +2028,9 @@
 	<key>NoSyncFrame_SessionsPreferences</key>
 	<dict>
 		<key>screenFrame</key>
-		<string>{{-2560, 0}, {2560, 1440}}</string>
+		<string>{{0, 0}, {3008, 1692}}</string>
 		<key>topLeft</key>
-		<string>{-1591, 1199}</string>
+		<string>{1042, 1093}</string>
 	</dict>
 	<key>NoSyncFrame_SharedPreferences</key>
 	<dict>
@@ -2046,9 +2048,9 @@
 	<key>NoSyncLastSystemPythonVersionRequirement</key>
 	<string>1.17</string>
 	<key>NoSyncLastTipTime</key>
-	<real>794080664.30274701</real>
+	<real>799517975.70304406</real>
 	<key>NoSyncLaunchExperienceControllerRunCount</key>
-	<integer>50</integer>
+	<integer>56</integer>
 	<key>NoSyncNeverAskAboutMouseReportingFrustration</key>
 	<true/>
 	<key>NoSyncNextAnnoyanceTime</key>
@@ -3000,13 +3002,18 @@
 	<key>NoSyncSavedWindowPositions</key>
 	<dict>
 		<key>0</key>
-		<string>{247, 1337}</string>
+		<string>{146, 1584}</string>
+		<key>1</key>
+		<string>{-1613, 996}</string>
 	</dict>
 	<key>NoSyncTipOfTheDayEligibilityBeganTime</key>
 	<real>793458416.46198297</real>
+	<key>NoSyncTipOfTheDayOffset</key>
+	<string>{0, 0}</string>
 	<key>NoSyncTipsToNotShow</key>
 	<array>
 		<string>000</string>
+		<string>0000</string>
 		<string>0000</string>
 	</array>
 	<key>NoSyncUserHasSelectedCommand</key>
@@ -3069,7 +3076,7 @@
 	<key>SUHasLaunchedBefore</key>
 	<true/>
 	<key>SULastCheckTime</key>
-	<date>2026-04-25T09:34:04Z</date>
+	<date>2026-05-05T03:48:53Z</date>
 	<key>SUSendProfileInfo</key>
 	<false/>
 	<key>SUUpdateGroupIdentifier</key>
