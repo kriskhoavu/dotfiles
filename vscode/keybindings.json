@@ -37,10 +37,6 @@
         "when": "activeViewlet == 'workbench.view.scm'"
     },
     {
-        "key": "cmd+3",
-        "command": "workbench.view.extension.gitlensPanel"
-    },
-    {
         "key": "cmd+7",
         "command": "workbench.view.extension.gradleContainerView"
     },
@@ -332,6 +328,20 @@
         "key": "\\ d c",
         "command": "workbench.action.debug.continue",
         "when": "vim.mode == 'Normal' && (editorTextFocus || !inputFocus) && inDebugMode && debugState == 'stopped'"
+    },
+    {
+        "key": "cmd+3",
+        "command": "git-graph.view"
+    },
+    {
+        "key": "cmd+4",
+        "command": "workbench.view.debug",
+        "when": "viewContainer.workbench.view.debug.enabled"
+    },
+    {
+        "key": "shift+cmd+d",
+        "command": "-workbench.view.debug",
+        "when": "viewContainer.workbench.view.debug.enabled"
     }
     // Vim Keybindings =================================================================
 ]
