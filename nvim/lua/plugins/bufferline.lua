@@ -35,6 +35,10 @@ return {
             -- if buf_type == "terminal" then
             --   return false
             -- end            
+            -- Hide gitsigns diff buffers
+            if buf_name:match("^gitsigns://") then
+              return false
+            end
             -- Hide unnamed empty buffers
             if buf_name == "" and buf_type == "" then
               return false
@@ -50,6 +54,20 @@ return {
       vim.keymap.set("n", "<leader>x", function()
         local current = vim.fn.bufnr('%')
         local buftype = vim.api.nvim_get_option_value("buftype", { buf = current })
+
+        -- If in gitsigns diff mode, close the gitsigns window only (keep the file)
+        if vim.wo.diff then
+          for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+            local wbuf = vim.api.nvim_win_get_buf(w)
+            if vim.fn.bufname(wbuf):match("^gitsigns://") then
+              vim.api.nvim_win_close(w, true)
+              pcall(vim.cmd, "bdelete! " .. wbuf)
+              break
+            end
+          end
+          vim.cmd("diffoff")
+          return
+        end
 
         -- Count real editing windows (exclude NeoTree, floating, nofile)
         local editing_wins = {}
