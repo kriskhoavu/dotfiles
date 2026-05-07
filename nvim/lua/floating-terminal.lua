@@ -39,3 +39,10 @@ end
 api.nvim_create_user_command("FloatingTerminal", toggle_term, {})
 -- <leader>9: Toggle Terminal (floating)
 vim.keymap.set({ "n", "t" }, "<leader>9", toggle_term, { desc = "Toggle floating terminal" })
+
+-- <leader>tt: Open a real terminal as a bufferline tab
+vim.keymap.set("n", "<leader>tt", function()
+	vim.cmd("enew")
+	vim.cmd("terminal")
+	vim.cmd("startinsert")
+end, { desc = "Open terminal as tab" })
