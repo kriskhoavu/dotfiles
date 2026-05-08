@@ -13,6 +13,19 @@ ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-${ZSH_VERSION}"
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 
+# Speed up compinit: intercept OMZ's call to use -C (cached dump) when dump is fresh.
+# OMZ deletes the dump when its version or fpath changes, so we fall back to a full
+# scan only then. This alone saves ~1-3s per shell startup.
+function compinit() {
+  unfunction compinit
+  autoload -Uz compinit
+  if [[ -s "$ZSH_COMPDUMP" ]]; then
+    compinit -C -d "$ZSH_COMPDUMP"  # dump is fresh: skip directory scan
+  else
+    compinit -d "$ZSH_COMPDUMP"     # no dump (first run or OMZ invalidated it)
+  fi
+}
+
 ZSH_THEME="spaceship-prompt/spaceship"
 
 # Spaceship settings - async for performance
@@ -40,8 +53,7 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
-# OMZ already called compinit; compile the dump in background so future loads are faster
-# (zsh automatically prefers the .zwc over the text dump when present)
+# Recompile zcompdump in background if it was regenerated (keeps .zwc fresh)
 [[ ! "${ZSH_COMPDUMP}.zwc" -nt "$ZSH_COMPDUMP" ]] && zcompile "$ZSH_COMPDUMP" &!
 
 # Autosuggest performance settings
