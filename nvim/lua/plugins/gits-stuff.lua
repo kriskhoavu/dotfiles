@@ -1,3 +1,42 @@
+-- <leader>3: Toggle lazygit (floating)
+local lg_state = { buf = -1, win = -1 }
+
+local function toggle_lazygit()
+	if vim.api.nvim_win_is_valid(lg_state.win) then
+		vim.api.nvim_win_hide(lg_state.win)
+		return
+	end
+
+	local h = math.floor(vim.o.lines * 0.9)
+	local w = math.floor(vim.o.columns * 0.9)
+	local buf = vim.api.nvim_buf_is_valid(lg_state.buf) and lg_state.buf or vim.api.nvim_create_buf(false, true)
+	local win = vim.api.nvim_open_win(buf, true, {
+		relative = "editor",
+		row = math.floor((vim.o.lines - h) / 2),
+		col = math.floor((vim.o.columns - w) / 2),
+		height = h,
+		width = w,
+		style = "minimal",
+		border = "rounded",
+	})
+	lg_state.buf, lg_state.win = buf, win
+
+	if vim.bo[buf].buftype ~= "terminal" then
+		vim.fn.termopen("lazygit", {
+			on_exit = function()
+				-- lazygit was quit (q): close the window and reset so next open is fresh
+				vim.api.nvim_win_hide(win)
+				lg_state.buf = -1
+			end,
+		})
+		vim.bo[buf].buflisted = false
+	end
+
+	vim.cmd.startinsert()
+end
+
+vim.keymap.set({ "n", "t" }, "<leader>3", toggle_lazygit, { desc = "Toggle lazygit" })
+
 return {
     {
         "lewis6991/gitsigns.nvim",
