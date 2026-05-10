@@ -154,6 +154,14 @@ rollback_intellij() {
 }
 
 # ============================================
+# WezTerm
+# ============================================
+rollback_wezterm() {
+    log_blue "Rolling back WezTerm config..."
+    rollback_config "$HOME/.config/wezterm" "WezTerm"
+}
+
+# ============================================
 # iTerm2 (plist + JSON profile)
 # ============================================
 rollback_iterm2() {
@@ -277,6 +285,14 @@ list_backups() {
         done
     fi
     
+    # WezTerm
+    for backup in "$HOME/.config/wezterm.backup."*; do
+        if [ -e "$backup" ]; then
+            echo "WezTerm:  $backup"
+            ((found++))
+        fi
+    done
+
     # iTerm2
     if [[ "$OSTYPE" == "darwin"* ]]; then
         for backup in "$HOME/Library/Preferences/com.googlecode.iterm2.plist.backup."*; do
@@ -314,6 +330,7 @@ show_help() {
     echo "  --vscode    Rollback VSCode config"
     echo "  --intellij  Rollback IntelliJ config"
     echo "  --iterm2    Rollback iTerm2 config (macOS only)"
+    echo "  --wezterm   Rollback WezTerm config"
     echo "  --list      List all available backups"
     echo "  --help      Show this help message"
 }
@@ -368,6 +385,12 @@ interactive_rollback() {
         rollback_intellij
     fi
     
+    read -p "Rollback WezTerm config? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rollback_wezterm
+    fi
+
     if [[ "$OSTYPE" == "darwin"* ]]; then
         read -p "Rollback iTerm2 config? [y/N] " -n 1 -r
         echo
@@ -396,6 +419,7 @@ while [[ $# -gt 0 ]]; do
             rollback_tmux
             rollback_vscode
             rollback_intellij
+            rollback_wezterm
             [[ "$OSTYPE" == "darwin"* ]] && rollback_iterm2
             shift
             ;;
@@ -429,6 +453,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --iterm2)
             rollback_iterm2
+            shift
+            ;;
+        --wezterm)
+            rollback_wezterm
             shift
             ;;
         --list)

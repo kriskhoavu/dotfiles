@@ -166,6 +166,17 @@ install_intellij() {
 }
 
 # ============================================
+# WezTerm
+# ============================================
+install_wezterm() {
+    log_info "Installing WezTerm config..."
+    backup_if_exists "$HOME/.config/wezterm"
+    mkdir -p "$HOME/.config"
+    ln -sf "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
+    log_info "WezTerm config linked!"
+}
+
+# ============================================
 # iTerm2 (plist + JSON profile import)
 # ============================================
 install_iterm2() {
@@ -223,6 +234,7 @@ show_help() {
     echo "  --vscode    Install VSCode config and extensions"
     echo "  --intellij  Install IntelliJ keymap"
     echo "  --iterm2    Install iTerm2 config (macOS only)"
+    echo "  --wezterm   Install WezTerm config"
     echo "  --help      Show this help message"
     echo ""
     echo "If no options provided, interactive mode will be used."
@@ -283,7 +295,13 @@ interactive_install() {
             install_iterm2
         fi
     fi
-    
+
+    read -p "Install WezTerm config? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+        install_wezterm
+    fi
+
     echo ""
     log_info "Installation complete!"
 }
@@ -305,6 +323,7 @@ while [[ $# -gt 0 ]]; do
             install_vscode
             install_intellij
             install_iterm2
+            install_wezterm
             shift
             ;;
         --git)
@@ -337,6 +356,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --iterm2)
             install_iterm2
+            shift
+            ;;
+        --wezterm)
+            install_wezterm
             shift
             ;;
         --help)

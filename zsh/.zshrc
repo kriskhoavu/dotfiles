@@ -76,10 +76,21 @@ ZSHRC_DIR="${${(%):-%x}:A:h}"
 
 # Dynamically set iTerm2 tab title to current directory name
 function _set_iterm_tab_title() {
+  # OSC 1: iTerm2 tab title (current dir name)
   echo -ne "\e]1;${PWD##*/}\a"
+
+  # OSC 7: report cwd to WezTerm so tab title + git status work
+  # Inside tmux the sequence must be wrapped in a DCS passthrough,
+  # otherwise tmux intercepts it and WezTerm never sees it.
+  if [ -n "$TMUX" ]; then
+    printf "\ePtmux;\e\e]7;file://%s%s\a\e\\" "$HOST" "$PWD"
+  else
+    printf "\e]7;file://%s%s\a" "$HOST" "$PWD"
+  fi
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook chpwd _set_iterm_tab_title
+add-zsh-hook precmd _set_iterm_tab_title  # also fire before every prompt, catches tmux attach
 _set_iterm_tab_title  # Set on shell startup
 
 # Load machine-local credentials (not tracked in git)

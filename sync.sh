@@ -115,6 +115,20 @@ sync_intellij() {
 }
 
 # ============================================
+# WezTerm - Already symlinked, nothing to sync
+# ============================================
+sync_wezterm() {
+    log_info "Checking WezTerm config..."
+
+    if [ -L "$HOME/.config/wezterm" ]; then
+        log_info "  wezterm config is symlinked - auto-synced!"
+    else
+        rsync -av --exclude='.git' --exclude='.DS_Store' "$HOME/.config/wezterm/" "$DOTFILES_DIR/wezterm/"
+        log_info "  ✓ wezterm config synced"
+    fi
+}
+
+# ============================================
 # iTerm2 - Sync from app to dotfiles (plist + JSON profile export)
 # ============================================
 sync_iterm2() {
@@ -229,6 +243,7 @@ show_help() {
     echo "  --vscode    Sync VSCode settings and extensions"
     echo "  --intellij  Sync IntelliJ keymaps and plugins"
     echo "  --iterm2    Sync iTerm2 settings"
+    echo "  --wezterm   Sync WezTerm config"
     echo "  --help      Show this help message"
     echo ""
     echo "After syncing, commit and push your changes:"
@@ -248,6 +263,7 @@ sync_all() {
     sync_tmux
     sync_vscode
     sync_intellij
+    sync_wezterm
     [[ "$OSTYPE" == "darwin"* ]] && sync_iterm2
     
     echo ""
@@ -296,6 +312,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --iterm2)
             sync_iterm2
+            shift
+            ;;
+        --wezterm)
+            sync_wezterm
             shift
             ;;
         --help)
