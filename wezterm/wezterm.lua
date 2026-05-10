@@ -189,6 +189,7 @@ config.send_composed_key_when_right_alt_is_pressed = false
 config.keys = {
   { key = "LeftArrow",  mods = "OPT",       action = act.SendString("\x1bb") },   -- Option+Left  → word back
   { key = "RightArrow", mods = "OPT",       action = act.SendString("\x1bf") },   -- Option+Right → word fwd
+  { key = "Enter",      mods = "OPT",       action = act.SendString("\x1b\r") },   -- Option+Enter → Alt+Enter
   { key = "d",          mods = "CMD|SHIFT",  action = act.SendString("\\sd") },   -- Cmd+Shift+D  → nvim <leader>sd
   { key = "t",          mods = "CMD",        action = act.SpawnCommandInNewTab { cwd = HOME } }, -- Cmd+T → home
 }
