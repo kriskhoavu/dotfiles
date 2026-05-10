@@ -15,16 +15,12 @@ local TMUX = find_bin("tmux")
 local HOME = wezterm.home_dir
 
 -- Caches
--- pane_cwd[pane_id]     = { path, at }  — cwd per pane
--- git_cache[path]       = { status, at } — git status per directory
--- last_active_pane[wid] = pane_id        — detect tab switches
--- window_cols[wid]      = cols           — real terminal width for proportional tabs
--- tab_window[tab_id]    = wid            — map tabs to their window
-local pane_cwd        = {}
-local git_cache       = {}
-local last_active_pane = {}
-local window_cols     = {}
-local tab_window      = {}
+-- pane_cwd[pane_id]  = { path } — cwd per pane
+-- window_cols[wid]   = cols     — real terminal width for proportional tabs
+-- tab_window[tab_id] = wid      — map tabs to their window
+local pane_cwd    = {}
+local window_cols = {}
+local tab_window  = {}
 
 local function short_path(path)
   local rel = path:gsub("^" .. HOME .. "/?", "")
@@ -33,26 +29,12 @@ local function short_path(path)
   return parent and (parent .. "/" .. leaf) or ("~/" .. rel)
 end
 
-local function git_status(path, force)
-  local now   = os.time()
-  local entry = git_cache[path]
-  if not force and entry and (now - entry.at) < 60 then return entry.status end
-
-  local status = ""
+local function git_branch(path)
   local ok, branch = wezterm.run_child_process { GIT, "-C", path, "branch", "--show-current" }
   if ok and branch and branch:match("%S") then
-    branch = branch:gsub("%s+$", "")
-    status = " " .. branch
-    local _, behind = wezterm.run_child_process { GIT, "-C", path, "rev-list", "--count", "HEAD..@{u}" }
-    local _, ahead  = wezterm.run_child_process { GIT, "-C", path, "rev-list", "--count", "@{u}..HEAD" }
-    local b = tonumber((behind or ""):match("%d+")) or 0
-    local a = tonumber((ahead  or ""):match("%d+")) or 0
-    if b > 0 then status = status .. "  ⇣" .. b end
-    if a > 0 then status = status .. "  ⇡" .. a end
+    return " " .. branch:gsub("%s+$", "")
   end
-
-  git_cache[path] = { status = status, at = now }
-  return status
+  return ""
 end
 
 -- Tab title: proportionally fills the tab bar.
@@ -85,12 +67,11 @@ wezterm.on("format-tab-title", function(tab, tabs)
   return { { Foreground = { Color = "#555555" } }, { Text = content } }
 end)
 
--- Right status: cwd tracking + git branch/sync indicator
+-- Right status: cwd tracking + git branch
 -- Also populates pane_cwd for format-tab-title
 wezterm.on("update-right-status", function(window, pane)
   local wid  = window:window_id()
   local pid  = pane:pane_id()
-  local now  = os.time()
 
   -- Cache real terminal width + map all tab IDs to this window
   -- (format-tab-title uses this to compute proportional tab widths)
@@ -100,10 +81,6 @@ wezterm.on("update-right-status", function(window, pane)
     for _, t in ipairs(mux_w:tabs()) do tab_window[t:tab_id()] = wid end
   end
 
-  -- Detect tab switch → force cache bypass for immediate refresh
-  local tab_switched = last_active_pane[wid] ~= pid
-  last_active_pane[wid] = pid
-
   local path
 
   local cwd = pane:get_current_working_dir()
@@ -111,25 +88,18 @@ wezterm.on("update-right-status", function(window, pane)
 
   local proc = pane:get_foreground_process_info()
   if proc and proc.name and proc.name:match("^tmux") then
-    local cached = pane_cwd[pid]
-    if tab_switched or not cached or (now - cached.at) >= 60 then
-      local ok, out = wezterm.run_child_process { TMUX, "display-message", "-p", "#{pane_current_path}" }
-      if ok and out then
-        local p = out:gsub("%s+$", "")
-        if p ~= "" and p ~= "/" then path = p end
-      end
-      pane_cwd[pid] = { path = path, at = now }
-    else
-      path = cached.path
+    local ok, out = wezterm.run_child_process { TMUX, "display-message", "-p", "#{pane_current_path}" }
+    if ok and out then
+      local p = out:gsub("%s+$", "")
+      if p ~= "" and p ~= "/" then path = p end
     end
-  elseif path then
-    pane_cwd[pid] = { path = path, at = now }
   end
 
+  if path then pane_cwd[pid] = { path = path } end
   path = path or (pane_cwd[pid] and pane_cwd[pid].path)
   if not path then window:set_right_status(""); return end
 
-  local status = git_status(path, tab_switched)
+  local status = git_branch(path)
   if status ~= "" then
     window:set_right_status(wezterm.format {
       { Foreground = { Color = "#C9A84C" } },
