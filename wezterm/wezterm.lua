@@ -15,12 +15,16 @@ local TMUX = find_bin("tmux")
 local HOME = wezterm.home_dir
 
 -- Caches
--- pane_cwd[pane_id]    = { path, at }   — cwd per pane (throttled tmux queries)
--- git_cache[path]      = { status, at } — git branch status per directory
--- last_active_pane[wid] = pane_id       — detect tab switches for instant refresh
+-- pane_cwd[pane_id]     = { path, at }  — cwd per pane
+-- git_cache[path]       = { status, at } — git status per directory
+-- last_active_pane[wid] = pane_id        — detect tab switches
+-- window_cols[wid]      = cols           — real terminal width for proportional tabs
+-- tab_window[tab_id]    = wid            — map tabs to their window
 local pane_cwd        = {}
 local git_cache       = {}
-local last_active_pane = {}  -- [window_id] -> pane_id
+local last_active_pane = {}
+local window_cols     = {}
+local tab_window      = {}
 
 local function short_path(path)
   local rel = path:gsub("^" .. HOME .. "/?", "")
@@ -51,19 +55,34 @@ local function git_status(path, force)
   return status
 end
 
--- Tab title: index + last-2-dir path, from shared cache so tmux works
-wezterm.on("format-tab-title", function(tab)
+-- Tab title: proportionally fills the tab bar.
+-- We compute target width from the cached real terminal cols (not max_width, which
+-- equals tab_max_width=9999 with fancy tab bar — not the actual proportional value).
+wezterm.on("format-tab-title", function(tab, tabs)
   local pane  = tab.active_pane
   local entry = pane_cwd[pane.pane_id]
   local path  = entry and entry.path
                or (pane.current_working_dir
                    and (pane.current_working_dir.file_path or tostring(pane.current_working_dir)))
-  local label = string.format("  %d  %s  ", tab.tab_index + 1, path and short_path(path) or pane.title)
+  local content = string.format(" %d  %s ", tab.tab_index + 1, path and short_path(path) or pane.title)
+
+  -- Proportional width: window_cols / num_tabs (populated by update-right-status)
+  local wid    = tab_window[tab.tab_id]
+  local cols   = wid and window_cols[wid]
+  if cols then
+    local target = math.max(8, math.floor(cols / #tabs))
+    if #content > target then
+      content = wezterm.truncate_right(content, target - 1) .. "…"
+    else
+      local pad = target - #content
+      content = string.rep(" ", math.floor(pad / 2)) .. content .. string.rep(" ", math.ceil(pad / 2))
+    end
+  end
 
   if tab.is_active then
-    return { { Attribute = { Intensity = "Bold" } }, { Foreground = { Color = "#FFFFFF" } }, { Text = label } }
+    return { { Attribute = { Intensity = "Bold" } }, { Foreground = { Color = "#FFFFFF" } }, { Text = content } }
   end
-  return { { Foreground = { Color = "#555555" } }, { Text = label } }
+  return { { Foreground = { Color = "#555555" } }, { Text = content } }
 end)
 
 -- Right status: cwd tracking + git branch/sync indicator
@@ -72,6 +91,14 @@ wezterm.on("update-right-status", function(window, pane)
   local wid  = window:window_id()
   local pid  = pane:pane_id()
   local now  = os.time()
+
+  -- Cache real terminal width + map all tab IDs to this window
+  -- (format-tab-title uses this to compute proportional tab widths)
+  window_cols[wid] = window:active_tab():get_size().cols
+  local mux_w = wezterm.mux.get_window(wid)
+  if mux_w then
+    for _, t in ipairs(mux_w:tabs()) do tab_window[t:tab_id()] = wid end
+  end
 
   -- Detect tab switch → force cache bypass for immediate refresh
   local tab_switched = last_active_pane[wid] ~= pid
@@ -156,9 +183,9 @@ config.cursor_blink_rate    = 500
 
 -- ── Tab bar ───────────────────────────────────────────────────────────────────
 config.use_fancy_tab_bar            = true
-config.hide_tab_bar_if_only_one_tab = true
+config.hide_tab_bar_if_only_one_tab = false   -- always show bar
 config.tab_bar_at_bottom            = false
-config.tab_max_width                = 44
+config.tab_max_width                = 9999    -- no cap → WezTerm divides bar space proportionally
 
 config.window_frame = {
   font                            = wezterm.font("MesloLGS NF", { weight = "Bold" }),
