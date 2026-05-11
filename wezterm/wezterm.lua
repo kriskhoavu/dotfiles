@@ -141,9 +141,19 @@ config.colors = {
 }
 
 -- ── Window ────────────────────────────────────────────────────────────────────
-config.window_background_opacity    = 0.92
+config.window_background_opacity    = 1.0
 config.macos_window_background_blur = 10
 config.text_background_opacity      = 1.0
+
+-- Transparent body only (tab bar stays opaque)
+config.background = {
+  {
+    source = { Color = "#151414" },
+    opacity = 0.92,
+    width = "100%",
+    height = "100%",
+  },
+}
 config.window_decorations           = "RESIZE"
 config.window_padding               = { left = 4, right = 4, top = 4, bottom = 4 }
 
@@ -192,6 +202,14 @@ config.keys = {
   { key = "Enter",      mods = "OPT",       action = act.SendString("\x1b\r") },   -- Option+Enter → Alt+Enter
   { key = "d",          mods = "CMD|SHIFT",  action = act.SendString("\\sd") },   -- Cmd+Shift+D  → nvim <leader>sd
   { key = "t",          mods = "CMD",        action = act.SpawnCommandInNewTab { cwd = HOME } }, -- Cmd+T → home
+  { key = "c",          mods = "CTRL",       action = wezterm.action_callback(function(window, pane)
+    local sel = window:get_selection_text_for_pane(pane)
+    if sel and sel ~= "" then
+      window:perform_action(act.CopyTo("Clipboard"), pane)
+    else
+      window:perform_action(act.SendKey { key = "c", mods = "CTRL" }, pane)
+    end
+  end) },
 }
 
 return config
