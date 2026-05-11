@@ -174,6 +174,18 @@ install_wezterm() {
     mkdir -p "$HOME/.config"
     ln -sf "$DOTFILES_DIR/wezterm" "$HOME/.config/wezterm"
     log_info "WezTerm config linked!"
+
+    # Install macOS Quick Action workflow
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        local workflow_name="Open in WezTerm.workflow"
+        local workflow_src="$DOTFILES_DIR/wezterm/$workflow_name"
+        local workflow_dst="$HOME/Library/Services/$workflow_name"
+        if [ -d "$workflow_src" ]; then
+            backup_if_exists "$workflow_dst"
+            cp -R "$workflow_src" "$workflow_dst"
+            log_info "  ✓ '$workflow_name' Quick Action installed"
+        fi
+    fi
 }
 
 # ============================================

@@ -126,6 +126,16 @@ sync_wezterm() {
         rsync -av --exclude='.git' --exclude='.DS_Store' "$HOME/.config/wezterm/" "$DOTFILES_DIR/wezterm/"
         log_info "  ✓ wezterm config synced"
     fi
+
+    # Sync macOS Quick Action workflow
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        local workflow_name="Open in WezTerm.workflow"
+        local workflow_src="$HOME/Library/Services/$workflow_name"
+        if [ -d "$workflow_src" ]; then
+            rsync -av --delete --exclude='.DS_Store' "$workflow_src/" "$DOTFILES_DIR/wezterm/$workflow_name/"
+            log_info "  ✓ '$workflow_name' Quick Action synced"
+        fi
+    fi
 }
 
 # ============================================
