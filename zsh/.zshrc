@@ -76,6 +76,9 @@ ZSHRC_DIR="${${(%):-%x}:A:h}"
 
 # Dynamically set iTerm2 tab title to current directory name
 function _set_iterm_tab_title() {
+  # Skip inside Neovim's terminal — it doesn't support OSC 7
+  [[ -n "$NVIM" ]] && return
+
   # OSC 1: iTerm2 tab title (current dir name)
   echo -ne "\e]1;${PWD##*/}\a"
 
