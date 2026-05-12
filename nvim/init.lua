@@ -37,3 +37,9 @@ vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "BufWinEnter", "BufFile
   pattern = "*",
   command = "checktime",
 })
+
+-- Auto-save when leaving buffer or losing focus
+vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost" }, {
+  pattern = "*",
+  command = "silent! wall",
+})
