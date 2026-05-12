@@ -74,13 +74,10 @@ ZSHRC_DIR="${${(%):-%x}:A:h}"
 [[ -f "$ZSHRC_DIR/git-stuff.zsh" ]] && source "$ZSHRC_DIR/git-stuff.zsh"
 [[ -f "$ZSHRC_DIR/navigation.zsh" ]] && source "$ZSHRC_DIR/navigation.zsh"
 
-# Dynamically set iTerm2 tab title to current directory name
-function _set_iterm_tab_title() {
+# Dynamically set WezTerm tab title to current directory
+function _set_wezterm_tab_title() {
   # Skip inside Neovim's terminal — it doesn't support OSC 7
   [[ -n "$NVIM" ]] && return
-
-  # OSC 1: iTerm2 tab title (current dir name)
-  echo -ne "\e]1;${PWD##*/}\a"
 
   # OSC 7: report cwd to WezTerm so tab title + git status work
   # Inside tmux the sequence must be wrapped in a DCS passthrough,
@@ -92,9 +89,9 @@ function _set_iterm_tab_title() {
   fi
 }
 autoload -Uz add-zsh-hook
-add-zsh-hook chpwd _set_iterm_tab_title
-add-zsh-hook precmd _set_iterm_tab_title  # also fire before every prompt, catches tmux attach
-_set_iterm_tab_title  # Set on shell startup
+add-zsh-hook chpwd _set_wezterm_tab_title
+add-zsh-hook precmd _set_wezterm_tab_title  # also fire before every prompt, catches tmux attach
+_set_wezterm_tab_title  # Set on shell startup
 
 # Load machine-local credentials (not tracked in git)
 [[ -f "$HOME/.creds.zsh" ]] && source "$HOME/.creds.zsh"

@@ -137,14 +137,6 @@ alias x="exit"
 alias hc="history -c"
 alias hg="history | grep "
 
-## CDE environment aliases
-# export SEU_HOME=/Users/kdvu/Development/cde
-# export GROOVY_HOME=/opt/homebrew/opt/groovy/libexec
-# alias env17='source ~/Development/cde/myenv-common.sh 17 18 -7.4.2 6'
-# alias env11c='source ~/Development/cde/myenv-common.sh 11 14 6 6'
-# alias env11='source ~/Development/cde/myenv11.sh'
-# alias env8='source ~/Development/cde/myenv18.sh'
-
 # ---------- Serena Helpers ----------
 alias serena-ps='echo "=== Serena MCP Sessions ===" && ps aux | grep "serena.*start-mcp-server" | grep -v grep; echo "=== JDTLS Language Servers ===" && ps aux | grep ".serena/language_servers" | grep -v grep'
 alias serena-kill='ps aux | grep ".serena/language_servers" | grep -v grep | awk "{print \$2}" | xargs -r kill 2>/dev/null; echo "Killed orphaned JDTLS processes"'
