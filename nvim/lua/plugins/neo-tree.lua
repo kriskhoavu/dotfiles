@@ -84,11 +84,21 @@ return {
               end
             end,
           },
+          find_by_full_path_words = false,
+          find_command = "find",
+          find_args = {
+            fd = {
+              "--exclude", ".git",
+              "--exclude", "node_modules",
+            },
+          },
+          async_directory_scan = "auto",
           window = {
             mappings = {
               ["<cr>"] = drill_down,
               ["l"] = drill_down,
               ["h"] = "close_node",
+              ["/"] = "fuzzy_finder",
             },
           },
         },

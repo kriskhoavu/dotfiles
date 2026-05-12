@@ -11,6 +11,28 @@ alias gaa='git add .'                     # Add all changes
 alias gcm='git commit -m'                 # Commit with message
 alias gca='git commit --amend'            # Amend last commit
 
+# Amend into any recent commit (interactive pick via fzf)
+# Usage: gcap (stage changes first with ga/gaa)
+function gcap() {
+  if ! git diff --cached --quiet --exit-code 2>/dev/null; then
+    : # staged changes exist
+  else
+    echo "No staged changes. Stage something first (ga / gaa)."
+    return 1
+  fi
+
+  local commit
+  commit=$(git log --oneline -20 | fzf --height=12 --reverse --prompt="Amend into > " | awk '{print $1}')
+
+  if [[ -z "$commit" ]]; then
+    echo "Cancelled."
+    return 0
+  fi
+
+  git commit --fixup="$commit" && \
+  GIT_SEQUENCE_EDITOR=: git rebase -i --autosquash "${commit}~1"
+}
+
 function gca-now() {
   local now="$(date)"
   if [ "$#" -gt 0 ]; then
