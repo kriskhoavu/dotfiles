@@ -31,6 +31,29 @@ vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<cr><Esc>", { silent = true, desc =
 -- Terminal mode: double-Esc exits to normal mode (single Esc passes through to CLI tools)
 vim.keymap.set("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
+-- Hide statusline for terminal buffers
+vim.api.nvim_create_autocmd({ "TermOpen", "BufEnter", "WinEnter" }, {
+  callback = function()
+    if vim.bo.buftype == "terminal" then
+      vim.wo.statusline = " "
+      vim.wo.winbar = ""
+    end
+  end,
+})
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    vim.defer_fn(function()
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.bo[buf].buftype == "terminal" then
+          vim.wo[win].statusline = " "
+          vim.wo[win].winbar = ""
+        end
+      end
+    end, 10)
+  end,
+})
+
 -- Open current file in browser
 vim.keymap.set("n", "<leader>ob", function()
     local file_path = vim.fn.expand("%:p")

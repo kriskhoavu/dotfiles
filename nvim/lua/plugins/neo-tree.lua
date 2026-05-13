@@ -112,6 +112,21 @@ return {
       -- Keep NeoTree pinned to the left: lock its width and redirect files opened inside it
       local neotree_win_id = nil
 
+      -- Hide statusline for Neo-tree windows
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "neo-tree",
+        callback = function()
+          vim.wo.statusline = " "
+        end,
+      })
+      vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+        callback = function()
+          if vim.bo.filetype == "neo-tree" then
+            vim.wo.statusline = " "
+          end
+        end,
+      })
+
       vim.api.nvim_create_autocmd("FileType", {
         group = vim.api.nvim_create_augroup("NeoTreePin", { clear = true }),
         pattern = "neo-tree",
