@@ -6,6 +6,20 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       require("bufferline").setup({
+        highlights = {
+          buffer_selected = { bg = "#313244", bold = true, italic = false },
+          indicator_selected = { bg = "#313244" },
+          close_button_selected = { bg = "#313244" },
+          modified_selected = { bg = "#313244" },
+          diagnostic_selected = { bg = "#313244" },
+          hint_selected = { bg = "#313244" },
+          info_selected = { bg = "#313244" },
+          warning_selected = { bg = "#313244" },
+          error_selected = { bg = "#313244" },
+          separator = { fg = "#8b0000" },
+          separator_visible = { fg = "#8b0000" },
+          separator_selected = { fg = "#8b0000", bg = "#313244" },
+        },
         options = {
           mode = "buffers",
           numbers = "none",
@@ -26,7 +40,7 @@ return {
           },
           show_buffer_close_icons = true,
           show_close_icon = false,
-          separator_style = "thin",
+          separator_style = { "┃", "┃" },
           -- Hide unwanted buffers from bufferline
           custom_filter = function(buf_number)
             local buf_name = vim.fn.bufname(buf_number)
