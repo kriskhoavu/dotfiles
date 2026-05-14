@@ -89,7 +89,8 @@ return {
               gradle = {
                 enabled = true,
                 wrapper = { enabled = true, checksums = {} },
-                offline = { enabled = false },
+                -- Use offline mode if workspace cache already exists (faster re-open)
+                offline = { enabled = vim.fn.isdirectory(workspace_dir .. "/.metadata") == 1 },
                 -- Cache Gradle configuration so re-opens skip build script re-evaluation
                 arguments = "--configuration-cache --configuration-cache-problems=warn",
               },
