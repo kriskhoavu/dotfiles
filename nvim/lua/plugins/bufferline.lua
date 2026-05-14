@@ -117,7 +117,17 @@ return {
           end
         end
       end, { desc = "Close current buffer, switch to previous" })
-      vim.keymap.set("n", "<leader>X", "<cmd>BufferLineCloseOthers<cr>", { desc = "Close other buffers" })
+      vim.keymap.set("n", "<leader>X", function()
+        local current = vim.api.nvim_get_current_buf()
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          if buf ~= current and vim.api.nvim_buf_is_loaded(buf) then
+            local bt = vim.bo[buf].buftype
+            if bt == "" then
+              vim.api.nvim_buf_delete(buf, { force = false })
+            end
+          end
+        end
+      end, { desc = "Close other buffers (keep terminals)" })
     end,
   },
 }
