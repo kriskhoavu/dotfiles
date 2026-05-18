@@ -26,6 +26,26 @@ return {
           close_command = "bdelete! %d",
           right_mouse_command = "bdelete! %d",
           diagnostics = "nvim_lsp",
+          name_formatter = function(buf)
+            -- buf has: name, path, bufnr
+            if vim.bo[buf.bufnr].buftype == "terminal" then
+              -- Terminal paths look like "term:///path//PID:/bin/zsh"
+              -- buf.name is already fnamemodify(path, ":t") which gives "PID:/bin/zsh" or similar
+              local path = buf.path or ""
+              local shell = path:match("/([^/]+)$") or "terminal"
+              -- Assign left-to-right index among listed terminal buffers
+              local index = 0
+              for _, b in ipairs(vim.api.nvim_list_bufs()) do
+                if vim.api.nvim_buf_is_valid(b) and vim.bo[b].buflisted and vim.bo[b].buftype == "terminal" then
+                  index = index + 1
+                  if b == buf.bufnr then
+                    return shell .. " - " .. index
+                  end
+                end
+              end
+              return shell
+            end
+          end,
           diagnostics_indicator = function(count, level)
             local icon = level:match("error") and " " or " "
             return " " .. icon .. count
