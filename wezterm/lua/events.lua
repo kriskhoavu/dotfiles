@@ -9,10 +9,17 @@ local TMUX_CHECK_TTL = 5 -- seconds
 -- Tab title: fixed 10px padding on each side.
 wezterm.on("format-tab-title", function(tab)
   local pane  = tab.active_pane
-  local entry = pane_cwd[pane.pane_id]
-  local path  = entry and entry.path
-               or (pane.current_working_dir
-                   and (pane.current_working_dir.file_path or tostring(pane.current_working_dir)))
+  -- Always prefer the pane's live cwd; fall back to cache only if unavailable
+  local path
+  if pane.current_working_dir then
+    path = pane.current_working_dir.file_path or tostring(pane.current_working_dir)
+    path = path:gsub("/$", "")
+    -- Update cache so other events stay consistent
+    pane_cwd[pane.pane_id] = { path = path }
+  else
+    local entry = pane_cwd[pane.pane_id]
+    path = entry and entry.path
+  end
   local PAD     = "   "
   local content = string.format("%s%d  %s%s", PAD, tab.tab_index + 1, path and h.short_path(path) or pane.title, PAD)
 
