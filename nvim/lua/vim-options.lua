@@ -28,10 +28,10 @@ vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selected lines up" }
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selected lines down" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<cr><Esc>", { silent = true, desc = "Clear search highlight" })
 
--- Terminal mode: single Esc exits to normal mode, double-Esc sends Esc to the terminal app
+-- Terminal mode: single Esc exits to normal mode, Ctrl-] sends Esc to the terminal app
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
-vim.keymap.set("t", "<Esc><Esc>", function()
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<C-\\><C-n>i<Esc>", true, false, true), "n", false)
+vim.keymap.set("t", "<C-]>", function()
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 end, { desc = "Send Esc to terminal app" })
 
 -- Hide statusline for terminal buffers
