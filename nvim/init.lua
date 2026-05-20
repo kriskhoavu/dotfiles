@@ -29,7 +29,7 @@ require("lazy").setup({
 })
 
 -- Set Theme
-vim.cmd.colorscheme("catppuccin-mocha")
+vim.cmd.colorscheme("onedark")
 
 -- Auto-reload files changed outside of Neovim
 vim.opt.autoread = true
