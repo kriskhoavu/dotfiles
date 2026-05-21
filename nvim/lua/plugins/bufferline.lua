@@ -7,25 +7,28 @@ return {
     config = function()
       require("bufferline").setup({
         highlights = {
-          buffer_selected = { bg = "#313244", bold = true, italic = false },
-          indicator_selected = { bg = "#313244" },
-          close_button_selected = { bg = "#313244" },
-          modified_selected = { bg = "#313244" },
-          diagnostic_selected = { bg = "#313244" },
-          hint_selected = { bg = "#313244" },
-          info_selected = { bg = "#313244" },
-          warning_selected = { bg = "#313244" },
-          error_selected = { bg = "#313244" },
-          separator = { fg = "#8b0000" },
-          separator_visible = { fg = "#8b0000" },
-          separator_selected = { fg = "#8b0000", bg = "#313244" },
+          fill = { bg = "#0f1117" },
+          background = { fg = "#7f8ea3", bg = "#1a1f2b" },
+          buffer_visible = { fg = "#aab7cf", bg = "#1f2633" },
+          buffer_selected = { fg = "#e8eefc", bg = "#2b3b57", bold = true, italic = false },
+          indicator_selected = { fg = "#8b0000", bg = "#2b3b57" },
+          close_button_selected = { fg = "#dbe6ff", bg = "#2b3b57" },
+          modified_selected = { fg = "#f5a97f", bg = "#2b3b57" },
+          diagnostic_selected = { fg = "#e8eefc", bg = "#2b3b57" },
+          hint_selected = { fg = "#8bd5ca", bg = "#2b3b57" },
+          info_selected = { fg = "#7dc4e4", bg = "#2b3b57" },
+          warning_selected = { fg = "#f5a97f", bg = "#2b3b57" },
+          error_selected = { fg = "#ed8796", bg = "#2b3b57" },
+          separator = { fg = "#344055", bg = "#1a1f2b" },
+          separator_visible = { fg = "#344055", bg = "#1f2633" },
+          separator_selected = { fg = "#f5a97f", bg = "#2b3b57" },
         },
         options = {
           mode = "buffers",
           numbers = "none",
           close_command = "bdelete! %d",
           right_mouse_command = "bdelete! %d",
-          diagnostics = "nvim_lsp",
+          diagnostics = false,
           name_formatter = function(buf)
             -- buf has: name, path, bufnr
             if vim.bo[buf.bufnr].buftype == "terminal" then
@@ -45,10 +48,6 @@ return {
               end
               return shell
             end
-          end,
-          diagnostics_indicator = function(count, level)
-            local icon = level:match("error") and " " or " "
-            return " " .. icon .. count
           end,
           offsets = {
             {
