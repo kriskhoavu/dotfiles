@@ -44,6 +44,16 @@ return {
         opts = {
             on_attach = function(bufnr)
                 local gs = package.loaded.gitsigns
+                local function close_gitsigns_diff_view()
+                    vim.cmd("diffoff!")
+                    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+                        local buf = vim.api.nvim_win_get_buf(win)
+                        local name = vim.api.nvim_buf_get_name(buf)
+                        if name:match("^gitsigns://") and vim.api.nvim_win_is_valid(win) then
+                            vim.api.nvim_win_close(win, true)
+                        end
+                    end
+                end
                 local function map(mode, l, r, desc)
                     vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
                 end
@@ -70,16 +80,26 @@ return {
 
                 -- Blame
                 map("n", "<leader>hb", function()
-                    gs.blame_line({ full = true })
+                   gs.blame_line({ full = true })
                 end, "Blame line (full)")
                 map("n", "<leader>hB", gs.toggle_current_line_blame, "Toggle line blame")
 
                 -- Diff / Preview
                 map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
-                map("n", "<leader>hd", gs.diffthis, "Diff this")
+                map("n", "<leader>hd", function()
+                    if vim.wo.diff then
+                        close_gitsigns_diff_view()
+                        return
+                    end
+                    gs.diffthis()
+                end, "Toggle diff this")
                 map("n", "<leader>hD", function()
+                    if vim.wo.diff then
+                        close_gitsigns_diff_view()
+                        return
+                    end
                     gs.diffthis("~")
-                end, "Diff this ~ (against last commit)")
+                end, "Toggle diff this ~ (against last commit)")
 
                 -- text object
                 map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "Select hunk")
