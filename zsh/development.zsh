@@ -128,9 +128,9 @@ function iclaude() { claude --dangerously-skip-permissions ${1:+-i} "$@" }
 
 # ---------- Codex Helpers ----------
 # Auto approve within workspace
-alias codex-god="codex run --dangerously-bypass-approvals-and-sandbox"
+alias codex-god="codex --dangerously-bypass-approvals-and-sandbox"
 # Resume + Auto approve within workspace
-alias codex-god-r="codex run resume --dangerously-bypass-approvals-and-sandbox"
+alias codex-god-r="codex --dangerously-bypass-approvals-and-sandbox resume"
 
 # Project shortcuts
 alias x="exit"
