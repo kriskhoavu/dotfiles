@@ -12,7 +12,7 @@ return function(config)
 
   -- ── Colors (iTerm2 "Kris" dark profile) ────────────────────────────────────
   config.colors = {
-    foreground    = "#3AD4FF",
+    foreground    = "#F6D6B2",
     background    = "#151414",
     cursor_bg     = "#BBBBBB",
     cursor_border = "#BBBBBB",
@@ -33,14 +33,14 @@ return function(config)
 
   -- ── Window ────────────────────────────────────────────────────────────────
   config.window_background_opacity    = 1.0
-  config.macos_window_background_blur = 10
+  config.macos_window_background_blur = 0
   config.text_background_opacity      = 1.0
 
-  -- Transparent body only (tab bar stays opaque)
+  -- Fully opaque body (tab bar stays opaque)
   config.background = {
     {
       source = { Color = "#151414" },
-      opacity = 0.92,
+      opacity = 1.0,
       width = "100%",
       height = "100%",
     },
