@@ -28,12 +28,14 @@ function compinit() {
 
 ZSH_THEME="spaceship-prompt/spaceship"
 
-# Spaceship settings - async for performance
+# Spaceship settings
 SPACESHIP_CHAR_SYMBOL="⭐️ "
 SPACESHIP_TIME_SHOW=true
 SPACESHIP_PROMPT_ASYNC=true
+SPACESHIP_GIT_ASYNC=false
 SPACESHIP_PROMPT_ADD_NEWLINE=false
 SPACESHIP_PROMPT_SEPARATE_LINE=false
+SPACESHIP_RPROMPT_ADD_NEWLINE=true
 
 # Minimal spaceship sections for performance
 SPACESHIP_PROMPT_ORDER=(
@@ -79,14 +81,19 @@ function _set_wezterm_tab_title() {
   # Skip inside Neovim's terminal — it doesn't support OSC 7
   [[ -n "$NVIM" ]] && return
 
+  local osc7
+
   # OSC 7: report cwd to WezTerm so tab title + git status work
   # Inside tmux the sequence must be wrapped in a DCS passthrough,
   # otherwise tmux intercepts it and WezTerm never sees it.
   if [ -n "$TMUX" ]; then
-    printf "\ePtmux;\e\e]7;file://%s%s\a\e\\" "$HOST" "$PWD"
+    osc7=$'\ePtmux;\e\e]7;file://'"$HOST$PWD"$'\a\e\\'
   else
-    printf "\e]7;file://%s%s\a" "$HOST" "$PWD"
+    osc7=$'\e]7;file://'"$HOST$PWD"$'\a'
   fi
+
+  # Mark the terminal escape as zero-width so zsh doesn't move the edit buffer.
+  print -rnP "%{${osc7}%}"
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook chpwd _set_wezterm_tab_title
