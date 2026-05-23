@@ -105,5 +105,12 @@ function itmux() {
   selected=$(echo "$sessions" | fzf --prompt="tmux session: " --height=10 --reverse)
 
   [[ -z "$selected" ]] && return
+
+  local target_path
+  target_path=$(tmux display-message -p -t "$selected:" "#{pane_current_path}" 2>/dev/null)
+  if [[ -n "$target_path" ]] && typeset -f _set_wezterm_tab_title >/dev/null; then
+    _set_wezterm_tab_title "$target_path"
+  fi
+
   tmux attach-session -t "$selected"
 }

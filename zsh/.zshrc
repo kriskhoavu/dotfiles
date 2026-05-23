@@ -82,14 +82,15 @@ function _set_wezterm_tab_title() {
   [[ -n "$NVIM" ]] && return
 
   local osc7
+  local target_path="${1:-$PWD}"
 
   # OSC 7: report cwd to WezTerm so tab title + git status work
   # Inside tmux the sequence must be wrapped in a DCS passthrough,
   # otherwise tmux intercepts it and WezTerm never sees it.
   if [ -n "$TMUX" ]; then
-    osc7=$'\ePtmux;\e\e]7;file://'"$HOST$PWD"$'\a\e\\'
+    osc7=$'\ePtmux;\e\e]7;file://'"$HOST$target_path"$'\a\e\\'
   else
-    osc7=$'\e]7;file://'"$HOST$PWD"$'\a'
+    osc7=$'\e]7;file://'"$HOST$target_path"$'\a'
   fi
 
   # Mark the terminal escape as zero-width so zsh doesn't move the edit buffer.
