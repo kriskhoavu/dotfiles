@@ -47,6 +47,10 @@ chmod +x install.sh sync.sh
 ./install.sh
 ```
 
+## Shortcut Help
+
+See [SHORTCUTS.md](SHORTCUTS.md) for the custom shortcut help center covering Neovim, Tmux, Git aliases, Zsh helpers, WezTerm, VSCode, and IntelliJ/IdeaVim.
+
 ## Sync Changes Back to Dotfiles
 
 When you edit settings directly in apps (VSCode, IntelliJ, etc.), sync them back:
