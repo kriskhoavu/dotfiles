@@ -20,6 +20,7 @@ config.visual_bell               = { fade_in_duration_ms = 0, fade_out_duration_
 config.window_close_confirmation = "NeverPrompt"
 config.front_end                 = "WebGpu"
 config.max_fps                   = 120
+config.use_ime                   = true
+config.macos_forward_to_ime_modifier_mask = "SHIFT"
 
 return config
-
