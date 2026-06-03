@@ -69,22 +69,6 @@ vim.keymap.set("n", "<leader>ob", function()
     end
 end, { desc = "Open current file in browser" })
 
--- Notification filter (silence noisy LSP warnings)
-local notify_original = vim.notify
-vim.notify = function(msg, ...)
-    if
-        msg
-        and (
-            msg:match("position_encoding param is required")
-            or msg:match("Defaulting to position encoding of the first client")
-            or msg:match("multiple different client offset_encodings")
-        )
-    then
-        return
-    end
-    return notify_original(msg, ...)
-end
-
 -- Resize mode (window resizing with hjkl)
 vim.keymap.set("n", "<leader>wr", function()
     local ns = vim.api.nvim_create_namespace("resize_mode")
