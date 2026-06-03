@@ -41,6 +41,7 @@ Source: `nvim/lua/**`
 | --- | --- | --- | --- |
 | `\1` | Normal | Toggle Neo-tree file explorer. | Opens or closes the left explorer. |
 | `\f.` | Normal | Reveal current file in Neo-tree. | Useful when you are deep in buffers. |
+| `gf` | Neo-tree | Open Finder at current node's directory. | Press inside Neo-tree on any file or folder. |
 | `\ff` | Normal | Find files with fzf-lua. | Uses the Neo-tree directory when possible. |
 | `\fg` | Normal | Find Git-tracked files. | Searches files tracked by Git. |
 | `\fG` | Normal | Find all files including hidden files. | Excludes `.git`. |
@@ -49,6 +50,7 @@ Source: `nvim/lua/**`
 | `\fh` | Normal | Search help tags. | Opens Neovim help picker. |
 | `\fs` | Normal | Search document symbols. | Uses LSP symbols when available. |
 | `H` / `L` | Normal | Previous / next buffer. | Cycles bufferline left or right. |
+| `⌥h` / `⌥l` | Normal, Insert, Terminal | Previous / next buffer. | Works in all modes including terminal buffers. |
 | `\x` | Normal | Close current buffer or special diff window. | Keeps terminal buffers handled specially. |
 | `\X` | Normal | Close other buffers. | Keeps terminal buffers. |
 
@@ -59,7 +61,7 @@ Source: `nvim/lua/**`
 | `K` / `J` | Visual | Move selected lines up / down. | Select lines, press `K` or `J`. |
 | `\p` | Visual | Paste over selection without replacing yank. | Keeps the original copied text available. |
 | `d`, `D`, `c`, `C`, `s`, `S` | Normal, Visual | Delete/change/substitute without using clipboard. | Uses the black-hole register by default. |
-| `\cp` | Normal | Paste files copied from Finder. | Uses macOS Finder clipboard paths. |
+| `\p` | Normal | Paste files copied from Finder into Neo-tree. | Focus Neo-tree on target dir, copy file in Finder (Cmd+C), then press `\p`. |
 | `\ce` | Normal | Copy diagnostic message to clipboard. | Put cursor on a diagnostic first. |
 | `\ob` | Normal | Open current buffer in browser. | Useful for local HTML and generated files. |
 

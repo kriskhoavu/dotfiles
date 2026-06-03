@@ -99,6 +99,11 @@ return {
               ["l"] = drill_down,
               ["h"] = "close_node",
               ["/"] = "fuzzy_finder",
+              ["gf"] = function(state)
+                local node = state.tree:get_node()
+                local path = node.type == "directory" and node.path or vim.fn.fnamemodify(node.path, ":h")
+                vim.fn.jobstart({ "open", path }, { detach = true })
+              end,
             },
           },
         },
