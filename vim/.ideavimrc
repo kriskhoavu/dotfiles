@@ -35,8 +35,8 @@ nnoremap <C-l> :action NextSplitter<CR>
 nnoremap <C-h> :action NextSplitter<CR>
 
 " Move between file in groups of tabs
-nnoremap H :action PreviousTab<CR>
-nnoremap L :action NextTab<CR>
+nnoremap <A-h> :action PreviousTab<CR>
+nnoremap <A-l> :action NextTab<CR>
 
 nnoremap <leader>ff :action GotoFile<CR>
 nnoremap <leader>fg :action GotoSymbol<CR>

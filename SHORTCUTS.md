@@ -49,7 +49,6 @@ Source: `nvim/lua/**`
 | `\fb` | Normal | List buffers. | Switch between open buffers. |
 | `\fh` | Normal | Search help tags. | Opens Neovim help picker. |
 | `\fs` | Normal | Search document symbols. | Uses LSP symbols when available. |
-| `H` / `L` | Normal | Previous / next buffer. | Cycles bufferline left or right. |
 | `⌥h` / `⌥l` | Normal, Insert, Terminal | Previous / next buffer. | Works in all modes including terminal buffers. |
 | `\x` | Normal | Close current buffer or special diff window. | Keeps terminal buffers handled specially. |
 | `\X` | Normal | Close other buffers. | Keeps terminal buffers. |
@@ -281,7 +280,7 @@ Leader key in VSCode Vim bindings: `\`.
 | `Ctrl-h/j/k/l` | Navigate editor groups/views. | Vim-style focus movement. |
 | `\e` | Toggle Explorer and focus it / return to editor. | Normal mode. |
 | `\,` | Show all editors. | Normal mode. |
-| `H` / `L` | Previous / next editor in group. | Normal or visual mode. |
+| `⌥h` / `⌥l` | Previous / next editor in group. | Works in any focus state. |
 | `\space` | Quick Open. | Normal mode. |
 | `\ff` | Find in files. | Normal mode. |
 | `\f.` | Reveal active file in Explorer. | Normal mode. |

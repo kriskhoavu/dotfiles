@@ -124,14 +124,14 @@
         "when": "sideBarFocus && !inputFocus"
     },
     {
-        "key": "shift+l",
+        "key": "alt+l",
         "command": "workbench.action.nextEditorInGroup",
-        "when": "(vim.mode == 'Normal' || vim.mode == 'Visual') && (editorTextFocus || !inputFocus)",
+        "when": "editorTextFocus || !inputFocus",
     },
     {
-        "key": "shift+h",
+        "key": "alt+h",
         "command": "workbench.action.previousEditorInGroup",
-        "when": "(vim.mode == 'Normal' || vim.mode == 'Visual') && (editorTextFocus || !inputFocus)",
+        "when": "editorTextFocus || !inputFocus",
     },
     // Coding
     {

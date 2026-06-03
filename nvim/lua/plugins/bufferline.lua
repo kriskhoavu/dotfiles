@@ -82,8 +82,6 @@ return {
       })
 
       -- Bufferline keymaps
-      vim.keymap.set("n", "H", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
-      vim.keymap.set("n", "L", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
       vim.keymap.set({ "n", "i", "t" }, "<A-h>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
       vim.keymap.set({ "n", "i", "t" }, "<A-l>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
       vim.keymap.set("n", "<leader>x", function()
