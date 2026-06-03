@@ -169,12 +169,19 @@ return {
 
       -- Auto-open neo-tree when starting without file arguments
       vim.api.nvim_create_autocmd("VimEnter", {
-        callback = function()
+        nested = true,
+        callback = vim.schedule_wrap(function()
           if vim.fn.argc() ~= 0 then return end
           vim.cmd("Neotree filesystem reveal left")
-          vim.cmd("wincmd l")   -- Move to right window
-          vim.cmd("terminal")   -- Open terminal
-        end,
+          vim.cmd("wincmd l")
+          -- Only open terminal if one doesn't already exist (e.g. from restored session)
+          for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+            if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
+              return
+            end
+          end
+          vim.cmd("terminal")
+        end),
       })
     end,
   },
