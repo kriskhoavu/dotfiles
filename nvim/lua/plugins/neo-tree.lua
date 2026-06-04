@@ -57,7 +57,7 @@ return {
         filesystem = {
           use_libuv_file_watcher = true,
           group_empty_dirs = false,
-          follow_current_file = { enabled = true },
+          follow_current_file = { enabled = false },
           filtered_items = {
             visible = true,
             hide_dotfiles = false,
