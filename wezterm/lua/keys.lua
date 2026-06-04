@@ -11,7 +11,7 @@ return function(config)
     { key = "LeftArrow",  mods = "OPT",       action = act.SendString("\x1bb") },    -- Option+Left  → word back
     { key = "RightArrow", mods = "OPT",       action = act.SendString("\x1bf") },    -- Option+Right → word fwd
     { key = "Enter",      mods = "OPT",       action = act.SendString("\x1b\r") },   -- Option+Enter → Alt+Enter
-    { key = "d",          mods = "CMD|SHIFT",  action = act.SendString("\\sd") },    -- Cmd+Shift+D  → nvim <leader>sd
+    { key = "d",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\sd") }, -- Ctrl+Cmd+Shift+D → nvim <leader>sd
     { key = "t",          mods = "CMD",        action = act.SpawnCommandInNewTab { cwd = h.HOME } },
     { key = "c",          mods = "CTRL",       action = wezterm.action_callback(function(window, pane)
       local sel = window:get_selection_text_for_pane(pane)
