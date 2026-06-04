@@ -62,7 +62,7 @@ Source: `nvim/lua/**`
 | `d`, `D`, `c`, `C`, `s`, `S` | Normal, Visual | Delete/change/substitute without using clipboard. | Uses the black-hole register by default. |
 | `\p` | Normal | Paste files copied from Finder into Neo-tree. | Focus Neo-tree on target dir, copy file in Finder (Cmd+C), then press `\p`. |
 | `\ce` | Normal | Copy diagnostic message to clipboard. | Put cursor on a diagnostic first. |
-| `\ob` | Normal | Open current buffer in browser. | Useful for local HTML and generated files. |
+| `\ob` | Normal | Open current buffer in browser (works in Neo-tree). | Useful for local HTML and generated files. |
 
 ### Windows And Navigation
 

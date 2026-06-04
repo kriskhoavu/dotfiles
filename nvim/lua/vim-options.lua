@@ -59,15 +59,27 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 -- Open current file in browser
 vim.keymap.set("n", "<leader>ob", function()
-    local file_path = vim.fn.expand("%:p")
-    if file_path ~= "" then
+    local file_path
+    if vim.bo.filetype == "neo-tree" then
+      -- Get the file path under cursor in NeoTree
+      local state = require("neo-tree.sources.manager").get_state("filesystem")
+      local node = state.tree:get_node()
+      if node and node.type == "file" then
+        file_path = node:get_id()
+      elseif node and node.type == "directory" then
+        file_path = node:get_id()
+      end
+    else
+      file_path = vim.fn.expand("%:p")
+    end
+    if file_path and file_path ~= "" then
         if vim.fn.has("mac") == 1 then
-            os.execute("open -a 'Google Chrome' " .. file_path .. " &")
+            os.execute("open -a 'Google Chrome' " .. vim.fn.shellescape(file_path) .. " &")
         end
     else
         print("No file to open")
     end
-end, { desc = "Open current file in browser" })
+end, { desc = "Open current file in browser (supports NeoTree)" })
 
 -- Resize mode (window resizing with hjkl)
 vim.keymap.set("n", "<leader>wr", function()
@@ -105,8 +117,29 @@ end, { desc = "Toggle resize mode (hjkl to resize)" })
 -- Cmd+Shift+d: Move current buffer to right split (like VSCode moveEditorToNextGroup/IntelliJ Move to Opposite Group)
 vim.keymap.set("n", "<leader>sd", function()
     if vim.bo.filetype == "neo-tree" then return end
-    vim.cmd("vsplit")  -- create vertical split (cursor in new right pane)
-    vim.cmd("wincmd h") -- go back to left pane
-    vim.cmd("bprevious") -- switch left pane to previous buffer
-    vim.cmd("wincmd l") -- return to right pane with original buffer
+    local current_buf = vim.api.nvim_get_current_buf()
+    -- Find editing windows (exclude neo-tree, floating)
+    local edit_wins = {}
+    for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+      local cfg = vim.api.nvim_win_get_config(w)
+      local wbuf = vim.api.nvim_win_get_buf(w)
+      if cfg.relative == "" and vim.bo[wbuf].filetype ~= "neo-tree" then
+        table.insert(edit_wins, w)
+      end
+    end
+    local current_win = vim.api.nvim_get_current_win()
+    if #edit_wins <= 1 then
+      -- Only one split: create a new right split
+      vim.cmd("vsplit")
+      vim.cmd("wincmd h")
+      vim.cmd("bprevious")
+      vim.cmd("wincmd l")
+    else
+      -- Multiple splits: move buffer to the rightmost editing window
+      local right_win = edit_wins[#edit_wins]
+      if current_win == right_win then return end
+      vim.api.nvim_win_set_buf(right_win, current_buf)
+      vim.cmd("bprevious")
+      vim.api.nvim_set_current_win(right_win)
+    end
 end, { desc = "Move buffer to right split" })
