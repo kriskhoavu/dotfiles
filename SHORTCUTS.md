@@ -63,6 +63,7 @@ Source: `nvim/lua/**`
 | `\p` | Normal | Paste files copied from Finder into Neo-tree. | Focus Neo-tree on target dir, copy file in Finder (Cmd+C), then press `\p`. |
 | `\ce` | Normal | Copy diagnostic message to clipboard. | Put cursor on a diagnostic first. |
 | `\ob` | Normal | Open current buffer in browser (works in Neo-tree). | Useful for local HTML and generated files. |
+| `\of` | Normal | Reveal current buffer in Finder (works in Neo-tree). | Selects files in Finder; opens directories directly. |
 
 ### Windows And Navigation
 
@@ -334,4 +335,3 @@ Sources: `vim/.ideavimrc`, `intellij/Kris.xml`
 | `Cmd-r` | Rename terminal session. |
 | `Ctrl-Alt-h/j/k/l` | Navigate splitters. |
 | `Shift-Ctrl-Cmd-s/d/r` | Window movement/session actions from the custom keymap. |
-

@@ -57,29 +57,52 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
 })
 
+local function current_path_from_buffer_or_neotree()
+    if vim.bo.filetype == "neo-tree" then
+        local state = require("neo-tree.sources.manager").get_state("filesystem")
+        local node = state.tree:get_node()
+        if node and (node.type == "file" or node.type == "directory") then
+            return node:get_id()
+        end
+        return nil
+    end
+
+    local file_path = vim.fn.expand("%:p")
+    if file_path == "" then
+        return nil
+    end
+    return file_path
+end
+
 -- Open current file in browser
 vim.keymap.set("n", "<leader>ob", function()
-    local file_path
-    if vim.bo.filetype == "neo-tree" then
-      -- Get the file path under cursor in NeoTree
-      local state = require("neo-tree.sources.manager").get_state("filesystem")
-      local node = state.tree:get_node()
-      if node and node.type == "file" then
-        file_path = node:get_id()
-      elseif node and node.type == "directory" then
-        file_path = node:get_id()
-      end
-    else
-      file_path = vim.fn.expand("%:p")
-    end
-    if file_path and file_path ~= "" then
-        if vim.fn.has("mac") == 1 then
-            os.execute("open -a 'Google Chrome' " .. vim.fn.shellescape(file_path) .. " &")
-        end
-    else
+    local file_path = current_path_from_buffer_or_neotree()
+    if not file_path then
         print("No file to open")
+        return
+    end
+
+    if vim.fn.has("mac") == 1 then
+        os.execute("open -a 'Google Chrome' " .. vim.fn.shellescape(file_path) .. " &")
     end
 end, { desc = "Open current file in browser (supports NeoTree)" })
+
+-- Open current file in Finder
+vim.keymap.set("n", "<leader>of", function()
+    local file_path = current_path_from_buffer_or_neotree()
+    if not file_path then
+        print("No file to open")
+        return
+    end
+
+    if vim.fn.has("mac") == 1 then
+        if vim.fn.isdirectory(file_path) == 1 then
+            os.execute("open " .. vim.fn.shellescape(file_path) .. " &")
+        else
+            os.execute("open -R " .. vim.fn.shellescape(file_path) .. " &")
+        end
+    end
+end, { desc = "Open current file in Finder (supports NeoTree)" })
 
 -- Resize mode (window resizing with hjkl)
 vim.keymap.set("n", "<leader>wr", function()
