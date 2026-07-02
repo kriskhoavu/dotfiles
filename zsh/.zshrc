@@ -103,3 +103,4 @@ _set_wezterm_tab_title  # Set on shell startup
 
 # Load machine-local credentials (not tracked in git)
 [[ -f "$HOME/.creds.zsh" ]] && source "$HOME/.creds.zsh"
+export PATH="$HOME/.local/bin:$PATH"
