@@ -71,6 +71,7 @@ Source: `nvim/lua/**`
 | --- | --- | --- | --- |
 | `Ctrl-h/j/k/l` | Normal | Move between Neovim/tmux panes. | Works with vim-tmux-navigator. |
 | `Ctrl-h/j/k/l` | Terminal | Exit terminal mode, then move pane. | Useful from terminal buffers. |
+| `Ctrl-w c` | Normal | Close current split window. | Use to hide the active pane while keeping others open. |
 | `\wr` | Normal | Toggle resize mode. | Then use `h/j/k/l`; press `Esc` or `\wr` to stop. |
 | `\sd` | Normal | Split or move editor to the right. | Also triggered by WezTerm `Cmd+Shift+D`. |
 | `\vt` | Normal | Show directory tree in a floating window. | Runs `tree -L 4`. |
