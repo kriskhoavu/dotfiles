@@ -136,6 +136,46 @@ vim.keymap.set("n", "<leader>wr", function()
     end, ns)
 end, { desc = "Toggle resize mode (hjkl to resize)" })
 
+-- Focus the leftmost editing window in current tab (ignores Neo-tree and floating windows)
+local function focus_leftmost_edit_window()
+    local candidates = {}
+
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local cfg = vim.api.nvim_win_get_config(win)
+        local buf = vim.api.nvim_win_get_buf(win)
+        if cfg.relative == "" and vim.bo[buf].filetype ~= "neo-tree" then
+            local pos = vim.api.nvim_win_get_position(win)
+            table.insert(candidates, { win = win, row = pos[1], col = pos[2] })
+        end
+    end
+
+    if #candidates == 0 then
+        return
+    end
+
+    table.sort(candidates, function(a, b)
+        if a.col == b.col then
+            return a.row < b.row
+        end
+        return a.col < b.col
+    end)
+
+    vim.api.nvim_set_current_win(candidates[1].win)
+end
+
+local function focus_leftmost_edit_window_from_insert()
+    vim.cmd("stopinsert")
+    focus_leftmost_edit_window()
+    vim.schedule(function()
+        if vim.bo.buftype ~= "terminal" then
+            vim.cmd("startinsert")
+        end
+    end)
+end
+
+vim.keymap.set("n", "<leader>`", focus_leftmost_edit_window, { desc = "Focus leftmost split" })
+vim.keymap.set("i", "<leader>`", focus_leftmost_edit_window_from_insert, { desc = "Focus leftmost split" })
+
 -- VSCode-like keybindings
 -- Cmd+Shift+d: Move current buffer to right split (like VSCode moveEditorToNextGroup/IntelliJ Move to Opposite Group)
 vim.keymap.set("n", "<leader>sd", function()
