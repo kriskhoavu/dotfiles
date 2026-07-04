@@ -51,6 +51,20 @@ return {
         drill(node)
       end
 
+      local function copy_node_path(state, mode)
+        local node = state.tree:get_node()
+        if not node or not node.path then return end
+
+        local path = node.path
+        if mode == "relative" then
+          path = vim.fn.fnamemodify(path, ":.")
+        end
+
+        vim.fn.setreg("+", path)
+        vim.fn.setreg('"', path)
+        vim.notify("Copied path: " .. path)
+      end
+
       require("neo-tree").setup({
         -- Allow opening files in window with terminal (don't split)
         open_files_do_not_replace_types = { "trouble", "qf" },
@@ -103,6 +117,12 @@ return {
                 local node = state.tree:get_node()
                 local path = node.type == "directory" and node.path or vim.fn.fnamemodify(node.path, ":h")
                 vim.fn.jobstart({ "open", path }, { detach = true })
+              end,
+              ["y"] = function(state)
+                copy_node_path(state, "relative")
+              end,
+              ["Y"] = function(state)
+                copy_node_path(state, "absolute")
               end,
             },
           },
