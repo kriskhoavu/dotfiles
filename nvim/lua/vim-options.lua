@@ -18,6 +18,8 @@ vim.opt.incsearch = true      -- Show matches while typing the search
 
 vim.opt.wrap = true           -- Wrap long lines
 vim.opt.linebreak = true      -- Wrap at word boundaries (nicer wrapping)
+vim.opt.selectmode = ""       -- Avoid sticky Select mode from mouse/shift-selection
+vim.opt.keymodel = ""         -- Keep selection behavior predictable
 
 -- Highlights
 vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "white" })   -- Line numbers above cursor
@@ -27,6 +29,10 @@ vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#ead84e" }) -- Line numbers below 
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selected lines up" })
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selected lines down" })
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<cr><Esc>", { silent = true, desc = "Clear search highlight" })
+vim.keymap.set("s", "<Esc>", "<Esc><Esc>", { silent = true, desc = "Exit select mode" })
+vim.keymap.set({ "x", "s" }, "<C-c>", "<Esc>", { silent = true, desc = "Exit visual/select mode" })
+vim.keymap.set({ "x", "s" }, "i", "<Esc>i", { silent = true, desc = "Insert from visual/select mode" })
+vim.keymap.set({ "x", "s" }, "a", "<Esc>a", { silent = true, desc = "Append from visual/select mode" })
 
 -- Terminal mode: single Esc exits to normal mode, Ctrl-] sends Esc to the terminal app
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
