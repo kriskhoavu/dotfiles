@@ -34,6 +34,37 @@ vim.keymap.set({ "x", "s" }, "<C-c>", "<Esc>", { silent = true, desc = "Exit vis
 vim.keymap.set({ "x", "s" }, "i", "<Esc>i", { silent = true, desc = "Insert from visual/select mode" })
 vim.keymap.set({ "x", "s" }, "a", "<Esc>a", { silent = true, desc = "Append from visual/select mode" })
 
+local function leader_passthrough(keys, desc)
+    local seq = "<leader>" .. keys
+
+    vim.keymap.set("i", seq, function()
+        vim.api.nvim_feedkeys(vim.keycode("<C-o>" .. seq), "m", false)
+    end, { silent = true, desc = desc })
+
+    vim.keymap.set({ "x", "s" }, seq, function()
+        vim.api.nvim_feedkeys(vim.keycode("<Esc>" .. seq), "m", false)
+    end, { silent = true, desc = desc })
+
+    vim.keymap.set("t", seq, function()
+        vim.api.nvim_feedkeys(vim.keycode("<C-\\><C-n>" .. seq), "m", false)
+    end, { silent = true, desc = desc })
+end
+
+leader_passthrough("1", "Toggle Explorer")
+leader_passthrough("2", "Toggle Diffview")
+leader_passthrough("3", "Toggle Lazygit")
+leader_passthrough("9", "Toggle Floating Terminal")
+leader_passthrough("tt", "Leader tt passthrough")
+leader_passthrough("ff", "Find files passthrough")
+leader_passthrough("ft", "Live grep passthrough")
+leader_passthrough("?", "Shortcut help passthrough")
+leader_passthrough("x", "Close buffer passthrough")
+leader_passthrough("X", "Close other buffers passthrough")
+leader_passthrough("f.", "Reveal file passthrough")
+leader_passthrough("ob", "Open in browser passthrough")
+leader_passthrough("of", "Open in Finder passthrough")
+leader_passthrough("wr", "Resize mode passthrough")
+
 -- Terminal mode: single Esc exits to normal mode, Ctrl-] sends Esc to the terminal app
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 vim.keymap.set("t", "<C-]>", function()
