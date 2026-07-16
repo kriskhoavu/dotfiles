@@ -54,7 +54,7 @@ local function open_buf_in_float(buf, label)
 		title_pos = "center",
 	})
 	vim.cmd.startinsert()
-	vim.keymap.set("n", "q", function()
+	vim.keymap.set("n", "Q", function()
 		if vim.api.nvim_win_is_valid(win) then
 			local task
 			for _, t in ipairs(bg_tasks) do
@@ -171,8 +171,8 @@ local function run_code_block()
 
 	vim.cmd.startinsert()
 
-	-- Press q in normal mode to close the window (process keeps running if still active)
-	vim.keymap.set("n", "q", function()
+	-- Press Q in normal mode to close the window (process keeps running if still active)
+	vim.keymap.set("n", "Q", function()
 		if vim.api.nvim_win_is_valid(win) then
 			local still_running = job_id and vim.fn.jobwait({ job_id }, 0)[1] == -1
 			if still_running then
