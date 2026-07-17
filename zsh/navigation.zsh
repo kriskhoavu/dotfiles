@@ -13,14 +13,14 @@ chrome() {
 }
 
 # Project groups: "name=path" format (order preserved)
-PLAN_MANAGER_PATH="$HOME/Personal/01. happy-learning/Kris/plan-manager"
+KODE_STREAM_PATH="$HOME/Personal/01. happy-learning/Kris/kode-stream"
 
 PROJECT_GROUPS=(
     "discovery=$CC/1. Discovery"
     "discoverysap=$CC/4. CCSAP"
     "enterpricesap=$CC/2. EPSAP"
     "dotfiles=$HOME/Personal/01. happy-learning/Kris/dotfiles"
-    "plan-manager=$PLAN_MANAGER_PATH"
+    "kode-stream=$KODE_STREAM_PATH"
     "prepration=$HOME/Personal/01. happy-learning/Kris/preparation"
 )
 
@@ -99,8 +99,8 @@ function itmux() {
   local sessions
   sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
 
-  if ! print -r -- "$sessions" | grep -qx "plan-manager"; then
-    sessions=$(printf '%s\n' "plan-manager" "$sessions")
+  if ! print -r -- "$sessions" | grep -qx "kode-stream"; then
+    sessions=$(printf '%s\n' "kode-stream" "$sessions")
   fi
 
   local selected
@@ -108,8 +108,8 @@ function itmux() {
 
   [[ -z "$selected" ]] && return
 
-  if [[ "$selected" == "plan-manager" ]] && ! tmux has-session -t "=plan-manager" 2>/dev/null; then
-    tmux new-session -s "plan-manager" -c "$PLAN_MANAGER_PATH"
+  if [[ "$selected" == "kode-stream" ]] && ! tmux has-session -t "=kode-stream" 2>/dev/null; then
+    tmux new-session -s "kode-stream" -c "$KODE_STREAM_PATH"
     return
   fi
 
