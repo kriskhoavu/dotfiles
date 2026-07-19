@@ -1,6 +1,13 @@
 vim.opt.updatetime = 300   -- Faster CursorHold, gitsigns, and swap writes
 vim.opt.timeoutlen = 300   -- Faster key sequence completion (leader mappings)
 
+vim.filetype.add({
+    extension = {
+        mmd = "markdown",
+        mermaid = "markdown",
+    },
+})
+
 vim.opt.expandtab = true -- Insert spaces instead of tabs
 vim.opt.tabstop = 4      -- A <Tab> counts for 4 spaces (display width)
 vim.opt.shiftwidth = 4   -- Indent size for >>, <<, autoindent
