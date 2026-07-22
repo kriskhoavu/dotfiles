@@ -236,11 +236,41 @@ vim.keymap.set("n", "<leader>sd", function()
     end
     local current_win = vim.api.nvim_get_current_win()
     if #edit_wins <= 1 then
-      -- Only one split: create a new right split
+      -- Only one split: place the current buffer on the right and keep the
+      -- other listed buffer on the left.  Do not rely on :bprevious here:
+      -- the alternate-buffer history is not guaranteed for file buffers.
+      local replacement_buf = vim.fn.bufnr("#")
+      if replacement_buf == current_buf or vim.fn.buflisted(replacement_buf) == 0 then
+        replacement_buf = nil
+        for _, bufinfo in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
+          if bufinfo.bufnr ~= current_buf then
+            replacement_buf = bufinfo.bufnr
+            break
+          end
+        end
+      end
+
       vim.cmd("vsplit")
-      vim.cmd("wincmd h")
-      vim.cmd("bprevious")
-      vim.cmd("wincmd l")
+      local left_win, right_win
+      for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        local cfg = vim.api.nvim_win_get_config(win)
+        local buf = vim.api.nvim_win_get_buf(win)
+        if cfg.relative == "" and vim.bo[buf].filetype ~= "neo-tree" then
+          local col = vim.api.nvim_win_get_position(win)[2]
+          if not left_win or col < left_win.col then
+            left_win = { id = win, col = col }
+          end
+          if not right_win or col > right_win.col then
+            right_win = { id = win, col = col }
+          end
+        end
+      end
+
+      if replacement_buf and left_win and right_win then
+        vim.api.nvim_win_set_buf(left_win.id, replacement_buf)
+        vim.api.nvim_win_set_buf(right_win.id, current_buf)
+        vim.api.nvim_set_current_win(right_win.id)
+      end
     else
       -- Multiple splits: move buffer to the rightmost editing window
       local right_win = edit_wins[#edit_wins]
