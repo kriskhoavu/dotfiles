@@ -42,6 +42,10 @@ local managed_hl_keys = {
     SignColumn = true,
     LineNr = true,
     CursorLineNr = true,
+    NeoTreeNormal = true,
+    NeoTreeNormalNC = true,
+    NeoTreeEndOfBuffer = true,
+    NeoTreeSignColumn = true,
 }
 
 local function split_keep_unmanaged_winhighlight(existing)
@@ -64,12 +68,12 @@ local function is_trackable_window(win)
         return false
     end
 
-    local buf = api.nvim_win_get_buf(win)
-    return vim.bo[buf].filetype ~= "neo-tree"
+    return true
 end
 
 local function apply_window_winhighlight(win, border_hl, is_active)
     local parts = split_keep_unmanaged_winhighlight(vim.wo[win].winhighlight)
+    local is_neotree = vim.bo[api.nvim_win_get_buf(win)].filetype == "neo-tree"
     parts[#parts + 1] = "WinSeparator:" .. border_hl
     parts[#parts + 1] = "VertSplit:" .. border_hl
 
@@ -87,6 +91,14 @@ local function apply_window_winhighlight(win, border_hl, is_active)
         parts[#parts + 1] = "SignColumn:InactiveWindowNormal"
         parts[#parts + 1] = "LineNr:InactiveWindowLineNr"
         parts[#parts + 1] = "CursorLineNr:InactiveWindowLineNr"
+    end
+
+    if is_neotree then
+        local prefix = is_active and "Active" or "Inactive"
+        parts[#parts + 1] = "NeoTreeNormal:" .. prefix .. "NeoTreeNormal"
+        parts[#parts + 1] = "NeoTreeNormalNC:" .. prefix .. "NeoTreeNormal"
+        parts[#parts + 1] = "NeoTreeEndOfBuffer:" .. prefix .. "NeoTreeEndOfBuffer"
+        parts[#parts + 1] = "NeoTreeSignColumn:" .. prefix .. "NeoTreeSignColumn"
     end
 
     local winhighlight = table.concat(parts, ",")
@@ -137,6 +149,12 @@ local function refresh_window_borders()
 end
 
 local function set_window_border_highlights()
+    local function copy_highlight_with_background(source, target, background)
+        local highlight = api.nvim_get_hl(0, { name = source, link = false })
+        highlight.bg = background
+        api.nvim_set_hl(0, target, highlight)
+    end
+
     api.nvim_set_hl(0, "ActiveWindowBorder", {
         fg = "#ffcc00",
         ctermfg = 220,
@@ -147,15 +165,15 @@ local function set_window_border_highlights()
         ctermfg = 239,
     })
     api.nvim_set_hl(0, "ActiveWindowNormal", {
-        bg = "#10141f",
+        bg = "#1c1613",
     })
     api.nvim_set_hl(0, "ActiveWindowLineNr", {
         fg = "#8fa1bd",
-        bg = "#10141f",
+        bg = "#1c1613",
     })
     api.nvim_set_hl(0, "ActiveWindowCursorLineNr", {
         fg = "#ffcc00",
-        bg = "#10141f",
+        bg = "#1c1613",
         bold = true,
     })
     api.nvim_set_hl(0, "InactiveWindowNormal", {
@@ -165,6 +183,12 @@ local function set_window_border_highlights()
         fg = "#4b5160",
         bg = "#080a0f",
     })
+    copy_highlight_with_background("NeoTreeNormal", "ActiveNeoTreeNormal", "#1c1613")
+    copy_highlight_with_background("NeoTreeNormal", "InactiveNeoTreeNormal", "#080a0f")
+    copy_highlight_with_background("NeoTreeEndOfBuffer", "ActiveNeoTreeEndOfBuffer", "#1c1613")
+    copy_highlight_with_background("NeoTreeEndOfBuffer", "InactiveNeoTreeEndOfBuffer", "#080a0f")
+    copy_highlight_with_background("NeoTreeSignColumn", "ActiveNeoTreeSignColumn", "#1c1613")
+    copy_highlight_with_background("NeoTreeSignColumn", "InactiveNeoTreeSignColumn", "#080a0f")
 end
 
 local border_group = api.nvim_create_augroup("active_window_border", { clear = true })
@@ -180,6 +204,17 @@ api.nvim_create_autocmd({ "ColorScheme" }, {
 api.nvim_create_autocmd({ "VimEnter", "BufWinEnter", "WinEnter", "WinLeave", "TabEnter" }, {
     group = border_group,
     callback = refresh_window_borders,
+})
+
+api.nvim_create_autocmd("FileType", {
+    group = border_group,
+    pattern = "neo-tree",
+    callback = function()
+        vim.schedule(function()
+            set_window_border_highlights()
+            refresh_window_borders()
+        end)
+    end,
 })
 
 set_window_border_highlights()
