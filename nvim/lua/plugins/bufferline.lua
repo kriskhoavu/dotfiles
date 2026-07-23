@@ -5,23 +5,26 @@ return {
     event = "VimEnter",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
+      -- High-contrast selected tab: dark-red surface with a bold white label.
+      local selected_background = "#590000"
+
       require("bufferline").setup({
         highlights = {
           fill = { bg = "#0f1117" },
           background = { fg = "#7f8ea3", bg = "#1a1f2b" },
           buffer_visible = { fg = "#aab7cf", bg = "#1f2633" },
-          buffer_selected = { fg = "#e8eefc", bg = "#2b3b57", bold = true, italic = false },
-          indicator_selected = { fg = "#8b0000", bg = "#2b3b57" },
-          close_button_selected = { fg = "#dbe6ff", bg = "#2b3b57" },
-          modified_selected = { fg = "#f5a97f", bg = "#2b3b57" },
-          diagnostic_selected = { fg = "#e8eefc", bg = "#2b3b57" },
-          hint_selected = { fg = "#8bd5ca", bg = "#2b3b57" },
-          info_selected = { fg = "#7dc4e4", bg = "#2b3b57" },
-          warning_selected = { fg = "#f5a97f", bg = "#2b3b57" },
-          error_selected = { fg = "#ed8796", bg = "#2b3b57" },
+          buffer_selected = { fg = "#ffffff", bg = selected_background, bold = true, italic = false },
+          indicator_selected = { fg = "#ffffff", bg = selected_background },
+          close_button_selected = { fg = "#ffffff", bg = selected_background },
+          modified_selected = { fg = "#f5a97f", bg = selected_background },
+          diagnostic_selected = { fg = "#ffffff", bg = selected_background },
+          hint_selected = { fg = "#94e2d5", bg = selected_background },
+          info_selected = { fg = "#89b4fa", bg = selected_background },
+          warning_selected = { fg = "#f9e2af", bg = selected_background },
+          error_selected = { fg = "#f38ba8", bg = selected_background },
           separator = { fg = "#344055", bg = "#1a1f2b" },
           separator_visible = { fg = "#344055", bg = "#1f2633" },
-          separator_selected = { fg = "#f5a97f", bg = "#2b3b57" },
+          separator_selected = { fg = "#ffffff", bg = selected_background },
         },
         options = {
           mode = "buffers",

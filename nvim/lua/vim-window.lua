@@ -149,6 +149,9 @@ local function refresh_window_borders()
 end
 
 local function set_window_border_highlights()
+    -- Catppuccin Mocha base: a cool, muted surface for the focused window.
+    local active_background = "#1e1e2e"
+
     local function copy_highlight_with_background(source, target, background)
         local highlight = api.nvim_get_hl(0, { name = source, link = false })
         highlight.bg = background
@@ -165,15 +168,15 @@ local function set_window_border_highlights()
         ctermfg = 239,
     })
     api.nvim_set_hl(0, "ActiveWindowNormal", {
-        bg = "#1c1613",
+        bg = active_background,
     })
     api.nvim_set_hl(0, "ActiveWindowLineNr", {
         fg = "#8fa1bd",
-        bg = "#1c1613",
+        bg = active_background,
     })
     api.nvim_set_hl(0, "ActiveWindowCursorLineNr", {
         fg = "#ffcc00",
-        bg = "#1c1613",
+        bg = active_background,
         bold = true,
     })
     api.nvim_set_hl(0, "InactiveWindowNormal", {
@@ -183,11 +186,11 @@ local function set_window_border_highlights()
         fg = "#4b5160",
         bg = "#080a0f",
     })
-    copy_highlight_with_background("NeoTreeNormal", "ActiveNeoTreeNormal", "#1c1613")
+    copy_highlight_with_background("NeoTreeNormal", "ActiveNeoTreeNormal", active_background)
     copy_highlight_with_background("NeoTreeNormal", "InactiveNeoTreeNormal", "#080a0f")
-    copy_highlight_with_background("NeoTreeEndOfBuffer", "ActiveNeoTreeEndOfBuffer", "#1c1613")
+    copy_highlight_with_background("NeoTreeEndOfBuffer", "ActiveNeoTreeEndOfBuffer", active_background)
     copy_highlight_with_background("NeoTreeEndOfBuffer", "InactiveNeoTreeEndOfBuffer", "#080a0f")
-    copy_highlight_with_background("NeoTreeSignColumn", "ActiveNeoTreeSignColumn", "#1c1613")
+    copy_highlight_with_background("NeoTreeSignColumn", "ActiveNeoTreeSignColumn", active_background)
     copy_highlight_with_background("NeoTreeSignColumn", "InactiveNeoTreeSignColumn", "#080a0f")
 end
 
