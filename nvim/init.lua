@@ -18,6 +18,7 @@ vim.opt.rtp:prepend(lazypath)
 
 require("vim-helpers")
 require("vim-options")
+require("tmux-handoff")
 require("vim-window")
 require("vim-clipboard")
 require("floating-helpers")

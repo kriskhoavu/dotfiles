@@ -74,6 +74,7 @@ Source: `nvim/lua/**`
 | `Ctrl-w c` | Normal | Close current split window. | Use to hide the active pane while keeping others open. |
 | `\wr` | Normal | Toggle resize mode. | Then use `h/j/k/l`; press `Esc` or `\wr` to stop. |
 | `\sd` | Normal | Split or move editor to the right. | Also triggered by WezTerm `Cmd+Shift+D`. |
+| `\st` | Normal | Move the current file to a right tmux pane. | Also triggered by WezTerm `Ctrl+Cmd+Shift+T`; saves and closes the local buffer, then restores it when that pane closes. |
 | `\vt` | Normal | Show directory tree in a floating window. | Runs `tree -L 4`. |
 | `\tt` | Normal | Toggle theme. | Note: this conflicts with terminal tab mapping in `floating-terminal.lua`; check which one wins in your current runtime. |
 

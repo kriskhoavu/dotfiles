@@ -12,6 +12,7 @@ return function(config)
     { key = "RightArrow", mods = "OPT",       action = act.SendString("\x1bf") },    -- Option+Right → word fwd
     { key = "Enter",      mods = "OPT",       action = act.SendString("\x1b\r") },   -- Option+Enter → Alt+Enter
     { key = "d",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\sd") }, -- Ctrl+Cmd+Shift+D → nvim <leader>sd
+    { key = "t",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\st") }, -- Ctrl+Cmd+Shift+T → nvim <leader>st
     { key = "1",          mods = "CTRL",      action = act.SendString("\x1b\\1") }, -- Ctrl+1 → nvim <leader>1
     { key = "2",          mods = "CTRL",      action = act.SendString("\x1b\\2") }, -- Ctrl+2 → nvim <leader>2
     { key = "3",          mods = "CTRL",      action = act.SendString("\x1b\\3") }, -- Ctrl+3 → nvim <leader>3
