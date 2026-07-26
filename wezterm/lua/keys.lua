@@ -18,6 +18,18 @@ return function(config)
     { key = "3",          mods = "CTRL",      action = act.SendString("\x1b\\3") }, -- Ctrl+3 → nvim <leader>3
     { key = "9",          mods = "CTRL",      action = act.SendString("\x1b\\9") }, -- Ctrl+9 → nvim <leader>9
     { key = "t",          mods = "CMD",        action = act.SpawnCommandInNewTab { cwd = h.HOME } },
+    -- Pane management. New panes inherit the active pane's working directory.
+    { key = "Enter",      mods = "CMD|SHIFT",  action = act.SplitPane { direction = "Right" } },
+    { key = "Enter",      mods = "CMD|OPT",    action = act.SplitPane { direction = "Down" } },
+    { key = "LeftArrow",  mods = "CTRL|CMD",   action = act.ActivatePaneDirection "Left" },
+    { key = "RightArrow", mods = "CTRL|CMD",   action = act.ActivatePaneDirection "Right" },
+    { key = "UpArrow",    mods = "CTRL|CMD",   action = act.ActivatePaneDirection "Up" },
+    { key = "DownArrow",  mods = "CTRL|CMD",   action = act.ActivatePaneDirection "Down" },
+    { key = "LeftArrow",  mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Left", 5 } },
+    { key = "RightArrow", mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Right", 5 } },
+    { key = "UpArrow",    mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Up", 5 } },
+    { key = "DownArrow",  mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Down", 5 } },
+    { key = "r",          mods = "CTRL|CMD",   action = act.RotatePanes "Clockwise" },
     { key = "1",          mods = "CMD",       action = act.ActivateTab(0) },            -- Cmd+1 → tab 1
     { key = "2",          mods = "CMD",       action = act.ActivateTab(1) },            -- Cmd+2 → tab 2
     { key = "3",          mods = "CMD",       action = act.ActivateTab(2) },            -- Cmd+3 → tab 3

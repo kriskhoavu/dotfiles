@@ -31,6 +31,82 @@ DEFAULT_ROOTS=(
     "$HOME/Documents/"
 )
 
+# User-added roots persist outside the dotfiles repository.
+OP_ROOTS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/op-roots"
+OP_SAVED_ROOTS=()
+
+function _op_load_roots() {
+    local op_root
+
+    [[ -r "$OP_ROOTS_FILE" ]] || return
+    while IFS= read -r op_root; do
+        [[ -d "$op_root" ]] && OP_SAVED_ROOTS+=("$op_root")
+    done < "$OP_ROOTS_FILE"
+}
+_op_load_roots
+
+# Save the current directory (or an optional directory) as an op root.
+function op-add() {
+    local target="${1:-$PWD}"
+    local resolved
+
+    resolved="${target:A}"
+    [[ -d "$resolved" ]] || {
+        echo "op-add: not a directory: $target" >&2
+        return 1
+    }
+
+    mkdir -p "${OP_ROOTS_FILE:h}" || return
+
+    if [[ -f "$OP_ROOTS_FILE" ]] && grep -Fqx -- "$resolved" "$OP_ROOTS_FILE"; then
+        echo "op-add: already saved: $resolved"
+        return 0
+    fi
+
+    print -r -- "$resolved" >> "$OP_ROOTS_FILE"
+    OP_SAVED_ROOTS+=("$resolved")
+    echo "op-add: saved: $resolved"
+}
+
+# Remove a saved op root. With no argument, pick one interactively.
+function op-rmv() {
+    local target resolved op_root temp_file
+    local -a remaining_roots
+
+    if (( $# )); then
+        target="$1"
+    else
+        (( ${#OP_SAVED_ROOTS[@]} )) || {
+            echo "op-rmv: no saved roots" >&2
+            return 1
+        }
+        target="$(printf '%s\n' "${OP_SAVED_ROOTS[@]}" | fzf --prompt="Remove op root > " --reverse)" || return
+    fi
+
+    resolved="${target:A}"
+    [[ -d "$resolved" ]] || {
+        echo "op-rmv: not a directory: $target" >&2
+        return 1
+    }
+
+    if [[ ! -f "$OP_ROOTS_FILE" ]] || ! grep -Fqx -- "$resolved" "$OP_ROOTS_FILE"; then
+        echo "op-rmv: not a saved root: $resolved" >&2
+        return 1
+    fi
+
+    temp_file="$(mktemp "${OP_ROOTS_FILE}.XXXXXX")" || return
+    while IFS= read -r op_root; do
+        [[ "$op_root" == "$resolved" ]] || print -r -- "$op_root"
+    done < "$OP_ROOTS_FILE" > "$temp_file"
+    mv "$temp_file" "$OP_ROOTS_FILE"
+
+    for op_root in "${OP_SAVED_ROOTS[@]}"; do
+        [[ "$op_root" == "$resolved" ]] || remaining_roots+=("$op_root")
+    done
+    OP_SAVED_ROOTS=("${remaining_roots[@]}")
+    echo "op-rmv: removed: $resolved"
+}
+
 # Project Navigator (fzf-based)
 function op() {
     local base choice selection
@@ -40,7 +116,7 @@ function op() {
     for entry in "${PROJECT_GROUPS[@]}"; do
         options+=("@${entry%%=*}")
     done
-    options+=("${DEFAULT_ROOTS[@]}")
+    options+=("${DEFAULT_ROOTS[@]}" "${OP_SAVED_ROOTS[@]}")
 
     # Select from list
     selection=$(printf "%s\n" "${options[@]}" | fzf --prompt="Root/Group > " --reverse) || return
