@@ -90,22 +90,23 @@ Source: `nvim/lua/**`
 
 ### Git In Neovim
 
-| Shortcut    | Mode             | What it does                                  | How to use it                           |
-|-------------|------------------|-----------------------------------------------|-----------------------------------------|
-| `]h` / `[h` | Normal           | Next / previous Git hunk.                     | Requires gitsigns on a Git file.        |
-| `\hs`       | Normal, Visual   | Stage hunk or selected hunk.                  | Stage current hunk or visual selection. |
-| `\hr`       | Normal, Visual   | Reset hunk or selected hunk.                  | Discards the selected/current hunk.     |
-| `\hS`       | Normal           | Stage whole buffer.                           | Adds all changes in the file.           |
-| `\hR`       | Normal           | Reset whole buffer.                           | Discards all file changes.              |
-| `\hu`       | Normal           | Undo stage hunk.                              | Unstages the current hunk.              |
-| `\hb`       | Normal           | Show blame for current line.                  | Opens blame info.                       |
-| `\hB`       | Normal           | Toggle current-line blame.                    | Persistent inline blame toggle.         |
-| `\hp`       | Normal           | Preview hunk.                                 | Shows current hunk diff.                |
-| `\hd`       | Normal           | Toggle diff against index.                    | Opens/closes gitsigns diff view.        |
-| `\hD`       | Normal           | Toggle diff against last commit.              | Opens/closes gitsigns diff view.        |
-| `ih`        | Operator, Visual | Select Git hunk.                              | Text object from gitsigns.              |
-| `\2`        | Normal           | Toggle Diffview.                              | Opens or closes Git diff view.          |
-| `\<Down>`   | Normal           | Open current file from Diffview and close it. | Similar to VSCode `git.openFile`.       |
+| Shortcut    | Mode             | What it does                                  | How to use it                                                                      |
+|-------------|------------------|-----------------------------------------------|------------------------------------------------------------------------------------|
+| `]h` / `[h` | Normal           | Next / previous Git hunk.                     | Requires gitsigns on a Git file.                                                   |
+| `\hs`       | Normal, Visual   | Stage hunk or selected hunk.                  | Stage current hunk or visual selection.                                            |
+| `\hr`       | Normal, Visual   | Reset hunk or selected hunk.                  | Discards the selected/current hunk.                                                |
+| `\hS`       | Normal           | Stage whole buffer.                           | Adds all changes in the file.                                                      |
+| `\hR`       | Normal           | Reset whole buffer.                           | Discards all file changes.                                                         |
+| `\hu`       | Normal           | Undo stage hunk.                              | Unstages the current hunk.                                                         |
+| `\hb`       | Normal           | Show blame for current line.                  | Opens blame info.                                                                  |
+| `\hB`       | Normal           | Toggle current-line blame.                    | Persistent inline blame toggle.                                                    |
+| `\hp`       | Normal           | Preview hunk.                                 | Shows current hunk diff.                                                           |
+| `\hd`       | Normal           | Toggle diff against index.                    | Opens/closes gitsigns diff view.                                                   |
+| `\hD`       | Normal           | Toggle diff against last commit.              | Opens/closes gitsigns diff view.                                                   |
+| `\hf`       | Normal           | Show current file history.                    | Opens Diffview's commit history for the current file; press `q` or `Esc` to close. |
+| `ih`        | Operator, Visual | Select Git hunk.                              | Text object from gitsigns.                                                         |
+| `\2`        | Normal           | Toggle Diffview.                              | Opens or closes Git diff view.                                                     |
+| `\<Down>`   | Normal           | Open current file from Diffview and close it. | Similar to VSCode `git.openFile`.                                                  |
 
 ### LSP And Code
 

@@ -37,6 +37,10 @@ end
 
 vim.keymap.set({ "n", "t" }, "<leader>3", toggle_lazygit, { desc = "Toggle lazygit" })
 
+local function close_diffview()
+    vim.cmd("DiffviewClose")
+end
+
 return {
     {
         "lewis6991/gitsigns.nvim",
@@ -100,7 +104,6 @@ return {
                     end
                     gs.diffthis("~")
                 end, "Toggle diff this ~ (against last commit)")
-
                 -- text object
                 map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "Select hunk")
             end,
@@ -108,6 +111,18 @@ return {
     },
     {
         "sindrets/diffview.nvim",
+        opts = {
+            keymaps = {
+                view = {
+                    { "n", "q", close_diffview, { desc = "Close Diffview" } },
+                    { "n", "<esc>", close_diffview, { desc = "Close Diffview" } },
+                },
+                file_history_panel = {
+                    { "n", "q", close_diffview, { desc = "Close Diffview" } },
+                    { "n", "<esc>", close_diffview, { desc = "Close Diffview" } },
+                },
+            },
+        },
         -- <leader>2: Toggle Git (Diffview)
         keys = {
             {
@@ -121,6 +136,13 @@ return {
                     end
                 end,
                 desc = "Toggle Diffview",
+            },
+            {
+                "<leader>hf",
+                function()
+                    vim.cmd("DiffviewFileHistory %")
+                end,
+                desc = "File history",
             },
             -- Open current file and close DiffView (like VSCode's git.openFile)
             {
