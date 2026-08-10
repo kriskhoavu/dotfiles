@@ -54,7 +54,7 @@ local function open_buf_in_float(buf, label)
 		title_pos = "center",
 	})
 	vim.cmd.startinsert()
-	vim.keymap.set("n", "Q", function()
+	local close_runner = function()
 		if vim.api.nvim_win_is_valid(win) then
 			local task
 			for _, t in ipairs(bg_tasks) do
@@ -69,7 +69,8 @@ local function open_buf_in_float(buf, label)
 			end
 			vim.api.nvim_win_close(win, true)
 		end
-	end, { buffer = buf, silent = true, desc = "Close runner window" })
+	end
+	vim.keymap.set({ "n", "t" }, "Q", close_runner, { buffer = buf, silent = true, desc = "Close runner window" })
 end
 
 local function list_bg_tasks()
@@ -171,8 +172,8 @@ local function run_code_block()
 
 	vim.cmd.startinsert()
 
-	-- Press Q in normal mode to close the window (process keeps running if still active)
-	vim.keymap.set("n", "Q", function()
+	-- Q closes the window in either normal or terminal mode; the process keeps running.
+	local close_runner = function()
 		if vim.api.nvim_win_is_valid(win) then
 			local still_running = job_id and vim.fn.jobwait({ job_id }, 0)[1] == -1
 			if still_running then
@@ -180,7 +181,8 @@ local function run_code_block()
 			end
 			vim.api.nvim_win_close(win, true)
 		end
-	end, { buffer = buf, silent = true, desc = "Close runner window" })
+	end
+	vim.keymap.set({ "n", "t" }, "Q", close_runner, { buffer = buf, silent = true, desc = "Close runner window" })
 end
 
 -- Only bind in markdown files

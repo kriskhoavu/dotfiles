@@ -37,13 +37,13 @@ Source: `nvim/lua/**`
 
 ### Markdown
 
-| Shortcut | Mode                  | What it does                               | How to use it                                                                                           |
-|----------|-----------------------|--------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| `\mr`    | Normal, Markdown      | Run the shell code block under the cursor. | Put cursor inside a fenced `sh`, `bash`, or `shell` block, then press `\mr`.                            |
-| `Q`      | Normal, runner window | Close the runner float.                    | Press `Esc` first if the terminal is still in insert mode. The process keeps running in the background. |
-| `\ml`    | Normal, Markdown      | List markdown runner background tasks.     | Reopen running or finished task output.                                                                 |
-| `\mp`    | Normal, Markdown      | Toggle Markdown Preview.                   | Opens/stops browser preview.                                                                            |
-| `\mr`    | Normal, global        | Toggle Render Markdown.                    | In Markdown buffers, the runner mapping is buffer-local and takes priority.                             |
+| Shortcut | Mode                  | What it does                               | How to use it                                                                 |
+|----------|-----------------------|--------------------------------------------|-------------------------------------------------------------------------------|
+| `\mr`    | Normal, Markdown      | Run the shell code block under the cursor. | Put cursor inside a fenced `sh`, `bash`, or `shell` block, then press `\mr`.  |
+| `Q`      | Normal, runner window | Close the runner float.                    | Works directly in terminal mode; the process keeps running in the background. |
+| `\ml`    | Normal, Markdown      | List markdown runner background tasks.     | Reopen running or finished task output.                                       |
+| `\mp`    | Normal, Markdown      | Toggle Markdown Preview.                   | Opens/stops browser preview.                                                  |
+| `\mr`    | Normal, global        | Toggle Render Markdown.                    | In Markdown buffers, the runner mapping is buffer-local and takes priority.   |
 
 ### Files, Search, Buffers
 
