@@ -189,6 +189,27 @@ install_wezterm() {
 }
 
 # ============================================
+# Hammerspoon
+# ============================================
+install_hammerspoon() {
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+        log_warn "Hammerspoon is macOS only. Skipping."
+        return
+    fi
+
+    if [ ! -d "/Applications/Hammerspoon.app" ]; then
+        log_warn "Hammerspoon is not installed. Install it with: brew install --cask hammerspoon"
+        return
+    fi
+
+    log_info "Installing Hammerspoon config..."
+    backup_if_exists "$HOME/.hammerspoon"
+    ln -sf "$DOTFILES_DIR/hammerspoon" "$HOME/.hammerspoon"
+    log_info "Hammerspoon config linked!"
+    log_warn "Open Hammerspoon, grant Accessibility permission, then reload its config."
+}
+
+# ============================================
 # iTerm2 (plist + JSON profile import)
 # ============================================
 install_iterm2() {
@@ -247,6 +268,7 @@ show_help() {
     echo "  --intellij  Install IntelliJ keymap"
     echo "  --iterm2    Install iTerm2 config (macOS only)"
     echo "  --wezterm   Install WezTerm config"
+    echo "  --hammerspoon Install Hammerspoon config (macOS only)"
     echo "  --help      Show this help message"
     echo ""
     echo "If no options provided, interactive mode will be used."
@@ -314,6 +336,14 @@ interactive_install() {
         install_wezterm
     fi
 
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        read -p "Install Hammerspoon config? [Y/n] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+            install_hammerspoon
+        fi
+    fi
+
     echo ""
     log_info "Installation complete!"
 }
@@ -336,6 +366,7 @@ while [[ $# -gt 0 ]]; do
             install_intellij
             install_iterm2
             install_wezterm
+            install_hammerspoon
             shift
             ;;
         --git)
@@ -372,6 +403,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --wezterm)
             install_wezterm
+            shift
+            ;;
+        --hammerspoon)
+            install_hammerspoon
             shift
             ;;
         --help)

@@ -24,6 +24,8 @@ dotfiles/
 ├── iterm2/         # iTerm2 configuration (macOS)
 │   ├── com.googlecode.iterm2.plist  # Full preferences
 │   └── *.json      # Profile exports (optional)
+├── hammerspoon/    # macOS window-pair picker using Rectangle
+│   └── init.lua
 ├── install.sh      # Installation script
 ├── sync.sh         # Sync app settings back to dotfiles
 ├── rollback.sh     # Rollback to previous backups
@@ -76,6 +78,7 @@ git add -A && git commit -m "Sync dotfiles" && git push
 ./install.sh --vscode    # Only VSCode
 ./install.sh --intellij  # Only IntelliJ
 ./install.sh --iterm2    # Only iTerm2 (macOS)
+./install.sh --hammerspoon # Searchable Rectangle window-pair shortcuts (macOS)
 ```
 
 ## What Gets Installed
@@ -117,6 +120,12 @@ git add -A && git commit -m "Sync dotfiles" && git push
 - Optional: JSON profile exports for manual import
 - Restart iTerm2 after installation for changes to take effect
 - Sync with `./sync.sh --iterm2` to save changes back to dotfiles
+
+### Hammerspoon + Rectangle
+
+- Symlinks `~/.hammerspoon` → `dotfiles/hammerspoon`.
+- Requires [Hammerspoon](https://www.hammerspoon.org/) (`brew install --cask hammerspoon`) and Accessibility permission.
+- Rectangle keeps responsibility for tiling through its direct command URL; Hammerspoon adds the searchable picker for the other window.
 
 ## Backup
 

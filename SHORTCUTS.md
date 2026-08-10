@@ -4,6 +4,16 @@ Leader key: `\` unless a tool says otherwise.
 
 Use this as the human reference for custom shortcuts in this dotfiles repo. It focuses on shortcuts and aliases that were added here, not every default binding from each tool.
 
+## macOS Window Pairing
+
+Requires Rectangle and Hammerspoon with Accessibility permission. Hammerspoon calls Rectangle directly, so this works even if you customise Rectangle's own shortcuts.
+
+| Shortcut                   | What it does                                                                                                  | How to use it                                                |
+|----------------------------|---------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
+| `Ctrl-Option-Shift-Left`   | Moves the focused window to the left half, then opens a searchable picker for a window to place on the right. | Type an app or window title, then press `Enter`.             |
+| `Ctrl-Option-Shift-Right`  | Moves the focused window to the right half, then opens a searchable picker for a window to place on the left. | Type an app or window title, then press `Enter`.             |
+| `Ctrl-Option-Command-Down` | Opens a searchable list of open apps and windows.                                                             | Type an app or window title, then press `Enter` to focus it. |
+
 ## Neovim
 
 Source: `nvim/lua/**`
