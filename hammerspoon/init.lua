@@ -2,7 +2,7 @@
 -- Rectangle owns placement; Hammerspoon supplies the searchable second-window picker.
 
 local pairingModifiers = { "ctrl", "alt", "shift" }
-local windowSwitcherModifiers = { "ctrl", "alt", "cmd" }
+local windowSwitcherModifiers = { "cmd", "shift" }
 local iconCache = {}
 local pairTargetSide = nil
 local pairRequest = 0
@@ -285,8 +285,8 @@ hs.hotkey.bind(pairingModifiers, "right", function()
   pairFocusedWindow("right", "left")
 end)
 
--- Ctrl-Option-Command-Down: searchable replacement for app/window switching.
-hs.hotkey.bind(windowSwitcherModifiers, "down", showWindowSwitcher)
+-- Cmd-Shift-Space: searchable replacement for app/window switching.
+hs.hotkey.bind(windowSwitcherModifiers, "space", showWindowSwitcher)
 
 -- In either chooser, Delete force quits the highlighted app. Returning true
 -- consumes Delete only while a chooser is visible, so arrow-key navigation and
