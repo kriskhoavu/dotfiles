@@ -6,7 +6,6 @@ local windowSwitcherModifiers = { "cmd", "shift" }
 local iconCache = {}
 local pairTargetSide = nil
 local pairRequest = 0
-local pairSourceWindowID = nil
 
 local function rectangleMove(direction)
   hs.urlevent.openURL("rectangle://execute-action?name=" .. direction .. "-half")
@@ -41,52 +40,13 @@ local function isSelectableWindow(window)
     and not window:isMinimized()
 end
 
-local function selectableWindows(sourceWindow)
-  local choices = {}
-  local sourceID = sourceWindow:id()
-  local appsWithWindows = {}
+-- One accessibility scan produces the full list; the pair picker derives its
+-- own list from that snapshot instead of scanning a second time. Scanning is by
+-- far the slowest part of opening a chooser, so the result is cached and reused
+-- while the fresh scan runs in the background.
+local cachedChoices = nil
 
-  for _, window in ipairs(hs.window.allWindows()) do
-    local app = window:application()
-    if isUserApp(app) and isSelectableWindow(window) then
-      local bundleID = app:bundleID()
-      if bundleID ~= nil then
-        appsWithWindows[bundleID] = true
-      end
-
-      if window:id() ~= sourceID then
-        local title = window:title()
-        table.insert(choices, {
-          text = app:name(),
-          subText = title ~= "" and title or "Untitled window",
-          image = appIcon(app),
-          windowID = window:id(),
-        })
-      end
-    end
-  end
-
-  -- A fullscreen app can be running without macOS exposing any of its windows
-  -- to Hammerspoon. Show it so the pairing browser does not silently omit it.
-  for _, app in ipairs(hs.application.runningApplications()) do
-    local bundleID = app:bundleID()
-    if isUserApp(app) and bundleID ~= nil and not appsWithWindows[bundleID] then
-      table.insert(choices, {
-        text = app:name(),
-        subText = "Fullscreen — exit fullscreen before pairing",
-        image = appIcon(app),
-        appBundleID = bundleID,
-      })
-    end
-  end
-
-  table.sort(choices, function(a, b)
-    return (a.text .. a.subText):lower() < (b.text .. b.subText):lower()
-  end)
-  return choices
-end
-
-local function allSelectableWindows()
+local function collectChoices()
   local choices = {}
   local appsWithWindows = {}
 
@@ -126,7 +86,33 @@ local function allSelectableWindows()
     return (a.text .. a.subText):lower() < (b.text .. b.subText):lower()
   end)
 
+  cachedChoices = choices
   return choices
+end
+
+local function switcherChoices(choices)
+  return choices
+end
+
+local function pairChoicesFor(sourceWindowID)
+  return function(choices)
+    local filtered = {}
+    for _, choice in ipairs(choices) do
+      if choice.windowID ~= sourceWindowID then
+        if choice.appBundleID ~= nil then
+          table.insert(filtered, {
+            text = choice.text,
+            subText = "Fullscreen — exit fullscreen before pairing",
+            image = choice.image,
+            appBundleID = choice.appBundleID,
+          })
+        else
+          table.insert(filtered, choice)
+        end
+      end
+    end
+    return filtered
+  end
 end
 
 local function usableWindow(windowID)
@@ -201,20 +187,44 @@ end)
   :rows(12)
   :width(32)
 
+-- Tracks how each visible chooser turns a window snapshot into its own rows, so
+-- background refreshes can rebuild the right list.
+local chooserTransform = {}
+
+-- Show instantly from the last snapshot, then swap in a fresh one. The
+-- accessibility scan can take a noticeable moment, and doing it before `show()`
+-- is what made the dialog feel delayed.
+local function showChooser(chooser, transform)
+  chooserTransform[chooser] = transform
+
+  -- Always start from a blank search rather than the previous invocation's.
+  chooser:query("")
+  chooser:choices(cachedChoices and transform(cachedChoices) or {})
+  chooser:show()
+
+  hs.timer.doAfter(0, function()
+    if not chooser:isVisible() or chooserTransform[chooser] ~= transform then
+      return
+    end
+    -- Keep whatever the user has already typed while the scan was running.
+    local query = chooser:query()
+    chooser:choices(transform(collectChoices()))
+    chooser:query(query)
+  end)
+end
+
 local function showWindowSwitcher()
-  windowSwitcher:choices(allSelectableWindows()):show()
+  showChooser(windowSwitcher, switcherChoices)
 end
 
 local function refreshVisibleChooser(chooser, selectedRow)
-  local query = chooser:query()
-  if chooser == windowSwitcher then
-    chooser:choices(allSelectableWindows())
-  else
-    local sourceWindow = pairSourceWindowID and hs.window.get(pairSourceWindowID) or nil
-    if sourceWindow ~= nil then
-      chooser:choices(selectableWindows(sourceWindow))
-    end
+  local transform = chooserTransform[chooser]
+  if transform == nil then
+    return
   end
+
+  local query = chooser:query()
+  chooser:choices(transform(collectChoices()))
 
   -- Preserve the user's search and keep selection near its prior row after a
   -- process disappears from the list.
@@ -254,8 +264,9 @@ local function pairFocusedWindow(sourceSide, targetSide)
     return
   end
 
-  local choices = selectableWindows(sourceWindow)
-  if #choices == 0 then
+  local sourceWindowID = sourceWindow:id()
+  local transform = pairChoicesFor(sourceWindowID)
+  if #transform(cachedChoices or collectChoices()) == 0 then
     hs.alert.show("No other open windows to pair")
     return
   end
@@ -264,13 +275,12 @@ local function pairFocusedWindow(sourceSide, targetSide)
   rectangleMove(sourceSide)
 
   pairTargetSide = targetSide
-  pairSourceWindowID = sourceWindow:id()
   pairRequest = pairRequest + 1
   local request = pairRequest
   hs.timer.doAfter(0.08, function()
     -- Ignore a stale timer if the shortcut was pressed again during a transition.
     if request == pairRequest then
-      pairChooser:choices(choices):show()
+      showChooser(pairChooser, transform)
     end
   end)
 end
@@ -307,4 +317,5 @@ hs.timer.doAfter(1, function()
   for _, app in ipairs(hs.application.runningApplications()) do
     appIcon(app)
   end
+  collectChoices()
 end)
