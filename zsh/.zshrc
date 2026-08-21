@@ -3,6 +3,15 @@ ZSH_DISABLE_COMPFIX="true"
 DISABLE_AUTO_UPDATE="true"
 DISABLE_MAGIC_FUNCTIONS="true"
 
+# Normalize fpath before OMZ touches it.
+# `brew shellenv` (in ~/.zprofile) exports FPATH, so every nested shell inherits it and
+# oh-my-zsh.sh prepends its own 7 dirs again — fpath grows by 7 per nesting level. OMZ
+# fingerprints $fpath into the zcompdump and deletes the dump whenever that changes, so
+# login and nested shells kept invalidating each other and paid a full compinit (~1-3s)
+# on every alternation. Deduping and sorting makes the fingerprint shell-independent.
+typeset -U fpath
+fpath=(${(o)fpath})
+
 # Oh My Zsh Configuration
 export ZSH="$HOME/.oh-my-zsh"
 
@@ -53,10 +62,14 @@ plugins=(
     zsh-syntax-highlighting
 )
 
-source $ZSH/oh-my-zsh.sh
+# OMZ recompiles the dump under a mkdir lock. If a shell is killed mid-recompile the lock
+# leaks and OMZ silently skips the .zwc forever. Clear it only once it is minutes old, so a
+# lock held by a shell starting right now is left alone.
+_zsh_stale_lock=( "${ZSH_COMPDUMP}.lock"(N/mm+5) )
+(( $#_zsh_stale_lock )) && rmdir "${ZSH_COMPDUMP}.lock" 2>/dev/null
+unset _zsh_stale_lock
 
-# Recompile zcompdump in background if it was regenerated (keeps .zwc fresh)
-[[ ! "${ZSH_COMPDUMP}.zwc" -nt "$ZSH_COMPDUMP" ]] && zcompile "$ZSH_COMPDUMP" &!
+source $ZSH/oh-my-zsh.sh
 
 # Autosuggest performance settings
 ZSH_AUTOSUGGEST_USE_ASYNC=1
