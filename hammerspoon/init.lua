@@ -3,6 +3,7 @@
 
 local pairingModifiers = { "ctrl", "alt", "shift" }
 local windowSwitcherModifiers = { "cmd", "shift" }
+local chooserWidthPercent = 32
 local iconCache = {}
 local pairTargetSide = nil
 local pairRequest = 0
@@ -152,7 +153,7 @@ local windowSwitcher = hs.chooser.new(function(choice)
 end)
   :placeholderText("Search an open app or window")
   :rows(12)
-  :width(32)
+  :width(chooserWidthPercent)
 
 local pairChooser = hs.chooser.new(function(choice)
   local targetSide = pairTargetSide
@@ -185,7 +186,29 @@ local pairChooser = hs.chooser.new(function(choice)
 end)
   :placeholderText("Search an open window to pair")
   :rows(12)
-  :width(32)
+  :width(chooserWidthPercent)
+
+-- With several displays attached, macOS would otherwise pop the chooser on
+-- whichever screen currently has focus. Pin it to the left-most one.
+local function leftScreenTopLeft()
+  local target = nil
+  for _, screen in ipairs(hs.screen.allScreens()) do
+    if target == nil or screen:fullFrame().x < target:fullFrame().x then
+      target = screen
+    end
+  end
+  if target == nil then
+    return nil
+  end
+
+  -- `hs.chooser:width()` is a percentage of the primary screen's width — the
+  -- same screen it centers on by default. Estimating the chooser's width from
+  -- that keeps the centering right when the displays differ in resolution.
+  local frame = target:fullFrame()
+  local sizingScreen = hs.screen.primaryScreen() or target
+  local width = sizingScreen:fullFrame().w * chooserWidthPercent / 100
+  return hs.geometry.point(frame.x + (frame.w - width) / 2, frame.y + frame.h * 0.18)
+end
 
 -- Tracks how each visible chooser turns a window snapshot into its own rows, so
 -- background refreshes can rebuild the right list.
@@ -200,7 +223,12 @@ local function showChooser(chooser, transform)
   -- Always start from a blank search rather than the previous invocation's.
   chooser:query("")
   chooser:choices(cachedChoices and transform(cachedChoices) or {})
-  chooser:show()
+  local topLeft = leftScreenTopLeft()
+  if topLeft ~= nil then
+    chooser:show(topLeft)
+  else
+    chooser:show()
+  end
 
   hs.timer.doAfter(0, function()
     if not chooser:isVisible() or chooserTransform[chooser] ~= transform then
@@ -298,11 +326,14 @@ end)
 -- Cmd-Shift-Space: searchable replacement for app/window switching.
 hs.hotkey.bind(windowSwitcherModifiers, "space", showWindowSwitcher)
 
--- In either chooser, Delete force quits the highlighted app. Returning true
--- consumes Delete only while a chooser is visible, so arrow-key navigation and
--- normal Delete behavior elsewhere are unaffected.
+-- In either chooser, forward delete (⌦, or fn-Delete on a laptop) force quits
+-- the highlighted app. Keycode 117 is forward delete; 51 is Backspace, which
+-- must stay untouched so it still edits the search field. Returning true
+-- consumes the key only while a chooser is visible, so normal behavior
+-- elsewhere is unaffected.
+local forwardDeleteKeyCode = 117
 local deleteKeyWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
-  local deleteKey = event:getKeyCode() == 51 or event:getKeyCode() == 117
+  local deleteKey = event:getKeyCode() == forwardDeleteKeyCode
   if deleteKey and (windowSwitcher:isVisible() or pairChooser:isVisible()) then
     forceQuitSelectedApp()
     return true
