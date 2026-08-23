@@ -18,12 +18,35 @@ end
 
 local last_tmux_title = nil
 
+-- Windows named by hand carry @manual_name (set only by the prefix+C and
+-- prefix+, bindings in tmux/.tmux.conf; plain prefix+c does not set it).
+-- Renaming those to the current buffer would throw the chosen label away on
+-- every buffer or pane switch, so leave them be.
+-- Renaming to an empty name in tmux clears the mark and hands the window back.
+local function tmux_window_is_manually_named()
+    local pane = vim.env.TMUX_PANE
+    if not pane then
+        return false
+    end
+
+    local marker = fn.system({ "tmux", "display-message", "-p", "-t", pane, "#{@manual_name}" })
+    if vim.v.shell_error ~= 0 then
+        return false
+    end
+
+    return vim.trim(marker) == "1"
+end
+
 local function sync_terminal_title()
     local title = current_buffer_title()
     vim.opt.titlestring = title
 
     if vim.env.TMUX and fn.executable("tmux") == 1 and title ~= last_tmux_title then
-        fn.system({ "tmux", "rename-window", title })
+        if not tmux_window_is_manually_named() then
+            -- Target this pane explicitly: without -t tmux renames whatever
+            -- window the attached client is looking at, not necessarily ours.
+            fn.system({ "tmux", "rename-window", "-t", vim.env.TMUX_PANE or "", title })
+        end
         last_tmux_title = title
     end
 end
