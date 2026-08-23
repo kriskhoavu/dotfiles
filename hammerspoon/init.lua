@@ -326,14 +326,14 @@ end)
 -- Cmd-Shift-Space: searchable replacement for app/window switching.
 hs.hotkey.bind(windowSwitcherModifiers, "space", showWindowSwitcher)
 
--- In either chooser, forward delete (⌦, or fn-Delete on a laptop) force quits
--- the highlighted app. Keycode 117 is forward delete; 51 is Backspace, which
--- must stay untouched so it still edits the search field. Returning true
--- consumes the key only while a chooser is visible, so normal behavior
--- elsewhere is unaffected.
-local forwardDeleteKeyCode = 117
+-- In either chooser, Cmd-Delete force quits the highlighted app. Keycode 51 is
+-- the Delete (Backspace) key; requiring Cmd exactly means a bare Delete still
+-- edits the search field and no other modifier combination triggers a quit.
+-- Returning true consumes the key only while a chooser is visible, so normal
+-- behavior elsewhere is unaffected.
+local deleteKeyCode = 51
 local deleteKeyWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
-  local deleteKey = event:getKeyCode() == forwardDeleteKeyCode
+  local deleteKey = event:getKeyCode() == deleteKeyCode and event:getFlags():containExactly({ "cmd" })
   if deleteKey and (windowSwitcher:isVisible() or pairChooser:isVisible()) then
     forceQuitSelectedApp()
     return true
@@ -350,3 +350,4 @@ hs.timer.doAfter(1, function()
   end
   collectChoices()
 end)
+
