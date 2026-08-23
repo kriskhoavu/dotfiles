@@ -8,6 +8,46 @@ return {
       -- High-contrast selected tab: dark-red surface with a bold white label.
       local selected_background = "#590000"
 
+      -- ":bdelete" on a buffer that is on screen closes its window too. With
+      -- Neo-tree plus a single editing window that collapses the layout: the
+      -- tree is left as the only window (looking full screen) and any terminal
+      -- buffer survives with nowhere to show. So point every window at a
+      -- replacement buffer first, then delete.
+      local function close_buffer_keep_layout(bufnr)
+        bufnr = bufnr or vim.api.nvim_get_current_buf()
+        if not vim.api.nvim_buf_is_valid(bufnr) then return end
+
+        local function replacement()
+          local alt = vim.fn.bufnr("#")
+          if alt ~= -1 and alt ~= bufnr and vim.api.nvim_buf_is_valid(alt)
+            and vim.bo[alt].buflisted then
+            return alt
+          end
+          for _, info in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
+            if info.bufnr ~= bufnr then return info.bufnr end
+          end
+          -- Nothing else listed: an empty buffer keeps the window alive.
+          return vim.api.nvim_create_buf(true, false)
+        end
+
+        local shown_in = vim.fn.win_findbuf(bufnr)
+        if #shown_in > 0 then
+          local keep = replacement()
+          for _, win in ipairs(shown_in) do
+            if vim.api.nvim_win_is_valid(win) then
+              vim.api.nvim_win_set_buf(win, keep)
+            end
+          end
+        end
+
+        -- Terminals are always "modified", so they need the bang.
+        if vim.bo[bufnr].buftype == "terminal" then
+          pcall(vim.cmd, "bdelete! " .. bufnr)
+        else
+          pcall(vim.cmd, "bdelete " .. bufnr)
+        end
+      end
+
       require("bufferline").setup({
         highlights = {
           fill = { bg = "#0f1117" },
@@ -29,8 +69,8 @@ return {
         options = {
           mode = "buffers",
           numbers = "none",
-          close_command = "bdelete! %d",
-          right_mouse_command = "bdelete! %d",
+          close_command = close_buffer_keep_layout,
+          right_mouse_command = close_buffer_keep_layout,
           diagnostics = false,
           name_formatter = function(buf)
             -- buf has: name, path, bufnr

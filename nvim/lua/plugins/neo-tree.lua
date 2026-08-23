@@ -136,6 +136,7 @@ return {
 
       -- Keep NeoTree pinned to the left: lock its width and redirect files opened inside it
       local neotree_win_id = nil
+      local neotree_buf_id = nil
 
       -- Hide statusline for Neo-tree windows
       vim.api.nvim_create_autocmd("FileType", {
@@ -157,6 +158,7 @@ return {
         pattern = "neo-tree",
         callback = function()
           neotree_win_id = vim.api.nvim_get_current_win()
+          neotree_buf_id = vim.api.nvim_get_current_buf()
           vim.opt_local.winfixwidth = true
         end,
       })
@@ -186,8 +188,17 @@ return {
             vim.api.nvim_win_set_buf(target, buf)
             vim.api.nvim_set_current_win(target)
           else
-            -- No editing window exists yet — open one to the right
-            vim.cmd("wincmd l | edit #")
+            -- No editing window exists yet — split one off to the right and
+            -- move the file into it, then hand the tree window back to the
+            -- tree. The old "wincmd l | edit #" threw E499 whenever there was
+            -- no alternate file, which is exactly the state left behind after
+            -- closing the last file buffer.
+            vim.cmd("rightbelow vsplit")
+            vim.api.nvim_win_set_buf(0, buf)
+            if neotree_buf_id and vim.api.nvim_buf_is_valid(neotree_buf_id)
+              and vim.api.nvim_win_is_valid(neotree_win_id) then
+              vim.api.nvim_win_set_buf(neotree_win_id, neotree_buf_id)
+            end
           end
         end,
       })

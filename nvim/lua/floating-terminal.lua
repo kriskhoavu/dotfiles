@@ -40,8 +40,38 @@ api.nvim_create_user_command("FloatingTerminal", toggle_term, {})
 -- <leader>9: Toggle Terminal (floating)
 vim.keymap.set({ "n", "t" }, "<leader>9", toggle_term, { desc = "Toggle floating terminal" })
 
+-- A window a terminal may take over: not floating, not the Neo-tree sidebar.
+local function is_editing_window(win)
+	if api.nvim_win_get_config(win).relative ~= "" then
+		return false
+	end
+	return vim.bo[api.nvim_win_get_buf(win)].filetype ~= "neo-tree"
+end
+
 -- <leader>tt: Open a real terminal as a bufferline tab
 vim.keymap.set("n", "<leader>tt", function()
+	-- "enew" replaces the buffer in the current window, so running it while the
+	-- cursor sits in Neo-tree hands the sidebar to the terminal and leaves the
+	-- tree to be rescued by the NeoTreeRedirect autocmd. Pick a real editing
+	-- window up front, splitting one off the sidebar if none exists.
+	local target = nil
+	if is_editing_window(api.nvim_get_current_win()) then
+		target = api.nvim_get_current_win()
+	else
+		for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
+			if is_editing_window(win) then
+				target = win
+				break
+			end
+		end
+	end
+
+	if target then
+		api.nvim_set_current_win(target)
+	else
+		vim.cmd("rightbelow vsplit")
+	end
+
 	vim.cmd("enew")
 	vim.cmd("terminal")
 	vim.cmd("startinsert")
