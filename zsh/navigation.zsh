@@ -175,19 +175,10 @@ function itmux() {
   local sessions
   sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null)
 
-  if ! print -r -- "$sessions" | grep -qx "kode-stream"; then
-    sessions=$(printf '%s\n' "kode-stream" "$sessions")
-  fi
-
   local selected
   selected=$(echo "$sessions" | fzf --prompt="tmux session: " --height=10 --reverse)
 
   [[ -z "$selected" ]] && return
-
-  if [[ "$selected" == "kode-stream" ]] && ! tmux has-session -t "=kode-stream" 2>/dev/null; then
-    tmux new-session -s "kode-stream" -c "$KODE_STREAM_PATH"
-    return
-  fi
 
   local target_path
   target_path=$(tmux display-message -p -t "$selected:" "#{pane_current_path}" 2>/dev/null)
