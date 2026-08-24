@@ -111,6 +111,26 @@ return {
     },
     {
         "sindrets/diffview.nvim",
+        config = function(_, opts)
+            require("diffview").setup(opts)
+
+            -- Diffview's left pane is a git blob with no path on disk, so LSPs
+            -- can't resolve the project and flood it with bogus errors. Diff mode
+            -- is for reading: mute diagnostics until the view closes.
+            local diagnostics_were_enabled = true
+            vim.api.nvim_create_autocmd("User", {
+                group = vim.api.nvim_create_augroup("DiffviewQuietDiagnostics", { clear = true }),
+                pattern = { "DiffviewViewOpened", "DiffviewViewClosed" },
+                callback = function(args)
+                    if args.match == "DiffviewViewOpened" then
+                        diagnostics_were_enabled = vim.diagnostic.is_enabled()
+                        vim.diagnostic.enable(false)
+                    elseif diagnostics_were_enabled then
+                        vim.diagnostic.enable(true)
+                    end
+                end,
+            })
+        end,
         opts = {
             keymaps = {
                 view = {
