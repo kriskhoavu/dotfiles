@@ -31,9 +31,9 @@ Source: `nvim/lua/**`
 |----------|------------------|---------------------------------------------|-------------------------------------------------------------------|
 | `\9`     | Normal, Terminal | Toggle the floating terminal.               | Opens or hides the reusable floating terminal.                    |
 | `\tt`    | Normal           | Open a real terminal buffer tab.            | Creates a new terminal buffer and enters insert mode.             |
-| `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`.                         |
+| `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`; inside lazygit it goes to lazygit instead. |
 | `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Useful inside CLI apps such as Codex, Claude, or other agent UIs. |
-| `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, or quit lazygit with `q`.                    |
+| `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` cannot move focus out of the float. |
 
 ### Markdown
 
@@ -80,7 +80,7 @@ Source: `nvim/lua/**`
 | Shortcut       | Mode     | What it does                                | How to use it                                                                                                            |
 |----------------|----------|---------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | `Ctrl-h/j/k/l` | Normal   | Move between Neovim/tmux panes.             | Works with vim-tmux-navigator.                                                                                           |
-| `Ctrl-h/j/k/l` | Terminal | Exit terminal mode, then move pane.         | Useful from terminal buffers.                                                                                            |
+| `Ctrl-h/j/k/l` | Terminal | Exit terminal mode, then move pane.         | Useful from terminal buffers; inside lazygit (`\3`) they only switch tmux panes, never nvim windows.                      |
 | `Ctrl-w c`     | Normal   | Close current split window.                 | Use to hide the active pane while keeping others open.                                                                   |
 | `\wr`          | Normal   | Toggle resize mode.                         | Then use `h/j/k/l`; press `Esc` or `\wr` to stop.                                                                        |
 | `\sd`          | Normal   | Split or move editor to the right.          | Also triggered by WezTerm `Cmd+Shift+D`.                                                                                 |

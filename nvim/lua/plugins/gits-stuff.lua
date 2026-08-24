@@ -1,9 +1,22 @@
 -- <leader>3: Toggle lazygit (floating)
 local lg_state = { buf = -1, win = -1 }
 
+-- Wipe the dead terminal buffer, else the next open reuses it and shows
+-- "[Process exited 0]" instead of starting lazygit.
+local function reset_lazygit()
+	if vim.api.nvim_win_is_valid(lg_state.win) then
+		pcall(vim.api.nvim_win_hide, lg_state.win)
+	end
+	if vim.api.nvim_buf_is_valid(lg_state.buf) then
+		pcall(vim.api.nvim_buf_delete, lg_state.buf, { force = true })
+	end
+	lg_state.buf, lg_state.win = -1, -1
+end
+
 local function toggle_lazygit()
 	if vim.api.nvim_win_is_valid(lg_state.win) then
 		vim.api.nvim_win_hide(lg_state.win)
+		lg_state.win = -1
 		return
 	end
 
@@ -23,13 +36,40 @@ local function toggle_lazygit()
 
 	if vim.bo[buf].buftype ~= "terminal" then
 		vim.fn.termopen("lazygit", {
+			-- Reads the state, not a captured handle: the float is recreated on
+			-- every toggle, so a captured one goes stale.
 			on_exit = function()
-				-- lazygit was quit (q): close the window and reset so next open is fresh
-				vim.api.nvim_win_hide(win)
-				lg_state.buf = -1
+				vim.schedule(reset_lazygit)
 			end,
 		})
 		vim.bo[buf].buflisted = false
+
+		-- Esc is lazygit's back key; the global map would steal it for normal mode.
+		vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf, desc = "Send Esc to lazygit" })
+
+		-- The float is modal: moving to an nvim window behind it strands lazygit
+		-- off-screen. Ctrl-hjkl still crosses tmux panes; buffer cycling is dead.
+		local tmux_dir = { h = "L", j = "D", k = "U", l = "R" }
+		for key, dir in pairs(tmux_dir) do
+			vim.keymap.set({ "n", "t" }, "<C-" .. key .. ">", function()
+				if vim.env.TMUX then
+					vim.fn.system({ "tmux", "select-pane", "-" .. dir })
+				end
+			end, { buffer = buf, silent = true, desc = "Tmux pane " .. dir .. " (skip nvim windows)" })
+		end
+		for _, key in ipairs({ "<A-h>", "<A-l>" }) do
+			vim.keymap.set({ "n", "t" }, key, "<Nop>", { buffer = buf, silent = true, desc = "Disabled while lazygit is open" })
+		end
+
+		-- Every way back in must land in terminal mode, or keys go to Vim.
+		vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+			buffer = buf,
+			callback = function()
+				if vim.api.nvim_get_current_buf() == buf and vim.bo[buf].buftype == "terminal" then
+					vim.cmd.startinsert()
+				end
+			end,
+		})
 	end
 
 	vim.cmd.startinsert()
