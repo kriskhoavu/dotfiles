@@ -193,6 +193,12 @@ vim.api.nvim_create_autocmd("FileType", {
 			buffer = true,
 			desc = "Run markdown code block under cursor",
 		})
+		-- Bare "mr" as well, for a shorter reach. Buffer-local, so it only
+		-- shadows the "set mark r" command inside markdown files.
+		vim.keymap.set("n", "mr", run_code_block, {
+			buffer = true,
+			desc = "Run markdown code block under cursor",
+		})
 		vim.keymap.set("n", "<leader>ml", list_bg_tasks, {
 			buffer = true,
 			desc = "List background markdown runner tasks",

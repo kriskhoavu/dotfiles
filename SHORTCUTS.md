@@ -40,6 +40,7 @@ Source: `nvim/lua/**`
 | Shortcut | Mode                  | What it does                               | How to use it                                                                 |
 |----------|-----------------------|--------------------------------------------|-------------------------------------------------------------------------------|
 | `\mr`    | Normal, Markdown      | Run the shell code block under the cursor. | Put cursor inside a fenced `sh`, `bash`, or `shell` block, then press `\mr`.  |
+| `mr`     | Normal, Markdown      | Run the shell code block under the cursor. | Shorter reach for `\mr`; buffer-local, so it shadows `m r` (set mark r) only in Markdown. |
 | `Q`      | Normal, runner window | Close the runner float.                    | Works directly in terminal mode; the process keeps running in the background. |
 | `\ml`    | Normal, Markdown      | List markdown runner background tasks.     | Reopen running or finished task output.                                       |
 | `\mp`    | Normal, Markdown      | Toggle Markdown Preview.                   | Opens/stops browser preview.                                                  |
