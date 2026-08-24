@@ -105,7 +105,7 @@ Source: `nvim/lua/**`
 | `\hD`       | Normal           | Toggle diff against last commit.              | Opens/closes gitsigns diff view.                                                   |
 | `\hf`       | Normal           | Show current file history.                    | Opens Diffview's commit history for the current file; press `q` or `Esc` to close. |
 | `ih`        | Operator, Visual | Select Git hunk.                              | Text object from gitsigns.                                                         |
-| `\2`        | Normal           | Toggle Diffview.                              | Opens or closes Git diff view.                                                     |
+| `\2`        | Normal           | Toggle Diffview.                              | Opens or closes Git diff view; `q` or `Esc` closes it from the diff or the file tree panel. |
 | `\<Down>`   | Normal           | Open current file from Diffview and close it. | Similar to VSCode `git.openFile`.                                                  |
 
 ### LSP And Code

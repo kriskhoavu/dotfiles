@@ -41,6 +41,15 @@ local function close_diffview()
     vim.cmd("DiffviewClose")
 end
 
+-- q/<esc> close from anywhere in the view, including the file tree panel, which
+-- diffview leaves unbound by default.
+local function close_keys()
+    return {
+        { "n", "q", close_diffview, { desc = "Close Diffview" } },
+        { "n", "<esc>", close_diffview, { desc = "Close Diffview" } },
+    }
+end
+
 return {
     {
         "lewis6991/gitsigns.nvim",
@@ -133,14 +142,9 @@ return {
         end,
         opts = {
             keymaps = {
-                view = {
-                    { "n", "q", close_diffview, { desc = "Close Diffview" } },
-                    { "n", "<esc>", close_diffview, { desc = "Close Diffview" } },
-                },
-                file_history_panel = {
-                    { "n", "q", close_diffview, { desc = "Close Diffview" } },
-                    { "n", "<esc>", close_diffview, { desc = "Close Diffview" } },
-                },
+                view = close_keys(),
+                file_panel = close_keys(),
+                file_history_panel = close_keys(),
             },
         },
         -- <leader>2: Toggle Git (Diffview)
