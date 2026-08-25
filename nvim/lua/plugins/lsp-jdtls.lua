@@ -89,7 +89,9 @@ return {
               gradle = {
                 enabled = true,
                 wrapper = { enabled = true, checksums = {} },
-                -- Use offline mode if workspace cache already exists (faster re-open)
+                -- Use offline mode if workspace cache already exists (faster re-open).
+                -- A dependency the local cache lacks cannot resolve until the
+                -- workspace is wiped, so bump versions with :JdtUpdateConfig in mind.
                 offline = { enabled = vim.fn.isdirectory(workspace_dir .. "/.metadata") == 1 },
                 -- Cache Gradle configuration so re-opens skip build script re-evaluation
                 arguments = "--configuration-cache --configuration-cache-problems=warn",
