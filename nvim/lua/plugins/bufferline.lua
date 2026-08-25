@@ -127,6 +127,17 @@ return {
       -- Bufferline keymaps
       vim.keymap.set({ "n", "i", "t" }, "<A-h>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
       vim.keymap.set({ "n", "i", "t" }, "<A-l>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
+
+      -- Chrome-style jumps: Alt-1..8 pick that tab by position, Alt-9 the last
+      -- one, whatever the count.
+      for i = 1, 8 do
+        vim.keymap.set({ "n", "i", "t" }, "<A-" .. i .. ">", function()
+          require("bufferline").go_to(i, true)
+        end, { desc = "Go to buffer " .. i })
+      end
+      vim.keymap.set({ "n", "i", "t" }, "<A-9>", function()
+        require("bufferline").go_to(-1, true)
+      end, { desc = "Go to last buffer" })
       vim.keymap.set("n", "<leader>x", function()
         local current = vim.fn.bufnr('%')
         local buftype = vim.api.nvim_get_option_value("buftype", { buf = current })

@@ -33,7 +33,7 @@ Source: `nvim/lua/**`
 | `\tt`    | Normal           | Open a real terminal buffer tab.            | Creates a new terminal buffer and enters insert mode.             |
 | `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`; inside lazygit it goes to lazygit instead. |
 | `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Useful inside CLI apps such as Codex, Claude, or other agent UIs. |
-| `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` cannot move focus out of the float. |
+| `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` / `Alt-1`-`Alt-9` cannot move focus out of the float. |
 
 ### Markdown
 
@@ -61,6 +61,8 @@ Source: `nvim/lua/**`
 | `\fh`       | Normal                   | Search help tags.                            | Opens Neovim help picker.                      |
 | `\fs`       | Normal                   | Search document symbols.                     | Uses LSP symbols when available.               |
 | `⌥h` / `⌥l` | Normal, Insert, Terminal | Previous / next buffer.                      | Works in all modes including terminal buffers. |
+| `⌥1`-`⌥8`   | Normal, Insert, Terminal | Jump to buffer 1-8 in the bufferline.        | Chrome-style tab jumps, by position on screen. |
+| `⌥9`        | Normal, Insert, Terminal | Jump to the last buffer.                     | Like Chrome, regardless of how many are open.  |
 | `\x`        | Normal                   | Close current buffer or special diff window. | Keeps terminal buffers handled specially.      |
 | `\X`        | Normal                   | Close other buffers.                         | Keeps terminal buffers.                        |
 

@@ -57,7 +57,11 @@ local function toggle_lazygit()
 				end
 			end, { buffer = buf, silent = true, desc = "Tmux pane " .. dir .. " (skip nvim windows)" })
 		end
-		for _, key in ipairs({ "<A-h>", "<A-l>" }) do
+		local dead_keys = { "<A-h>", "<A-l>" }
+		for i = 1, 9 do
+			dead_keys[#dead_keys + 1] = "<A-" .. i .. ">"
+		end
+		for _, key in ipairs(dead_keys) do
 			vim.keymap.set({ "n", "t" }, key, "<Nop>", { buffer = buf, silent = true, desc = "Disabled while lazygit is open" })
 		end
 
