@@ -210,12 +210,28 @@ return {
           if vim.fn.argc() ~= 0 then return end
           vim.cmd("Neotree filesystem reveal left")
           vim.cmd("wincmd l")
-          -- Only open terminal if one doesn't already exist (e.g. from restored session)
+
+          -- A restored session brings its terminal back as an unloaded buffer,
+          -- and an unloaded buffer reports buftype "", so matching on buftype
+          -- alone misses it: every start opened another terminal and left the
+          -- previous ones listed in the bufferline. Match the term:// name
+          -- instead, keep a live terminal, and wipe the husks.
+          local live, dead = nil, {}
           for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-            if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
-              return
+            if vim.api.nvim_buf_is_valid(buf)
+              and vim.api.nvim_buf_get_name(buf):match("^term://") then
+              if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "terminal" then
+                live = live or buf
+              else
+                dead[#dead + 1] = buf
+              end
             end
           end
+          for _, buf in ipairs(dead) do
+            pcall(vim.api.nvim_buf_delete, buf, { force = true })
+          end
+          if live then return end
+
           vim.cmd("terminal")
         end),
       })
