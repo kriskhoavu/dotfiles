@@ -52,6 +52,7 @@ Source: `nvim/lua/**`
 |-------------|--------------------------|----------------------------------------------|------------------------------------------------|
 | `\1`        | Normal                   | Toggle Neo-tree file explorer.               | Opens or closes the left explorer.             |
 | `\f.`       | Normal                   | Reveal current file in Neo-tree.             | Useful when you are deep in buffers.           |
+| `\gs`       | Normal                   | Toggle the Git status tree.                  | Same view as `<` / `>` cycling in Neo-tree.    |
 | `gf`        | Neo-tree                 | Open Finder at current node's directory.     | Press inside Neo-tree on any file or folder.   |
 | `\ff`       | Normal                   | Find files with fzf-lua.                     | Uses the Neo-tree directory when possible.     |
 | `\fg`       | Normal                   | Find Git-tracked files.                      | Searches files tracked by Git.                 |
@@ -108,6 +109,10 @@ Source: `nvim/lua/**`
 | `\hD`       | Normal           | Toggle diff against last commit.              | Opens/closes gitsigns diff view.                                                   |
 | `\hf`       | Normal           | Show current file history.                    | Opens Diffview's commit history for the current file; press `q` or `Esc` to close. |
 | `ih`        | Operator, Visual | Select Git hunk.                              | Text object from gitsigns.                                                         |
+| `gd`        | Git status tree  | Diff the file under the cursor.                | Opens Diffview scoped to that file.                                                |
+| `ga` / `gu` | Git status tree  | Stage / unstage the file.                      | `gt` toggles, `A` stages everything.                                               |
+| `gr`        | Git status tree  | Revert the file.                               | Discards its changes.                                                              |
+| `gc` / `gp` | Git status tree  | Commit / push.                                 | `gg` commits and pushes, `gU` undoes the last commit.                              |
 | `\2`        | Normal           | Toggle Diffview.                              | Opens or closes Git diff view; `q` or `Esc` closes it from the diff or the file tree panel. |
 | `\<Down>`   | Normal           | Open current file from Diffview and close it. | Similar to VSCode `git.openFile`.                                                  |
 

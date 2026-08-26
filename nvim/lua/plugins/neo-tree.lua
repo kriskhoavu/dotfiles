@@ -127,12 +127,31 @@ return {
             },
           },
         },
+        git_status = {
+          window = {
+            mappings = {
+              -- The source ships staging and commit actions but no diff, so
+              -- reviewing a change means leaving the tree. gd joins the g-prefixed
+              -- family and opens Diffview scoped to the file under the cursor.
+              -- Go through the Lua API, not :DiffviewOpen: the command only
+              -- exists once the plugin has loaded, and passing the path as its
+              -- own argument keeps paths with spaces intact.
+              ["gd"] = function(state)
+                local node = state.tree:get_node()
+                if not node or not node.path or node.type == "directory" then return end
+                require("diffview").open({ "--", node.path })
+              end,
+            },
+          },
+        },
       })
 
       -- VSCode/IntelliJ-like keybindings
       -- <leader>1: Toggle Explorer (Neo-tree)
       vim.keymap.set("n", "<leader>1", "<cmd>Neotree toggle left<cr>", { silent = true, desc = "Toggle Explorer" })
       vim.keymap.set("n", "<leader>f.", "<cmd>Neotree filesystem reveal left<cr>", { silent = true, desc = "Select in Project View" })
+      -- <leader>gs: jump straight to the git status source ("<" / ">" cycle sources)
+      vim.keymap.set("n", "<leader>gs", "<cmd>Neotree toggle git_status left<cr>", { silent = true, desc = "Toggle Git status tree" })
 
       -- Keep NeoTree pinned to the left: lock its width and redirect files opened inside it
       local neotree_win_id = nil
