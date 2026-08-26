@@ -57,7 +57,6 @@ alias gbd='git branch -d'                 # Delete branch (safe)
 alias gbD='git branch -D'                 # Force delete branch
 alias gc='git checkout'                  # Checkout branch
 alias gcb='git checkout -b'               # Create + checkout new branch
-alias gmaster='git checkout master && git pull --rebase'   # Switch to master and update
 
 # 📜 LOG
 

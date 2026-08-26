@@ -199,7 +199,6 @@ Source: `zsh/git-stuff.zsh`, `git/.gitconfig`
 | `gbD <branch>` | Force delete branch.                            | Uses `git branch -D`.          |
 | `gc <branch>`  | Checkout branch.                                | Alias for `git checkout`.      |
 | `gcb <branch>` | Create and checkout branch.                     | Alias for `git checkout -b`.   |
-| `gmaster`      | Checkout master and pull rebase.                | Updates local master.          |
 | `gl` / `gla`   | Pretty graph log current branch / all branches. | Includes changed file names.   |
 | `gnew`         | Show remote commits not in local.               | Fetches first.                 |
 | `gmine`        | Show local commits not pushed.                  | Fetches first.                 |
