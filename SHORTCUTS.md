@@ -87,8 +87,8 @@ Source: `nvim/lua/**`
 | `Ctrl-h/j/k/l` | Terminal | Exit terminal mode, then move pane.         | Useful from terminal buffers; inside lazygit (`\3`) they only switch tmux panes, never nvim windows.                      |
 | `Ctrl-w c`     | Normal   | Close current split window.                 | Use to hide the active pane while keeping others open.                                                                   |
 | `\wr`          | Normal   | Toggle resize mode.                         | Then use `h/j/k/l`; press `Esc` or `\wr` to stop.                                                                        |
-| `\sd`          | Normal   | Split or move editor to the right.          | Also triggered by WezTerm `Cmd+Shift+D`.                                                                                 |
-| `\st`          | Normal   | Move the current file to a right tmux pane. | Also triggered by WezTerm `Ctrl+Cmd+Shift+T`; saves and closes the local buffer, then restores it when that pane closes. |
+| `\sd`          | Normal   | Split or move editor to the right.          | Splits inside Neovim. Also triggered by WezTerm `Ctrl+Cmd+Shift+D`.                                                      |
+| `\st`          | Normal   | Move the current file to a right tmux pane. | A real tmux pane, not a Neovim split (that is `\sd`). WezTerm `Ctrl+Cmd+Shift+T`; saves and closes the local buffer, then restores it when that pane closes. |
 | `\vt`          | Normal   | Show directory tree in a floating window.   | Runs `tree -L 4`.                                                                                                        |
 | `\tt`          | Normal   | Toggle theme.                               | Note: this conflicts with terminal tab mapping in `floating-terminal.lua`; check which one wins in your current runtime. |
 
@@ -281,7 +281,8 @@ Source: `wezterm/lua/keys.lua`
 | `Option-Left`          | Send Alt-b.                                      | Move one word back in shells/editors that support readline.      |
 | `Option-Right`         | Send Alt-f.                                      | Move one word forward.                                           |
 | `Option-Enter`         | Send Alt-Enter.                                  | Useful for CLIs that bind Alt-Enter.                             |
-| `Cmd-Shift-D`          | Send `\sd` to the terminal.                      | Triggers Neovim split/move-right mapping when focused in Neovim. |
+| `Ctrl-Cmd-Shift-D`     | Send `\sd` to the terminal.                      | Triggers Neovim split/move-right mapping when focused in Neovim. |
+| `Ctrl-Cmd-Shift-T`     | Send `\st` to the terminal.                      | Hands the focused Neovim buffer off to a right tmux pane.        |
 | `Cmd-T`                | Open a new WezTerm tab at home.                  | Starts in `$HOME`.                                               |
 | `Cmd-Shift-Enter`      | Split right.                                     | Creates a side-by-side WezTerm pane in the current directory.    |
 | `Cmd-Option-Enter`     | Split down.                                      | Creates a stacked WezTerm pane in the current directory.         |
