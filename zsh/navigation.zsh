@@ -13,7 +13,7 @@ chrome() {
 }
 
 # Project groups: "name=path" format (order preserved)
-KODE_STREAM_PATH="$HOME/Personal/01. happy-learning/Kris/kode-stream"
+KODE_STREAM_PATH="$HOME/Personal/01. happy-learning/Kris/kompas/kode-stream"
 
 PROJECT_GROUPS=(
     "discovery=$CC/1. Discovery"
