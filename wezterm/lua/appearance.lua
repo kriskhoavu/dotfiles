@@ -45,7 +45,10 @@ return function(config)
       height = "100%",
     },
   }
-  config.window_decorations = "RESIZE"
+  -- RESIZE alone drops the macOS title bar, and with it the traffic-light
+  -- buttons: nothing is left to maximize the window. INTEGRATED_BUTTONS
+  -- puts them in the tab bar instead, keeping the title bar hidden.
+  config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
   config.window_padding     = { left = 4, right = 4, top = 4, bottom = 4 }
 
   -- ── Cursor ────────────────────────────────────────────────────────────────

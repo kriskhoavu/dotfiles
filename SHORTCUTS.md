@@ -289,6 +289,7 @@ Source: `wezterm/lua/keys.lua`
 | `Ctrl-Cmd-Arrow`       | Focus pane in that direction.                    | Switches between WezTerm panes.                                  |
 | `Ctrl-Cmd-Shift-Arrow` | Resize active pane.                              | Moves the adjacent divider by 5 cells.                           |
 | `Ctrl-Cmd-R`           | Rotate panes clockwise.                          | Cycles the panes through their existing layout positions.        |
+| `Ctrl-Cmd-F`           | Toggle fullscreen.                               | Same shortcut macOS uses; the green button in the tab bar zooms. |
 | `Ctrl-C`               | Copy if text is selected; otherwise send Ctrl-C. | Smart terminal copy/interrupt behavior.                          |
 
 ## VSCode

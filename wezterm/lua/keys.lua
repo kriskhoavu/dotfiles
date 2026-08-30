@@ -30,6 +30,7 @@ return function(config)
     { key = "UpArrow",    mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Up", 5 } },
     { key = "DownArrow",  mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Down", 5 } },
     { key = "r",          mods = "CTRL|CMD",   action = act.RotatePanes "Clockwise" },
+    { key = "f",          mods = "CTRL|CMD",   action = act.ToggleFullScreen },          -- macOS-standard fullscreen
     { key = "1",          mods = "CMD",       action = act.ActivateTab(0) },            -- Cmd+1 → tab 1
     { key = "2",          mods = "CMD",       action = act.ActivateTab(1) },            -- Cmd+2 → tab 2
     { key = "3",          mods = "CMD",       action = act.ActivateTab(2) },            -- Cmd+3 → tab 3
