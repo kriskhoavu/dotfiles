@@ -3,7 +3,7 @@ local wezterm = require 'wezterm'
 return function(config)
   -- ── Font ──────────────────────────────────────────────────────────────────
   config.font      = wezterm.font("MesloLGS NF", { weight = "Regular" })
-  config.font_size = 14.0
+  config.font_size = 14.3
   config.use_cap_height_to_scale_fallback_fonts = true
   config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
   config.font_rules = {
