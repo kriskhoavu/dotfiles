@@ -73,14 +73,19 @@ return {
           group_empty_dirs = false,
           follow_current_file = { enabled = false },
           filtered_items = {
+            -- visible keeps every entry on screen; the hide_* flags only mark
+            -- them as filtered, which is what dims them. With hide_dotfiles
+            -- off, dotfiles were not marked at all and rendered at full
+            -- brightness.
             visible = true,
-            hide_dotfiles = false,
+            hide_dotfiles = true,
             hide_gitignored = true,
           },
           components = {
             -- Show only basename for root node
             name = function(config, node, state)
               local highlights = require("neo-tree.ui.highlights")
+              local common = require("neo-tree.sources.common.components")
               local highlight = config.highlight or highlights.FILE_NAME
               if node.type == "directory" then
                 highlight = highlights.DIRECTORY_NAME
@@ -90,12 +95,20 @@ return {
                   text = vim.fn.fnamemodify(node.path, ":t"),
                   highlight = highlight,
                 }
-              else
-                return {
-                  text = node.name,
-                  highlight = highlight,
-                }
               end
+
+              -- Dim dotfiles and ignored entries the way the icon already does:
+              -- overriding this component dropped the dimming the default one
+              -- applies, so only the icon stayed gray.
+              if config.use_filtered_colors ~= false then
+                local filtered_by = common.filtered_by(config, node, state)
+                highlight = filtered_by.highlight or highlight
+              end
+
+              return {
+                text = node.name,
+                highlight = highlight,
+              }
             end,
           },
           find_by_full_path_words = false,
