@@ -271,6 +271,7 @@ Source: `zsh/development.zsh`
 | `x`            | Exit shell.           | Alias for `exit`.       |        |
 | `hc`           | Clear shell history.  | Alias for `history -c`. |        |
 | `hg <pattern>` | Search shell history. | Alias for `history      | grep`. |
+| `Up` / `Down`  | Search history for what you already typed. | Matches anywhere in the command, not just the start. Source: `zsh/.zshrc`. | |
 
 ## WezTerm
 

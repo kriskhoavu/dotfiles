@@ -55,11 +55,15 @@ SPACESHIP_PROMPT_ORDER=(
   char
 )
 
-# Plugins - syntax highlighting must be last
+# Plugins. syntax-highlighting goes last of the two that wrap widgets, and
+# history-substring-search after it -- its README requires that order. Loading it
+# first put three widgets on the zle-line-pre-redraw hook in an order the plugins
+# do not support, and that hook recursed into itself: a pane would wedge with zsh
+# spinning at 100% CPU and no longer reading the keyboard.
 plugins=(
-    zsh-history-substring-search
     zsh-autosuggestions
     zsh-syntax-highlighting
+    zsh-history-substring-search
 )
 
 # OMZ recompiles the dump under a mkdir lock. If a shell is killed mid-recompile the lock
@@ -74,6 +78,15 @@ source $ZSH/oh-my-zsh.sh
 # Autosuggest performance settings
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
+
+# Up/Down search history for what is already typed, rather than walking it
+# blindly. OMZ binds these to *-line-or-beginning-search, so rebind after it
+# loads. $terminfo[kcuu1] is empty under some TERM values, hence the literal
+# escapes: [A/[B for normal cursor mode, OA/OB for application mode.
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+bindkey '^[OA' history-substring-search-up
+bindkey '^[OB' history-substring-search-down
 
 # PATH Configuration
 export DEFAULT_USER="$USER"
