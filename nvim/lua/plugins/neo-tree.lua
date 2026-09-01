@@ -27,25 +27,39 @@ return {
         local function drill(current)
           if not current then return end
 
-          -- Expand first, then retry via callback
           if not current:is_expanded() then
-            fs.toggle_directory(state, current, nil, true, false, function()
-              vim.schedule(function()
-                drill(state.tree:get_node(current:get_id()))
+            -- Only the unloaded branch of toggle_directory renders and fires the
+            -- callback; for an already scanned node it does neither once
+            -- skip_redraw is set, which left a collapsed directory expanded in
+            -- the tree but never repainted. Drive that case here instead.
+            if current.loaded == false then
+              fs.toggle_directory(state, current, nil, true, false, function()
+                vim.schedule(function()
+                  drill(state.tree:get_node(current:get_id()))
+                end)
               end)
-            end)
-            return
+              return
+            end
+            current:expand()
+            state.explicitly_opened_nodes = state.explicitly_opened_nodes or {}
+            state.explicitly_opened_nodes[current:get_id()] = true
           end
 
           local children = state.tree:get_nodes(current:get_id())
-          if not children or #children == 0 then return end
+          if not children or #children == 0 then
+            renderer.redraw(state)
+            return
+          end
 
-          -- Continue drilling if single directory child, otherwise stop
+          -- Continue drilling if single directory child, otherwise stop. Redraw
+          -- once here rather than per level so a deep chain costs one repaint.
           local first = children[1]
-          renderer.focus_node(state, first:get_id())
           if #children == 1 and first.type == "directory" then
             drill(first)
+            return
           end
+          renderer.redraw(state)
+          renderer.focus_node(state, first:get_id())
         end
 
         drill(node)
