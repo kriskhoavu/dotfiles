@@ -55,11 +55,8 @@ SPACESHIP_PROMPT_ORDER=(
   char
 )
 
-# Plugins. syntax-highlighting goes last of the two that wrap widgets, and
-# history-substring-search after it -- its README requires that order. Loading it
-# first put three widgets on the zle-line-pre-redraw hook in an order the plugins
-# do not support, and that hook recursed into itself: a pane would wedge with zsh
-# spinning at 100% CPU and no longer reading the keyboard.
+# Order matters: history-substring-search after syntax-highlighting, per its
+# README. Reversed, their zle-line-pre-redraw hooks recurse and zsh spins at 100%.
 plugins=(
     zsh-autosuggestions
     zsh-syntax-highlighting
@@ -79,14 +76,17 @@ source $ZSH/oh-my-zsh.sh
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
 
-# Up/Down search history for what is already typed, rather than walking it
-# blindly. OMZ binds these to *-line-or-beginning-search, so rebind after it
-# loads. $terminfo[kcuu1] is empty under some TERM values, hence the literal
-# escapes: [A/[B for normal cursor mode, OA/OB for application mode.
+# Up/Down search history for what is typed. Rebound after OMZ, which claims them.
+# Literal escapes ([A/[B normal, OA/OB application) -- $terminfo can be empty.
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down
 bindkey '^[OA' history-substring-search-up
 bindkey '^[OB' history-substring-search-down
+
+# Match words in order with gaps, so "git commit" finds "git -C repo commit".
+HISTORY_SUBSTRING_SEARCH_FUZZY=1
+# No hist_*_dups option is on, so dedupe matches here.
+HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
 
 # PATH Configuration
 export DEFAULT_USER="$USER"
