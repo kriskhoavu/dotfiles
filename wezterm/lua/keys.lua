@@ -13,10 +13,13 @@ return function(config)
     { key = "Enter",      mods = "OPT",       action = act.SendString("\x1b\r") },   -- Option+Enter → Alt+Enter
     { key = "d",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\sd") }, -- Ctrl+Cmd+Shift+D → nvim <leader>sd
     { key = "t",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\st") }, -- Ctrl+Cmd+Shift+T → nvim <leader>st
-    { key = "1",          mods = "CTRL",      action = act.SendString("\x1b\\1") }, -- Ctrl+1 → nvim <leader>1
-    { key = "2",          mods = "CTRL",      action = act.SendString("\x1b\\2") }, -- Ctrl+2 → nvim <leader>2
-    { key = "3",          mods = "CTRL",      action = act.SendString("\x1b\\3") }, -- Ctrl+3 → nvim <leader>3
-    { key = "9",          mods = "CTRL",      action = act.SendString("\x1b\\9") }, -- Ctrl+9 → nvim <leader>9
+    -- Leader chords are prefixed with <C-\><C-n> rather than ESC so they work
+    -- from insert/terminal mode. A bare ESC also fires nvim's own <esc> maps:
+    -- in Diffview that closed the view, then the leader key reopened it.
+    { key = "1",          mods = "CTRL",      action = act.SendString("\x1c\x0e\\1") }, -- Ctrl+1 → nvim <leader>1
+    { key = "2",          mods = "CTRL",      action = act.SendString("\x1c\x0e\\2") }, -- Ctrl+2 → nvim <leader>2
+    { key = "3",          mods = "CTRL",      action = act.SendString("\x1c\x0e\\3") }, -- Ctrl+3 → nvim <leader>3
+    { key = "9",          mods = "CTRL",      action = act.SendString("\x1c\x0e\\9") }, -- Ctrl+9 → nvim <leader>9
     { key = "t",          mods = "CMD",        action = act.SpawnCommandInNewTab { cwd = h.HOME } },
     -- Pane management. New panes inherit the active pane's working directory.
     { key = "Enter",      mods = "CMD|SHIFT",  action = act.SplitPane { direction = "Right" } },
