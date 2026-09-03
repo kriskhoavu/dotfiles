@@ -1,0 +1,14 @@
+# Overlay config, layered on top of ~/.config/lazygit/config.yml and applied only
+# when lazygit is launched from inside nvim -- see toggle_lazygit in
+# lua/plugins/gits-stuff.lua. Running lazygit from a plain terminal is untouched.
+#
+# `e` hands the file to the nvim hosting lazygit and hides the float, instead of
+# starting a nested editor inside it. $LAZYGIT_NVIM_OPEN is exported by
+# toggle_lazygit so this file needs no absolute path of its own.
+#
+# `editAtLineAndWait` is deliberately left at its default: lazygit uses the
+# blocking variant for interactive rebase and for `C` / `R` commit editing, which
+# need an editor that actually waits.
+os:
+  edit: '"$LAZYGIT_NVIM_OPEN" {{filename}}'
+  editAtLine: '"$LAZYGIT_NVIM_OPEN" {{filename}} {{line}}'

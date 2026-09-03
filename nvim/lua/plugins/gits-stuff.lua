@@ -13,6 +13,49 @@ local function reset_lazygit()
 	lg_state.buf, lg_state.win = -1, -1
 end
 
+-- Called over RPC by scripts/lazygit-open.sh when lazygit's `e` runs. The float
+-- is hidden rather than closed, so the lazygit session survives and <leader>3
+-- brings it back exactly where it was.
+function _G.LazygitOpenFile(path, line)
+	-- The RPC arrives mid-keystroke inside the terminal job. Deferring keeps the
+	-- window juggling out of that context, and lets the shim return immediately
+	-- instead of blocking lazygit's UI.
+	vim.schedule(function()
+		if vim.api.nvim_win_is_valid(lg_state.win) then
+			vim.api.nvim_win_hide(lg_state.win)
+			lg_state.win = -1
+		end
+
+		vim.cmd.edit(vim.fn.fnameescape(path))
+
+		line = tonumber(line) or 0
+		if line > 0 then
+			pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
+		end
+	end)
+
+	-- --remote-expr prints whatever this returns; keep lazygit's pane clean.
+	return ""
+end
+
+-- The overlay lives beside this config, and stdpath resolves it wherever the
+-- dotfiles are checked out -- the repo path itself contains spaces.
+local function lazygit_command()
+	local config_dir = vim.fn.stdpath("config")
+	local configs = {}
+
+	-- The personal config is not managed by these dotfiles, so use it only if it
+	-- is actually there. `-ucf` merges left to right, overlay last.
+	local user_config = vim.fs.joinpath(vim.env.XDG_CONFIG_HOME or vim.fn.expand("~/.config"), "lazygit", "config.yml")
+	if vim.uv.fs_stat(user_config) then
+		table.insert(configs, user_config)
+	end
+	table.insert(configs, vim.fs.joinpath(config_dir, "lazygit-nvim.yml"))
+
+	return { "lazygit", "--use-config-file", table.concat(configs, ",") },
+		vim.fs.joinpath(config_dir, "scripts", "lazygit-open.sh")
+end
+
 local function toggle_lazygit()
 	if vim.api.nvim_win_is_valid(lg_state.win) then
 		vim.api.nvim_win_hide(lg_state.win)
@@ -35,7 +78,12 @@ local function toggle_lazygit()
 	lg_state.buf, lg_state.win = buf, win
 
 	if vim.bo[buf].buftype ~= "terminal" then
-		vim.fn.termopen("lazygit", {
+		local cmd, shim = lazygit_command()
+		-- An argv list, not a shell string: the paths handed to `-ucf` contain
+		-- spaces. The shim's own path travels in the environment so the overlay
+		-- YAML never has to name it.
+		vim.fn.termopen(cmd, {
+			env = { LAZYGIT_NVIM_OPEN = shim },
 			-- Reads the state, not a captured handle: the float is recreated on
 			-- every toggle, so a captured one goes stale.
 			on_exit = function()

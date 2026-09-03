@@ -34,6 +34,7 @@ Source: `nvim/lua/**`
 | `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`; inside lazygit it goes to lazygit instead. |
 | `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Useful inside CLI apps such as Codex, Claude, or other agent UIs. |
 | `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` cannot move focus out of the float. |
+| `e`      | Terminal         | Open the selected file in nvim.             | Inside lazygit only: hides the float and edits the file in the nvim hosting it; `\3` returns to the same session. `o` still opens in the default app. |
 
 ### Markdown
 
