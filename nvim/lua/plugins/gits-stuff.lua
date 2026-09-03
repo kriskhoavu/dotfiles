@@ -94,6 +94,154 @@ local function close_keys()
     }
 end
 
+-- <leader>hd / <leader>hD open a gitsigns diff: a read-only `gitsigns://`
+-- revision buffer beside the file. Getting back out is the awkward part, so the
+-- teardown lives here rather than in the keymap: the revision pane gets its own
+-- q/<esc>, and a bare `:q` from either pane is caught as well.
+
+local function is_revision_buf(buf)
+    return vim.api.nvim_buf_get_name(buf):match("^gitsigns://") ~= nil
+end
+
+-- The revision panes of the current tab. They are matched by name rather than by
+-- the 'diff' option: gitsigns clears 'diff' itself on some teardown paths, and a
+-- pane left behind by `:q` would then be invisible to this code.
+local function revision_windows(tab)
+    local revision = {}
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
+        if vim.api.nvim_win_is_valid(win) and is_revision_buf(vim.api.nvim_win_get_buf(win)) then
+            table.insert(revision, win)
+        end
+    end
+    return revision
+end
+
+-- The buffer each diff was opened from, per tab, so the file can be restored
+-- when `:q` has already taken its window away.
+local diff_origin = {}
+
+-- The panes showing the file this diff was opened from. Matching the remembered
+-- buffer, rather than every window with 'diff' set, keeps an unrelated diff in
+-- the same tab (Diffview's blob panes, a hand-rolled :diffsplit) out of the
+-- teardown. Only when the diff was started outside these keymaps -- `:Gitsigns
+-- diffthis` -- is there nothing to match, and then clearing every diff window is
+-- still better than leaving 'diff' set on the file.
+local function origin_windows(tab)
+    local origin = diff_origin[tab]
+    local known = origin ~= nil and vim.api.nvim_buf_is_valid(origin)
+    local wins = {}
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
+        if vim.api.nvim_win_is_valid(win) and not is_revision_buf(vim.api.nvim_win_get_buf(win)) then
+            local match = known and vim.api.nvim_win_get_buf(win) == origin
+                or (not known and vim.wo[win].diff)
+            if match then
+                table.insert(wins, win)
+            end
+        end
+    end
+    return wins
+end
+
+local function close_gitsigns_diff_view()
+    local tab = vim.api.nvim_get_current_tabpage()
+    local revision = revision_windows(tab)
+    if #revision == 0 then
+        return
+    end
+    local file = origin_windows(tab)
+
+    -- 'diff' is a window option, so it has to be cleared while the windows still
+    -- exist. Only this view's panes are touched, which leaves an unrelated diff
+    -- (Diffview, a hand-rolled :diffsplit) alone -- `diffoff!` would not.
+    for _, group in ipairs({ revision, file }) do
+        for _, win in ipairs(group) do
+            if vim.api.nvim_win_is_valid(win) then
+                vim.api.nvim_win_call(win, function()
+                    vim.cmd("diffoff")
+                end)
+            end
+        end
+    end
+
+    -- `:q` in the file pane leaves the revision blob as the only window. It is an
+    -- `acwrite` view of the git index, where `:w` would stage lines, so put the
+    -- real file back instead of closing the last window and stranding the user.
+    if #file == 0 then
+        local keep = table.remove(revision, 1)
+        local origin = diff_origin[tab]
+        if origin and vim.api.nvim_buf_is_valid(origin) and keep and vim.api.nvim_win_is_valid(keep) then
+            vim.api.nvim_win_set_buf(keep, origin)
+        elseif keep then
+            table.insert(revision, 1, keep)
+        end
+    end
+
+    for _, win in ipairs(revision) do
+        if vim.api.nvim_win_is_valid(win) and #vim.api.nvim_tabpage_list_wins(tab) > 1 then
+            vim.api.nvim_win_close(win, true)
+        end
+    end
+
+    diff_origin[tab] = nil
+end
+
+-- Keying the toggle off an open revision pane, rather than off `vim.wo.diff`,
+-- matters: gitsigns resets 'diff' when the revision buffer is hidden, and a
+-- toggle that trusted it would diff the git index against itself and stack up
+-- another pane every press.
+local function toggle_gitsigns_diff(base)
+    if #revision_windows(0) > 0 then
+        close_gitsigns_diff_view()
+        return
+    end
+
+    diff_origin[vim.api.nvim_get_current_tabpage()] = vim.api.nvim_get_current_buf()
+    package.loaded.gitsigns.diffthis(base)
+end
+
+local gitsigns_diff_group = vim.api.nvim_create_augroup("GitsignsDiffViewClose", { clear = true })
+
+-- gitsigns builds the revision buffer asynchronously, so its exit keys are bound
+-- when the window shows up. Binding them after the `diffthis` call returns would
+-- leave a window in which no key gets you out.
+vim.api.nvim_create_autocmd("BufWinEnter", {
+    group = gitsigns_diff_group,
+    pattern = "gitsigns://*",
+    callback = function(args)
+        for _, key in ipairs({ "q", "<esc>" }) do
+            vim.keymap.set("n", key, close_gitsigns_diff_view, {
+                buffer = args.buf,
+                desc = "Close gitsigns diff view",
+            })
+        end
+    end,
+})
+
+-- Safety net for `:q`, `:close` and friends in the file pane, which would
+-- otherwise dump the user into the revision blob with the file nowhere in sight.
+vim.api.nvim_create_autocmd("WinClosed", {
+    group = gitsigns_diff_group,
+    callback = function(args)
+        local closed = tonumber(args.match)
+        if closed == nil then
+            return
+        end
+        local ok, in_diff = pcall(function()
+            return vim.wo[closed].diff
+        end)
+        if not ok or not in_diff then
+            return
+        end
+        -- The window is still listed during WinClosed, so decide once it is gone.
+        vim.schedule(function()
+            local tab = vim.api.nvim_get_current_tabpage()
+            if #revision_windows(tab) > 0 and #origin_windows(tab) == 0 then
+                close_gitsigns_diff_view()
+            end
+        end)
+    end,
+})
+
 return {
     {
         "lewis6991/gitsigns.nvim",
@@ -101,16 +249,6 @@ return {
         opts = {
             on_attach = function(bufnr)
                 local gs = package.loaded.gitsigns
-                local function close_gitsigns_diff_view()
-                    vim.cmd("diffoff!")
-                    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-                        local buf = vim.api.nvim_win_get_buf(win)
-                        local name = vim.api.nvim_buf_get_name(buf)
-                        if name:match("^gitsigns://") and vim.api.nvim_win_is_valid(win) then
-                            vim.api.nvim_win_close(win, true)
-                        end
-                    end
-                end
                 local function map(mode, l, r, desc)
                     vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
                 end
@@ -144,18 +282,10 @@ return {
                 -- Diff / Preview
                 map("n", "<leader>hp", gs.preview_hunk, "Preview hunk")
                 map("n", "<leader>hd", function()
-                    if vim.wo.diff then
-                        close_gitsigns_diff_view()
-                        return
-                    end
-                    gs.diffthis()
+                    toggle_gitsigns_diff()
                 end, "Toggle diff this")
                 map("n", "<leader>hD", function()
-                    if vim.wo.diff then
-                        close_gitsigns_diff_view()
-                        return
-                    end
-                    gs.diffthis("~")
+                    toggle_gitsigns_diff("~")
                 end, "Toggle diff this ~ (against last commit)")
                 -- text object
                 map({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "Select hunk")
