@@ -22,7 +22,7 @@ Source: `nvim/lua/**`
 
 | Shortcut        | Mode    | What it does                                         | How to use it                                      |
 |-----------------|---------|------------------------------------------------------|----------------------------------------------------|
-| `\?`            | Normal  | Open this shortcut help center in a floating window. | Press from anywhere in Neovim. Press `q` to close. |
+| `\?`            | Normal  | Open this shortcut help center in a floating window. | Press from anywhere in Neovim. `q` closes it — this float does not take `Esc`, unlike the Git ones. `/` searches, `]]` / `[[` jump between sections. |
 | `:ShortcutHelp` | Command | Open this shortcut help center.                      | Run as an Ex command.                              |
 
 ### Terminal And Floating Tools
@@ -89,52 +89,67 @@ Source: `nvim/lua/**`
 | `\sd`          | Normal   | Split or move editor to the right.          | Splits inside Neovim. Also triggered by WezTerm `Ctrl+Cmd+Shift+D`.                                                      |
 | `\st`          | Normal   | Move the current file to a right tmux pane. | A real tmux pane, not a Neovim split (that is `\sd`). WezTerm `Ctrl+Cmd+Shift+T`; saves and closes the local buffer, then restores it when that pane closes. |
 | `\vt`          | Normal   | Show directory tree in a floating window.   | Runs `tree -L 4`.                                                                                                        |
-| `\tt`          | Normal   | Toggle theme.                               | Note: this conflicts with terminal tab mapping in `floating-terminal.lua`; check which one wins in your current runtime. |
+| `:ThemeToggle` | Command  | Cycle the colour scheme.                    | Was `\tt`, but that key now opens a terminal tab (`floating-terminal.lua` loads later and wins), so the theme binding never fires. Run the command, or `:Theme <name>` to pick one. |
 
 ### Git In Neovim
 
-| Shortcut    | Mode             | What it does                                  | How to use it                                                                      |
-|-------------|------------------|-----------------------------------------------|------------------------------------------------------------------------------------|
-| `]h` / `[h` | Normal           | Next / previous Git hunk.                     | Requires gitsigns on a Git file.                                                   |
-| `\hs`       | Normal, Visual   | Stage hunk or selected hunk.                  | Stage current hunk or visual selection.                                            |
-| `\hr`       | Normal, Visual   | Reset hunk or selected hunk.                  | Discards the selected/current hunk.                                                |
-| `\hS`       | Normal           | Stage whole buffer.                           | Adds all changes in the file.                                                      |
-| `\hR`       | Normal           | Reset whole buffer.                           | Discards all file changes.                                                         |
-| `\hu`       | Normal           | Undo stage hunk.                              | Unstages the current hunk.                                                         |
-| `\hb`       | Normal           | Show blame for current line.                  | Opens blame info.                                                                  |
-| `\hB`       | Normal           | Toggle current-line blame.                    | Persistent inline blame toggle.                                                    |
-| `\hp`       | Normal           | Preview hunk.                                 | Shows current hunk diff.                                                           |
-| `\hd`       | Normal           | Toggle diff against index.                    | Opens/closes gitsigns diff view.                                                   |
-| `\hD`       | Normal           | Toggle diff against last commit.              | Opens/closes gitsigns diff view.                                                   |
-| `\hf`       | Normal           | Show current file history.                    | Opens Diffview's commit history for the current file; press `q` or `Esc` to close. |
-| `ih`        | Operator, Visual | Select Git hunk.                              | Text object from gitsigns.                                                         |
-| `gd`        | Git status tree  | Diff the file under the cursor.                | Opens Diffview scoped to that file.                                                |
-| `ga` / `gu` | Git status tree  | Stage / unstage the file.                      | `gt` toggles, `A` stages everything.                                               |
-| `gr`        | Git status tree  | Revert the file.                               | Discards its changes.                                                              |
-| `gc` / `gp` | Git status tree  | Commit / push.                                 | `gg` commits and pushes, `gU` undoes the last commit.                              |
-| `\2`        | Normal           | Toggle Diffview.                              | Opens or closes Git diff view; `q` or `Esc` closes it from the diff or the file tree panel. |
-| `\<Down>`   | Normal           | Open current file from Diffview and close it. | Similar to VSCode `git.openFile`.                                                  |
+**The words first.** A **hunk** is one contiguous block of changed lines; a single file usually has several. A **buffer** is Neovim's word for the whole file you have open. **Staged** means "this is what `git commit` will record" — Git tracks that separately from the text in front of you:
+```
+              staged                        working copy
+             ("index")                   (what you see in nvim)
+                 | <------ \hs   \hS ------------ |  stage:   mark it for the next commit
+                 | ------- \hu -----------------> |  unstage: unmark it, text untouched
+                 | ======= \hr   \hR ===========> |  reset:   OVERWRITE your text with the staged copy
+```
+
+Stage and unstage only move that mark, so they can never lose work. **Reset is the one that destroys**, and plain `u` undoes it, because a reset is just an edit to the buffer. The last commit (`HEAD`) only enters the picture for `\hD` and `gr`.
+
+| Shortcut    | Mode             | What it does                                      | How to use it                                                                                    |
+|-------------|------------------|---------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| `]h` / `[h` | Normal           | Jump to the next / previous changed block.        | Fastest way to walk everything you touched. Needs a file inside a Git repo.                      |
+| `\hp`       | Normal           | Peek at what you changed here, without moving.    | Shows the lines you replaced, in a float. `q` closes it.                                         |
+| `\hs`       | Normal, Visual   | Stage this hunk: include it in the next commit.   | In Visual mode it stages only the lines you selected. Same idea as `git add -p`.                 |
+| `\hS`       | Normal           | Stage the whole file.                             | `\hs` when you want all of it rather than one block.                                             |
+| `\hu`       | Normal           | Unstage: take it back out of the next commit.     | Your text is untouched, nothing is lost. For when you staged something too early.                |
+| `\hr`       | Normal           | ⚠️ Throw away your edit to this hunk.              | Puts back the **staged** version, so staged work survives. Pressed it by mistake? `u` undoes it. |
+| `\hR`       | Normal           | ⚠️ Throw away every unstaged edit in the file.     | Also reverts to the staged version, not to the last commit. `u` undoes it while the file is open.|
+| `\hb`       | Normal           | Who last changed this line, and why.              | Author, date and commit message for the cursor line, in a float. `q` closes it.                  |
+| `\hB`       | Normal           | The same blame, pinned beside every line.         | A toggle: press again to turn it off. Handy while reading unfamiliar code.                       |
+| `\hd`       | Normal           | Side by side: your file vs. the staged version.   | Shows what you have not staged yet. `q`, `Esc` or `\hd` again closes it.                         |
+| `\hD`       | Normal           | Side by side: your file vs. one commit further back. | Compares against `HEAD~`, so it shows your uncommitted edits **plus** the last commit's. `q`, `Esc` or `\hD` again closes it. |
+| `\hf`       | Normal           | Every past commit that touched this file.         | Walk the file's history and diff any version. `q` or `Esc` closes it.                            |
+| `ih`        | Operator, Visual | The current hunk, as a target for other commands. | Combine it: `dih` deletes the hunk, `vih` selects it, `yih` copies it.                            |
+| `\2`        | Normal           | Every changed file in the repo, side by side.     | The full review pass before committing. `q` or `Esc` closes it, from the diff or the file list.  |
+| `\<Down>`   | Normal           | Stop reviewing this file, start editing it.       | From inside `\2`: closes the diff and opens the real file. VSCode calls this `git.openFile`.     |
+| `gd`        | Git status tree  | Diff just the file under the cursor.              | In the `\gs` tree. Same side-by-side view, scoped to one file.                                   |
+| `ga` / `gu` | Git status tree  | Stage / unstage the file under the cursor.        | `gt` toggles between the two; `A` stages every changed file at once.                             |
+| `gr`        | Git status tree  | ⚠️ Throw away every edit to that file.             | Runs `git checkout HEAD -- <file>`: it reverts to the last commit, drops staged work too, and writes the file on disk, so Neovim's `u` cannot bring it back. |
+| `gc` / `gp` | Git status tree  | Commit / push.                                    | `gg` does both at once. `gU` undoes the last commit but keeps its changes, staged.               |
 
 ### LSP And Code
 
-| Shortcut    | Mode           | What it does                             | How to use it                    |
-|-------------|----------------|------------------------------------------|----------------------------------|
-| `K`         | Normal         | Hover documentation.                     | On a symbol with LSP attached.   |
-| `gd` / `gD` | Normal         | Go to definition / declaration.          | LSP navigation.                  |
-| `gi`        | Normal         | Go to implementation.                    | LSP navigation.                  |
-| `gr`        | Normal         | References.                              | LSP navigation.                  |
-| `gs`        | Normal         | Signature help.                          | Shows call signature.            |
-| `\rn`       | Normal         | Rename symbol.                           | LSP rename.                      |
-| `\ca`       | Normal, Visual | Code action.                             | LSP code actions.                |
-| `[d` / `]d` | Normal         | Previous / next diagnostic.              | Navigate diagnostics.            |
-| `\e`        | Normal         | Open diagnostic float.                   | Shows diagnostic at cursor.      |
-| `\q`        | Normal         | Populate location list with diagnostics. | Useful for reviewing all errors. |
-| `\fm`       | Normal         | Format buffer.                           | Uses configured formatter/LSP.   |
-| `\gf`       | Normal, Visual | Format with none-ls.                     | Uses configured none-ls sources. |
-| `\co`       | Normal, Java   | Organize imports.                        | JDTLS only.                      |
-| `\crv`      | Normal, Java   | Extract variable.                        | JDTLS only.                      |
-| `\crc`      | Normal, Java   | Extract constant.                        | JDTLS only.                      |
-| `\crm`      | Visual, Java   | Extract method.                          | Select code first.               |
+**The words first.** An **LSP** (language server) is a background process that actually parses your project, so it knows where things are defined and what they mean — unlike plain text search. These keys are dead until a server has attached to the file, which is why nothing happens in, say, a scratch buffer. A **diagnostic** is one error, warning or hint the server reported.
+
+Note `gd`, `gr` and `gs` do something different inside the Git status tree (`\gs`) — those bindings are per-window, so there is no real clash.
+
+| Shortcut    | Mode           | What it does                                       | How to use it                                                                                   |
+|-------------|----------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| `K`         | Normal         | What is this thing? Docs and type, in a float.     | Cursor on a name. Press `K` twice to jump inside the float and scroll it.                       |
+| `gd` / `gD` | Normal         | Jump to where it is defined / declared.            | `Ctrl-o` jumps back. `gD` matters mostly in C-like languages, where the two differ.             |
+| `gi`        | Normal         | Jump to what actually implements it.               | For an interface or abstract method, this is the concrete code; `gd` would only reach the interface. |
+| `gr`        | Normal         | Everywhere this is used, as a list.                | Check before renaming or deleting something. Pick an entry to jump there.                       |
+| `gs`        | Normal         | Which argument am I typing?                        | Shows the function's parameters with the current one highlighted. Useful mid-call.               |
+| `\rn`       | Normal         | Rename this everywhere at once.                    | Type the new name, press `Enter`. Renames every reference across the project, not just this file.|
+| `\ca`       | Normal, Visual | Offer fixes for the problem under the cursor.      | Import the missing thing, fill in the interface, silence the warning. Pick from the list.        |
+| `[d` / `]d` | Normal         | Jump to the previous / next problem in this file.  | Walk the errors instead of hunting for the squiggles.                                            |
+| `\e`        | Normal         | Read the full error under the cursor.              | For messages too long to fit inline. `\ce` copies it to the clipboard.                           |
+| `\q`        | Normal         | Collect every problem in the file into a list.     | Then `:cnext` / `:cprev` to work through them. Better than `]d` for a long list.                 |
+| `\fm`       | Normal         | Reformat the whole file.                           | Uses whatever formatter this filetype is configured with.                                        |
+| `\gf`       | Normal, Visual | Reformat via none-ls instead.                      | Use when `\fm` does nothing, i.e. the language server has no formatter of its own.               |
+| `\co`       | Normal, Java   | Sort the imports and drop the unused ones.         | Java only.                                                                                       |
+| `\crv`      | Normal, Java   | Pull the expression under the cursor into a variable. | Java only. Put the cursor on the expression first.                                            |
+| `\crc`      | Normal, Java   | Same, but as a constant.                           | Java only.                                                                                       |
+| `\crm`      | Visual, Java   | Pull the selected lines out into a new method.     | Java only. Select the lines first, then press it.                                                |
 
 ## Tmux
 
