@@ -36,8 +36,14 @@ local function isSelectableWindow(window)
   -- `isStandard()` is unnecessarily strict here: some apps expose a maximized
   -- window with a non-standard accessibility subrole. The AXWindow role still
   -- filters out controls such as Chrome's companion status-bar window.
+  --
+  -- `AXUnknown` is the one subrole worth rejecting: apps park invisible helper
+  -- panels there. Cisco Secure Client, for example, keeps a fully transparent,
+  -- titleless notification panel alive, which would otherwise appear as a
+  -- second "Untitled window" row that focuses nothing.
   return window:id() ~= nil
     and window:role() == "AXWindow"
+    and window:subrole() ~= "AXUnknown"
     and not window:isMinimized()
 end
 
