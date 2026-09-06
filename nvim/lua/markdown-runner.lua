@@ -106,7 +106,31 @@ local function list_bg_tasks()
 	end)
 end
 
+-- Where to run a block from. Relative paths in a code block are almost always
+-- written against the repository root ("deploy/docker/...", "src/main.rs"), not
+-- against wherever Neovim happened to be started, and not against the document
+-- itself -- a file under deploy/docker/local/ still refers to deploy/docker/...
+-- from the top. So resolve the enclosing repository and fall back to the
+-- document's own directory when there isn't one.
+local function block_cwd(buf)
+	local file = vim.api.nvim_buf_get_name(buf)
+	if file == "" then
+		return vim.fn.getcwd()
+	end
+
+	local dir = vim.fn.fnamemodify(file, ":p:h")
+
+	local root = vim.fs.root(file, { ".git" })
+	if root then
+		return root
+	end
+
+	return dir
+end
+
 local function run_code_block()
+	local source_buf = vim.api.nvim_get_current_buf()
+	local cwd = block_cwd(source_buf)
 	local block_lines, lang = get_code_block_at_cursor()
 
 	if not block_lines or #block_lines == 0 then
@@ -135,11 +159,12 @@ local function run_code_block()
 		height = height,
 		style = "minimal",
 		border = "rounded",
-		title = "  Run: " .. lang .. " block  ",
+		title = "  Run: " .. lang .. " block  in " .. vim.fn.fnamemodify(cwd, ":t") .. "  ",
 		title_pos = "center",
 	})
 
 	local job_id = vim.fn.termopen("bash " .. tmpfile, {
+		cwd = cwd,
 		on_exit = function(_, exit_code)
 			vim.fn.delete(tmpfile)
 			vim.schedule(function()

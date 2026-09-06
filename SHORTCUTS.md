@@ -42,6 +42,7 @@ Source: `nvim/lua/**`
 |----------|-----------------------|--------------------------------------------|-------------------------------------------------------------------------------|
 | `\mr`    | Normal, Markdown      | Run the shell code block under the cursor. | Put cursor inside a fenced `sh`, `bash`, or `shell` block, then press `\mr`.  |
 | `mr`     | Normal, Markdown      | Run the shell code block under the cursor. | Shorter reach for `\mr`; buffer-local, so it shadows `m r` (set mark r) only in Markdown. |
+| _(both)_ | Normal, Markdown      | Blocks run from the document's repository root. | So relative paths like `deploy/docker/...` resolve the way the block intends, wherever Neovim was started. Outside a repo, the document's own folder is used. The float's title names the directory. |
 | `Q`      | Normal, runner window | Close the runner float.                    | Works directly in terminal mode; the process keeps running in the background. |
 | `\ml`    | Normal, Markdown      | List markdown runner background tasks.     | Reopen running or finished task output.                                       |
 | `\mp`    | Normal, Markdown      | Toggle Markdown Preview.                   | Opens/stops browser preview.                                                  |
