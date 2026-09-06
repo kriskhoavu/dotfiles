@@ -185,12 +185,17 @@ return {
       end, { desc = "Close current buffer, switch to previous" })
       vim.keymap.set("n", "<leader>X", function()
         local current = vim.api.nvim_get_current_buf()
-        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-          if buf ~= current and vim.api.nvim_buf_is_loaded(buf) then
-            local bt = vim.bo[buf].buftype
-            if bt == "" then
-              vim.api.nvim_buf_delete(buf, { force = false })
-            end
+        -- A restored session lists its buffers without loading them: Neovim
+        -- waits until you actually visit one before reading the file. So the
+        -- test here is "listed", not "loaded" -- gating on loaded made this do
+        -- nothing at all right after startup, until every buffer had been
+        -- visited once.
+        for _, buf in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
+          local bufnr = buf.bufnr
+          if bufnr ~= current and vim.bo[bufnr].buftype == "" then
+            -- An unsaved buffer refuses to close; skip it rather than let the
+            -- error abort the rest of the loop.
+            pcall(vim.api.nvim_buf_delete, bufnr, { force = false })
           end
         end
       end, { desc = "Close other buffers (keep terminals)" })
