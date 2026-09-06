@@ -63,6 +63,7 @@ Source: `nvim/lua/**`
 | `\fh`       | Normal                   | Search help tags.                            | Opens Neovim help picker.                      |
 | `\fs`       | Normal                   | Search document symbols.                     | Uses LSP symbols when available.               |
 | `⌥h` / `⌥l` | Normal, Insert, Terminal | Previous / next buffer.                      | Works in all modes including terminal buffers. |
+| `\[` / `\]` | Normal, Insert, Terminal | Step back / forward through the files you visited. | Like IntelliJ's `Cmd+[` / `Cmd+]`. Returns to where the cursor was, and reopens the file even if you closed it. |
 | `\x`        | Normal                   | Close current buffer or special diff window. | Keeps terminal buffers handled specially.      |
 | `\X`        | Normal                   | Close other buffers.                         | Keeps terminal buffers.                        |
 

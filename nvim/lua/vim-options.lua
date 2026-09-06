@@ -71,6 +71,8 @@ leader_passthrough("f.", "Reveal file passthrough")
 leader_passthrough("ob", "Open in browser passthrough")
 leader_passthrough("of", "Open in Finder passthrough")
 leader_passthrough("wr", "Resize mode passthrough")
+leader_passthrough("[", "Back to previous file passthrough")
+leader_passthrough("]", "Forward to next file passthrough")
 
 -- Terminal mode: single Esc exits to normal mode, Ctrl-] sends Esc to the terminal app
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
