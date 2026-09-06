@@ -5,7 +5,11 @@ return {
     suppressed_dirs = { "~/", "~/Downloads", "/tmp" },
     -- Auto save/restore sessions per cwd
     auto_save = true,
-    auto_restore = true,
+    -- ":restart" is handled as "start over" (see lua/restart-clean.lua), so
+    -- restoring the directory's session here would only pull back the buffers
+    -- that are about to be cleared -- and re-reading files the outgoing process
+    -- still holds swapfiles for produces a W325 warning on the way through.
+    auto_restore = vim.v.startreason ~= "restart",
     -- Close special buffers before saving (Neo-tree, etc.)
     pre_save_cmds = {
       function()
