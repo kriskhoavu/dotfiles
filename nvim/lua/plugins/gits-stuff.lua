@@ -38,23 +38,9 @@ function _G.LazygitOpenFile(path, line)
 	return ""
 end
 
--- The overlay lives beside this config, and stdpath resolves it wherever the
--- dotfiles are checked out -- the repo path itself contains spaces.
-local function lazygit_command()
-	local config_dir = vim.fn.stdpath("config")
-	local configs = {}
-
-	-- The personal config is not managed by these dotfiles, so use it only if it
-	-- is actually there. `-ucf` merges left to right, overlay last.
-	local user_config = vim.fs.joinpath(vim.env.XDG_CONFIG_HOME or vim.fn.expand("~/.config"), "lazygit", "config.yml")
-	if vim.uv.fs_stat(user_config) then
-		table.insert(configs, user_config)
-	end
-	table.insert(configs, vim.fs.joinpath(config_dir, "lazygit-nvim.yml"))
-
-	return { "lazygit", "--use-config-file", table.concat(configs, ",") },
-		vim.fs.joinpath(config_dir, "scripts", "lazygit-open.sh")
-end
+-- Shared with the org-wide float in org-git.lua, so the config merge and the
+-- shim path cannot drift between the two.
+local lazygit_command = require("lazygit-cmd").build
 
 local function toggle_lazygit()
 	if vim.api.nvim_win_is_valid(lg_state.win) then

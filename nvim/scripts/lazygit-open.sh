@@ -5,6 +5,10 @@
 # terminal job of that nvim, $NVIM holds the parent's RPC socket, so this can
 # call back in instead of starting a nested editor.
 #
+# $LAZYGIT_NVIM_FN names the Lua function to call, so each float can hand the
+# file to its own handler -- the single-repo one hides one window, the org-wide
+# one also has a tabline to drop. Defaults to the single-repo handler.
+#
 # Usage: lazygit-open.sh <file> [line]
 
 set -eu
@@ -29,5 +33,7 @@ esac
 # Vimscript list literal needs escaping, and there a single quote doubles.
 escaped=$(printf '%s' "$file" | sed "s/'/''/g")
 
+fn=${LAZYGIT_NVIM_FN:-LazygitOpenFile}
+
 exec nvim --server "$NVIM" --remote-expr \
-	"luaeval('LazygitOpenFile(_A[1], _A[2])', ['$escaped', $line])"
+	"luaeval('${fn}(_A[1], _A[2])', ['$escaped', $line])"
