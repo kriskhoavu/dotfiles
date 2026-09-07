@@ -99,6 +99,25 @@ install_tmux() {
 }
 
 # ============================================
+# Lazygit
+# ============================================
+install_lazygit() {
+    log_info "Installing Lazygit config..."
+
+    mkdir -p "$HOME/.config/lazygit"
+    backup_if_exists "$HOME/.config/lazygit/config.yml"
+    ln -sf "$DOTFILES_DIR/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+
+    # delta renders the diffs, side by side -- the config names it, so without it
+    # every diff pane in lazygit reads "delta: command not found".
+    if ! command -v delta &>/dev/null; then
+        log_warn "delta not found -- diffs will not render. Install it with: brew install git-delta"
+    fi
+
+    log_info "Lazygit config linked!"
+}
+
+# ============================================
 # VSCode
 # ============================================
 install_vscode() {
@@ -264,6 +283,7 @@ show_help() {
     echo "  --vim       Install Vim and IdeaVim config"
     echo "  --zsh       Install Zsh config"
     echo "  --tmux      Install Tmux config"
+    echo "  --lazygit   Install Lazygit config"
     echo "  --vscode    Install VSCode config and extensions"
     echo "  --intellij  Install IntelliJ keymap"
     echo "  --iterm2    Install iTerm2 config (macOS only)"
@@ -308,6 +328,12 @@ interactive_install() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
         install_tmux
+    fi
+    
+    read -p "Install Lazygit config? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+        install_lazygit
     fi
     
     read -p "Install VSCode config? [Y/n] " -n 1 -r
@@ -362,6 +388,7 @@ while [[ $# -gt 0 ]]; do
             install_vim
             install_zsh
             install_tmux
+            install_lazygit
             install_vscode
             install_intellij
             install_iterm2
@@ -387,6 +414,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --tmux)
             install_tmux
+            shift
+            ;;
+        --lazygit)
+            install_lazygit
             shift
             ;;
         --vscode)

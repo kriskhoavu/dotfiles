@@ -94,6 +94,14 @@ rollback_tmux() {
 }
 
 # ============================================
+# Lazygit
+# ============================================
+rollback_lazygit() {
+    log_blue "Rolling back Lazygit config..."
+    rollback_config "$HOME/.config/lazygit/config.yml" "Lazygit"
+}
+
+# ============================================
 # VSCode
 # ============================================
 rollback_vscode() {
@@ -327,6 +335,7 @@ show_help() {
     echo "  --vim       Rollback Vim and IdeaVim config"
     echo "  --zsh       Rollback Zsh config"
     echo "  --tmux      Rollback Tmux config"
+    echo "  --lazygit   Rollback Lazygit config"
     echo "  --vscode    Rollback VSCode config"
     echo "  --intellij  Rollback IntelliJ config"
     echo "  --iterm2    Rollback iTerm2 config (macOS only)"
@@ -371,6 +380,7 @@ interactive_rollback() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         rollback_tmux
+        rollback_lazygit
     fi
     
     read -p "Rollback VSCode config? [y/N] " -n 1 -r
@@ -417,6 +427,7 @@ while [[ $# -gt 0 ]]; do
             rollback_vim
             rollback_zsh
             rollback_tmux
+            rollback_lazygit
             rollback_vscode
             rollback_intellij
             rollback_wezterm
@@ -437,6 +448,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --zsh)
             rollback_zsh
+            shift
+            ;;
+        --lazygit)
+            rollback_lazygit
             shift
             ;;
         --tmux)

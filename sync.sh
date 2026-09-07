@@ -223,6 +223,20 @@ sync_tmux() {
 }
 
 # ============================================
+# Lazygit - Already symlinked, nothing to sync
+# ============================================
+sync_lazygit() {
+    log_info "Checking Lazygit config..."
+
+    if [ -L "$HOME/.config/lazygit/config.yml" ]; then
+        log_info "  config.yml is symlinked - auto-synced!"
+    else
+        safe_cp "$HOME/.config/lazygit/config.yml" "$DOTFILES_DIR/lazygit/config.yml"
+        log_info "  ✓ config.yml synced"
+    fi
+}
+
+# ============================================
 # Neovim - Already symlinked, nothing to sync
 # ============================================
 sync_nvim() {
@@ -250,6 +264,7 @@ show_help() {
     echo "  --vim       Sync Vim and IdeaVim config"
     echo "  --zsh       Sync Zsh config"
     echo "  --tmux      Sync Tmux config"
+    echo "  --lazygit   Sync Lazygit config"
     echo "  --vscode    Sync VSCode settings and extensions"
     echo "  --intellij  Sync IntelliJ keymaps and plugins"
     echo "  --iterm2    Sync iTerm2 settings"
@@ -271,6 +286,7 @@ sync_all() {
     sync_vim
     sync_zsh
     sync_tmux
+    sync_lazygit
     sync_vscode
     sync_intellij
     sync_wezterm
@@ -306,6 +322,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --zsh)
             sync_zsh
+            shift
+            ;;
+        --lazygit)
+            sync_lazygit
             shift
             ;;
         --tmux)

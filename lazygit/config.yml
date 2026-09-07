@@ -1,0 +1,25 @@
+gui:
+  theme:
+    # Softer colors for diffs
+    selectedLineBgColor:
+      - "#3d4966"
+    selectedRangeBgColor:
+      - "#3d4966"
+    cherryPickedCommitFgColor:
+      - "#519f50"
+    cherryPickedCommitBgColor:
+      - "#1e2030"
+    # Use 256 color mode for better compatibility
+    nerdFontsVersion: "3"
+  showFileTree: true
+  showRandomTip: true
+  border: rounded
+# Use delta for better diff viewing if available
+#
+# --side-by-side puts the old and new text in two columns. delta falls back to a
+# unified diff on its own when the pane is too narrow for two readable columns,
+# so this stays sane in a split or a small window.
+git:
+  diffRenderers:
+    - colorArg: always
+      command: delta --dark --paging=never --side-by-side --width=$COLUMNS
