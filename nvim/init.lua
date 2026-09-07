@@ -26,6 +26,7 @@ require("floating-terminal")
 require("markdown-runner")
 require("file-history")
 require("restart-clean")
+require("org-git")
 require("lazy").setup({
     { import = "plugins" },
     { import = "themes" },
