@@ -14,6 +14,8 @@ dotfiles/
 │   └── .zshrc
 ├── tmux/           # Tmux configuration
 │   └── .tmux.conf
+├── lazygit/        # Lazygit configuration
+│   └── config.yml  # Theme, file tree, side-by-side diffs via delta
 ├── vscode/         # VSCode configuration
 │   ├── settings.json
 │   ├── keybindings.json
@@ -103,6 +105,12 @@ git add -A && git commit -m "Sync dotfiles" && git push
 - Symlinks `~/.tmux.conf` → `dotfiles/tmux/.tmux.conf`
 - Installs TPM (Tmux Plugin Manager) if not present
 - Catppuccin theme with custom status bar
+
+### Lazygit
+
+- Symlinks `~/.config/lazygit/config.yml` → `dotfiles/lazygit/config.yml`
+- Renders diffs side by side through [delta](https://github.com/dandavison/delta), so it needs `brew install git-delta` — the installer warns if it is missing
+- Neovim layers `nvim/lazygit-nvim.yml` on top of this when lazygit runs inside the editor (`\3`, `\4`), so `e` opens files in the host Neovim
 
 ### VSCode
 

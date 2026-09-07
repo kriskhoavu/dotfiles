@@ -22,8 +22,10 @@ Source: `nvim/lua/**`
 
 | Shortcut        | Mode    | What it does                                         | How to use it                                      |
 |-----------------|---------|------------------------------------------------------|----------------------------------------------------|
-| `\?`            | Normal  | Open this shortcut help center in a floating window. | Press from anywhere in Neovim. `q` closes it — this float does not take `Esc`, unlike the Git ones. `/` searches, `]]` / `[[` jump between sections. |
-| `:ShortcutHelp` | Command | Open this shortcut help center.                      | Run as an Ex command.                              |
+| `\?`            | Normal  | Open this shortcut help center in a floating window. | One tab per section below, so you land in the one you want instead of scrolling the whole file. `1`-`9` pick a tab, `Tab` / `Shift-Tab` or `h` / `l` step through them, a mouse click picks one directly, `/` searches inside the current tab, `q` or `Esc` closes. `h` and `l` switch tabs here rather than moving the cursor. |
+| `:ShortcutHelp` | Command | Open this shortcut help center.                      | Run as an Ex command. Called again while open, it closes the float.                              |
+
+The tabs are read from this file's `##` headings every time the float opens, so adding a section here adds a tab with no code change, and an edit shows up on the next `\?`.
 
 ### Terminal And Floating Tools
 
@@ -34,7 +36,8 @@ Source: `nvim/lua/**`
 | `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`; inside lazygit it goes to lazygit instead. |
 | `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Useful inside CLI apps such as Codex, Claude, or other agent UIs. |
 | `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` cannot move focus out of the float. |
-| `e`      | Terminal         | Open the selected file in nvim.             | Inside lazygit only: hides the float and edits the file in the nvim hosting it; `\3` returns to the same session. `o` still opens in the default app. |
+| `e`      | Terminal         | Open the selected file in nvim.             | Inside lazygit only: hides the float and edits the file in the nvim hosting it; `\3` or `\4` returns to the same session. `o` still opens in the default app. |
+| `\4`     | Normal, Terminal | Toggle the org git float: one tab per repo. | For a folder of sibling repos. Same float as `\3`, but tabbed across every repo in the org. See [Org Git](#org-git-many-repos-at-once). |
 
 ### Markdown
 
@@ -128,6 +131,32 @@ Stage and unstage only move that mark, so they can never lose work. **Reset is t
 | `gr`        | Git status tree  | ⚠️ Throw away every edit to that file.             | Runs `git checkout HEAD -- <file>`: it reverts to the last commit, drops staged work too, and writes the file on disk, so Neovim's `u` cannot bring it back. |
 | `gc` / `gp` | Git status tree  | Commit / push.                                    | `gg` does both at once. `gU` undoes the last commit but keeps its changes, staged.               |
 
+### Org Git: Many Repos At Once
+
+Source: `nvim/lua/org-git.lua`
+
+`\3` shows one repo — the one you are in. `\4` shows **all of them**: a folder of sibling repos (a GitHub org checked out side by side, like `kompas`) becomes tabs in one float, with an overview tab across the whole set. The org root is found automatically: it is the parent of the repo you are in.
+
+Every git action inside a repo tab is lazygit's own — stage with `space`, commit with `c`, amend with `A`, push with `P`, drill into hunks with `Enter`. Nothing is reimplemented here; the module only draws the tabs and the overview, because a single lazygit can only ever show one repo.
+
+| Shortcut         | Mode             | What it does                                  | How to use it                                                                                      |
+|------------------|------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------|
+| `\4`             | Normal, Terminal | Open or hide the org float.                   | Opens on the overview. Hiding keeps every repo's lazygit running, so `\4` returns to the same tab. |
+| `Ctrl-g` `1`-`9` | Any tab          | Jump straight to that repo.                   | Works **inside** a repo tab too: Neovim eats the `Ctrl-g`, so the digit never reaches lazygit.      |
+| `Ctrl-g` `0`     | Any tab          | Back to the overview.                         | The cursor lands on the repo you came from.                                                        |
+| Mouse click      | Any tab          | Jump to the clicked tab.                      | Works from inside a repo tab too: the tabline is Neovim's row, so lazygit never sees the click.     |
+| `1`-`9`          | Overview         | Jump to that repo.                            | On the overview the digits need no prefix, since lazygit is not listening there.                    |
+| `Enter`          | Overview         | Open the repo under the cursor.               | Its lazygit starts on first visit, not before.                                                     |
+| `r`              | Overview         | Re-read every repo's status.                  | Counts also refresh on their own each time you switch tabs.                                        |
+| `q`              | Overview         | Close the float.                              | Same as `\4`.                                                                                      |
+| `:OrgGit`        | Command          | Open the float, optionally for another root.  | `:OrgGit ~/some/other/org` switches roots; no argument reuses the current one.                      |
+
+**Why the `Ctrl-g` prefix.** A repo tab is a live lazygit, and lazygit binds nearly everything: the digits focus its panels, `[` / `]` switch panel tabs, `Tab` cycles, and every Ctrl key except `g`, `n`, `q`, `v` and `x` is taken (`Ctrl-a` is the tmux prefix, so Neovim never sees it). `Ctrl-Left` / `Ctrl-Right` belong to macOS Spaces. A prefix is what makes the digits usable from inside a tab at all.
+
+The tabline is drawn from catppuccin's own tmux options — `@thm_*` and `@catppuccin_window_*`, read out of the running tmux — so it matches the window tabs along the bottom of the screen, down to the block widths, and changing `@catppuccin_flavor` moves both.
+
+The overview lists each repo with its branch, how many files are dirty (`●`), how far it is ahead or behind (`↑` / `↓`), and its last commit subject. The tabline carries the same badges, so you can see which repos need attention without leaving the tab you are in.
+
 ### LSP And Code
 
 **The words first.** An **LSP** (language server) is a background process that actually parses your project, so it knows where things are defined and what they mean — unlike plain text search. These keys are dead until a server has attached to the file, which is why nothing happens in, say, a scratch buffer. A **diagnostic** is one error, warning or hint the server reported.
@@ -174,6 +203,7 @@ Prefix key: `Ctrl-a`.
 | `⌥1`-`⌥8`           | Jump to tmux window 1-8.        | No prefix. tmux takes these before nvim.    |
 | `⌥9`                | Jump to the last tmux window.   | Highest-numbered window, however many.      |
 | `Ctrl-a c`          | New tmux window.                | Starts in current pane path.                |
+| `Ctrl-a G`          | A window per repo in a folder.  | Prompts for a root (prefilled with kompas); one window per `<root>/*/.git`, each a shell in that repo. Re-running only adds what is missing. |
 | `Ctrl-a e`          | Open an hourly scratch note.    | Splits right and opens `notes_YYMMDDHH.md`. |
 | `Ctrl-a o`          | Open today's todo note.         | Splits right and opens `todo_YYMMDD.md`.    |
 | `Ctrl-a v`          | Open Neovim in a right split.   | Starts from current pane path.              |
