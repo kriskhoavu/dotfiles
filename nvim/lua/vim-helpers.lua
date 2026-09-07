@@ -15,6 +15,145 @@ local function find_shortcut_help()
 	end
 end
 
+-- The help is a tabbed float, one tab per "##" section of SHORTCUTS.md, sharing
+-- the tmux-style chips with the org git float. The file is over 400 lines: as a
+-- single markdown buffer, finding the tmux table meant scrolling past every
+-- Neovim mapping, and the sections are already grouped by purpose.
+--
+-- Tabs are derived from the file rather than listed here, so a new "##" section
+-- becomes a new tab with no code change.
+local chips = require("tmux-chips")
+
+local SHORT_LABEL = {
+	["macOS Window Pairing"] = "macOS",
+	["Zsh Navigation"] = "Zsh",
+	["Git Stuff"] = "Git",
+	["Development And AI CLI Helpers"] = "Dev & AI",
+	["IdeaVim And IntelliJ"] = "IdeaVim",
+}
+
+-- Everything above the first "##" (the title and the leader-key note) belongs to
+-- no section, so it is prepended to the first tab rather than being dropped.
+local function parse_sections(path)
+	local sections, preamble = {}, {}
+
+	for _, line in ipairs(vim.fn.readfile(path)) do
+		local heading = line:match("^## (.+)$")
+		if heading then
+			sections[#sections + 1] = {
+				title = heading,
+				label = SHORT_LABEL[heading] or heading:match("^(%S+)"),
+				lines = {},
+			}
+		elseif #sections > 0 then
+			table.insert(sections[#sections].lines, line)
+		else
+			table.insert(preamble, line)
+		end
+	end
+
+	-- Kept as an intro rather than pushed into the first section's body, where it
+	-- rendered underneath that section's heading and read as if the file's title
+	-- belonged to macOS window pairing.
+	if sections[1] then
+		sections[1].intro = preamble
+	end
+	return sections
+end
+
+local help = { win = -1, bufs = {}, current = 1, sections = nil }
+
+local function help_render()
+	if not vim.api.nvim_win_is_valid(help.win) then
+		return
+	end
+
+	local tabs = {}
+	for _, section in ipairs(help.sections) do
+		tabs[#tabs + 1] = { label = section.label }
+	end
+	vim.wo[help.win].winbar = chips.tabline(tabs, help.current, 1, "ShortcutHelpTabClick")
+end
+
+-- Forward declared: the click handler is registered before help_show exists, and
+-- the winbar names it as a string either way.
+local help_show
+
+function _G.ShortcutHelpTabClick(index)
+	help_show(index)
+end
+
+function help_show(idx)
+	if not vim.api.nvim_win_is_valid(help.win) or not help.sections[idx] then
+		return
+	end
+	help.current = idx
+
+	local buf = help.bufs[idx]
+	if not buf or not vim.api.nvim_buf_is_valid(buf) then
+		local section = help.sections[idx]
+		buf = vim.api.nvim_create_buf(false, true)
+		help.bufs[idx] = buf
+
+		-- The heading is re-added: it is the section's own title, and without it
+		-- the markdown renderer has nothing to anchor the tab's content on.
+		local lines = {}
+		if section.intro then
+			vim.list_extend(lines, section.intro)
+		end
+		vim.list_extend(lines, { "# " .. section.title, "" })
+		vim.list_extend(lines, section.lines)
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+		vim.bo[buf].filetype = "markdown"
+		vim.bo[buf].modifiable = false
+		vim.bo[buf].buflisted = false
+
+		-- Every section is its own buffer, so closing has to wipe them: otherwise
+		-- each open leaves up to nine unlisted buffers behind for good.
+		local function close()
+			if vim.api.nvim_win_is_valid(help.win) then
+				vim.api.nvim_win_close(help.win, true)
+			end
+			help.win = -1
+			local stale = help.bufs
+			help.bufs = {}
+			vim.schedule(function()
+				for _, b in pairs(stale) do
+					if vim.api.nvim_buf_is_valid(b) then
+						pcall(vim.api.nvim_buf_delete, b, { force = true })
+					end
+				end
+			end)
+		end
+
+		vim.keymap.set("n", "q", close, { buffer = buf, silent = true, desc = "Close shortcut help" })
+		vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true, desc = "Close shortcut help" })
+		for i = 1, math.min(#help.sections, 9) do
+			vim.keymap.set("n", tostring(i), function()
+				help_show(i)
+			end, { buffer = buf, silent = true, desc = "Shortcut help: section " .. i })
+		end
+		-- Tab and h/l for people who would rather not count: the section digits
+		-- go up to 9, and nothing here competes for them.
+		vim.keymap.set("n", "<Tab>", function()
+			help_show(help.current % #help.sections + 1)
+		end, { buffer = buf, silent = true, desc = "Shortcut help: next section" })
+		vim.keymap.set("n", "<S-Tab>", function()
+			help_show((help.current - 2) % #help.sections + 1)
+		end, { buffer = buf, silent = true, desc = "Shortcut help: previous section" })
+		vim.keymap.set("n", "l", function()
+			help_show(help.current % #help.sections + 1)
+		end, { buffer = buf, silent = true, desc = "Shortcut help: next section" })
+		vim.keymap.set("n", "h", function()
+			help_show((help.current - 2) % #help.sections + 1)
+		end, { buffer = buf, silent = true, desc = "Shortcut help: previous section" })
+	end
+
+	vim.api.nvim_win_set_buf(help.win, buf)
+	help_render()
+end
+
 vim.api.nvim_create_user_command("ShortcutHelp", function()
 	local path = find_shortcut_help()
 	if not path then
@@ -22,10 +161,29 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 		return
 	end
 
-	local buf = vim.api.nvim_create_buf(false, true)
+	if vim.api.nvim_win_is_valid(help.win) then
+		vim.api.nvim_win_close(help.win, true)
+		help.win = -1
+		return
+	end
+
+	-- Re-read on every open: the file is edited in this very repo, and a stale
+	-- cache would show yesterday's shortcuts.
+	help.sections = parse_sections(path)
+	help.bufs = {}
+	if #help.sections == 0 then
+		vim.notify("SHORTCUTS.md has no ## sections", vim.log.levels.WARN)
+		return
+	end
+
 	local width = math.floor(vim.o.columns * 0.78)
 	local height = math.floor(vim.o.lines * 0.85)
-	local win = vim.api.nvim_open_win(buf, true, {
+
+	-- nvim_open_win needs a buffer before help_show can pick the real one, and
+	-- that placeholder belongs to nobody: left alone it survived every close and
+	-- the buffer list grew by one per open.
+	local placeholder = vim.api.nvim_create_buf(false, true)
+	help.win = vim.api.nvim_open_win(placeholder, true, {
 		relative = "editor",
 		width = width,
 		height = height,
@@ -33,20 +191,16 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 		col = math.floor((vim.o.columns - width) / 2),
 		border = "rounded",
 		style = "minimal",
-		title = "  Shortcut Help  ",
-		title_pos = "center",
 	})
+	vim.wo[help.win].winhighlight = chips.WINHIGHLIGHT
+	vim.wo[help.win].cursorline = true
+	vim.wo[help.win].sidescrolloff = 0
 
-	vim.api.nvim_buf_set_lines(buf, 0, -1, false, vim.fn.readfile(path))
-	vim.bo[buf].filetype = "markdown"
-	vim.bo[buf].modifiable = false
-	vim.bo[buf].modified = false
-	vim.bo[buf].bufhidden = "wipe"
-	vim.keymap.set("n", "q", function()
-		if vim.api.nvim_win_is_valid(win) then
-			vim.api.nvim_win_close(win, true)
-		end
-	end, { buffer = buf, silent = true, desc = "Close shortcut help" })
+	help_show(math.min(help.current, #help.sections))
+
+	if vim.api.nvim_buf_is_valid(placeholder) and vim.api.nvim_get_current_buf() ~= placeholder then
+		pcall(vim.api.nvim_buf_delete, placeholder, { force = true })
+	end
 end, { desc = "Open shortcut help center" })
 
 vim.keymap.set("n", "<leader>?", "<cmd>ShortcutHelp<cr>", { desc = "Open shortcut help center" })
