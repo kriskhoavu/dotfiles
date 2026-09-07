@@ -77,6 +77,12 @@ local function toggle_lazygit()
 	})
 	lg_state.buf, lg_state.win = buf, win
 
+	-- A lazygit frame is exactly as wide as the window, so the global
+	-- sidescrolloff of 5 scrolls its left border out of view whenever lazygit
+	-- parks the cursor near the right edge, and every panel then looks shifted.
+	vim.wo[win].sidescrolloff = 0
+	vim.wo[win].scrolloff = 0
+
 	if vim.bo[buf].buftype ~= "terminal" then
 		local cmd, shim = lazygit_command()
 		-- An argv list, not a shell string: the paths handed to `-ucf` contain
