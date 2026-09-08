@@ -31,7 +31,7 @@ The tabs are read from this file's `##` headings every time the float opens, so 
 
 | Shortcut | Mode             | What it does                                | How to use it                                                     |
 |----------|------------------|---------------------------------------------|-------------------------------------------------------------------|
-| `\9`     | Normal, Terminal | Toggle the floating terminal.               | Opens or hides the reusable floating terminal.                    |
+| `\9`     | Normal, Terminal | Toggle the floating terminal.               | Opens or hides the reusable floating terminal. Clicking the `✕` in its top-right hides it too — same as `\9`, so the shell keeps its history, cwd and whatever is running. |
 | `\tt`    | Normal           | Open a real terminal buffer tab.            | Creates a new terminal buffer and enters insert mode.             |
 | `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`; inside lazygit it goes to lazygit instead. |
 | `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Useful inside CLI apps such as Codex, Claude, or other agent UIs. |

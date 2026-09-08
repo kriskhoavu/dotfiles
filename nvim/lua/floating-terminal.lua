@@ -19,6 +19,9 @@ local function toggle_term()
 	end
 
 	state.buf, state.win = create_floating_window()
+	if state.paint then
+		state.paint()
+	end
 
 	if vim.bo[state.buf].buftype ~= "terminal" then
 		-- :terminal replaces the window's buffer rather than converting it, so the
@@ -29,6 +32,19 @@ local function toggle_term()
 		state.buf = api.nvim_get_current_buf()
 		vim.bo[state.buf].buflisted = false -- prevent it from appearing in bufferline
 		floats.make_modal(state.buf, "the floating terminal")
+		-- Hide rather than close: \9 is a toggle, and the shell inside it keeps
+		-- its history, its cwd and whatever is running.
+		state.paint = floats.close_button(function()
+			return state.win
+		end, state.buf, {
+			close_label = "terminal",
+			on_close = function()
+				if api.nvim_win_is_valid(state.win) then
+					api.nvim_win_hide(state.win)
+					state.win = -1
+				end
+			end,
+		})
 	end
 
 	-- Ensure the terminal starts in insert mode

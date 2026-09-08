@@ -12,6 +12,24 @@
 
 local M = {}
 
+-- Chrome for the close button. Not "FloatTitle" -- that is a builtin group nvim
+-- uses for every float's border title, and redefining it would repaint them all.
+local function set_highlights()
+	local function fg(group, fallback)
+		local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = group, link = false })
+		return (ok and hl and hl.fg) or fallback
+	end
+	local function bg(group, fallback)
+		local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = group, link = false })
+		return (ok and hl and hl.bg) or fallback
+	end
+	vim.api.nvim_set_hl(0, "FloatChrome", { fg = fg("Comment", nil), bg = bg("NormalFloat", nil) })
+	vim.api.nvim_set_hl(0, "FloatChromeClose", { fg = fg("DiagnosticError", nil), bg = bg("NormalFloat", nil) })
+end
+
+set_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", { callback = set_highlights, desc = "Float chrome highlights" })
+
 -- Ratios of the editor, because a float that is 90 columns wide is a different
 -- float on a laptop and on a 4k screen. Values above 1 are taken as absolute
 -- cells for the rare case that wants them.
@@ -58,6 +76,84 @@ function M.make_modal(buf, label)
 	end
 end
 
+-- Close buttons, by float. A winbar click label can only name a global function
+-- and hand it a number, so each float's closer is parked here under an id and
+-- the label carries that id.
+local closers = {}
+local next_id = 0
+
+function _G.FloatsCloseClick(id)
+	local closer = closers[id]
+	if closer then
+		closer()
+	end
+end
+
+-- A right-aligned clickable X, in the float's winbar -- the one row of a float
+-- that nvim still owns when a terminal fills the rest, and the only place a
+-- click can land on nvim rather than on the program inside. Costs one row, so
+-- it is opt-in.
+-- `win` may be a window id or a function returning one. A float that is hidden
+-- and reopened -- \9 is a toggle -- gets a new window every time while keeping
+-- its buffer, so a captured id goes stale and the button would paint into a
+-- window that no longer exists.
+function M.close_button(win, buf, opts)
+	local function current()
+		return type(win) == "function" and win() or win
+	end
+
+	next_id = next_id + 1
+	local id = next_id
+
+	closers[id] = function()
+		if opts.on_close then
+			opts.on_close()
+		else
+			local w = current()
+			if w and vim.api.nvim_win_is_valid(w) then
+				vim.api.nvim_win_close(w, true)
+			end
+		end
+	end
+
+	vim.api.nvim_create_autocmd("BufWipeout", {
+		buffer = buf,
+		once = true,
+		callback = function()
+			closers[id] = nil
+		end,
+	})
+
+	-- close_label, not title: title is the border's, and a float may want both.
+	local left = opts.close_label and ("%#FloatChrome# " .. opts.close_label .. " ") or ""
+	local winbar = left
+		.. "%#FloatChrome#%="
+		.. "%" .. id .. "@v:lua.FloatsCloseClick@%#FloatChromeClose# \u{2715} %X%#FloatChrome# "
+
+	local function paint()
+		local w = current()
+		if w and vim.api.nvim_win_is_valid(w) then
+			vim.wo[w].winbar = winbar
+		end
+	end
+	paint()
+
+	-- vim-options.lua blanks 'winbar' for every terminal buffer, to keep terminal
+	-- chrome out of the way. That rule is right in general and wrong for a button
+	-- drawn in the winbar, so repaint after it rather than carving an exception
+	-- into it.
+	vim.api.nvim_create_autocmd({ "TermOpen", "BufEnter", "WinEnter" }, {
+		buffer = buf,
+		callback = paint,
+		desc = "Repaint the float's close button",
+	})
+
+	-- Returned because those autocmds fire *during* nvim_open_win, before the
+	-- caller has assigned the new window id, so a reopened float needs one paint
+	-- once it knows where it is.
+	return paint
+end
+
 -- Settings that belong to the window rather than the buffer, reapplied whenever
 -- a float swaps in a different buffer.
 --
@@ -86,6 +182,9 @@ end
 --   label        names the float in the modal mappings' descriptions
 --   winhighlight window-local highlight overrides
 --   cursorline   highlight the cursor row
+--   close        add a clickable X to the float's winbar (costs one row)
+--   close_label  text shown at the left of that winbar
+--   on_close     what the X does; defaults to closing the window
 --   border/title/title_pos/style passed through
 function M.open(opts)
 	opts = opts or {}
@@ -113,6 +212,10 @@ function M.open(opts)
 
 	if opts.modal ~= false then
 		M.make_modal(buf, opts.label)
+	end
+
+	if opts.close then
+		M.close_button(win, buf, opts)
 	end
 
 	return buf, win
