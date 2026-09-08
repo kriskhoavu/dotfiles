@@ -77,6 +77,9 @@ local help_nav = {
 	next = function()
 		help_show(help.current % #help.sections + 1)
 	end,
+	jump = function(n)
+		help_show(n)
+	end,
 }
 
 -- Every section is its own buffer, so closing has to wipe them: otherwise each

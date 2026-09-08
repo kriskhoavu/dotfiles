@@ -49,6 +49,10 @@ local nav = {
 	next = function()
 		M.show(state.current >= #state.repos and 0 or state.current + 1)
 	end,
+	-- The digit on the chip is the digit you press: 0 is the overview.
+	jump = function(n)
+		M.show(n)
+	end,
 }
 
 -- Highlights ------------------------------------------------------------------

@@ -143,8 +143,9 @@ Every git action inside a repo tab is lazygit's own — stage with `space`, comm
 |------------------|------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------|
 | `\4`             | Normal, Terminal | Open or hide the org float.                   | Opens on the overview. Hiding keeps every repo's lazygit running, so `\4` returns to the same tab. |
 | `✕` (click)      | Any tab          | Hide the float.                               | At the right end of the tabline. Hides rather than closes, like `\4` itself.                       |
-| `Ctrl-g` `1`-`9` | Any tab          | Jump straight to that repo.                   | Works **inside** a repo tab too: Neovim eats the `Ctrl-g`, so the digit never reaches lazygit.      |
-| `Ctrl-g` `0`     | Any tab          | Back to the overview.                         | The cursor lands on the repo you came from.                                                        |
+| `Ctrl-Alt-1`-`9` | Any tab          | Jump straight to that repo.                   | The digit on the chip is the digit you press. Works **inside** a repo tab: lazygit never sees it.   |
+| `Ctrl-Alt-0`     | Any tab          | Back to the overview.                         | The cursor lands on the repo you came from.                                                        |
+| `Ctrl-g` `0`-`9` | Any tab          | The same jumps, as a prefix.                  | Kept as a fallback for terminals that cannot encode `Ctrl-Alt-<digit>`.                            |
 | `Alt-h` / `Alt-l` | Any tab         | Previous / next tab.                          | Wraps around through the overview. Free to use here because buffer cycling is meaningless while a float covers the editor. |
 | Mouse click      | Any tab          | Jump to the clicked tab.                      | Works from inside a repo tab too: the tabline is Neovim's row, so lazygit never sees the click.     |
 | `1`-`9`          | Overview         | Jump to that repo.                            | On the overview the digits need no prefix, since lazygit is not listening there.                    |
@@ -153,7 +154,9 @@ Every git action inside a repo tab is lazygit's own — stage with `space`, comm
 | `q`              | Overview         | Close the float.                              | Same as `\4`.                                                                                      |
 | `:OrgGit`        | Command          | Open the float, optionally for another root.  | `:OrgGit ~/some/other/org` switches roots; no argument reuses the current one.                      |
 
-**Why the `Ctrl-g` prefix.** A repo tab is a live lazygit, and lazygit binds nearly everything: the digits focus its panels, `[` / `]` switch panel tabs, `Tab` cycles, and every Ctrl key except `g`, `n`, `q`, `v` and `x` is taken (`Ctrl-a` is the tmux prefix, so Neovim never sees it). `Ctrl-Left` / `Ctrl-Right` belong to macOS Spaces. A prefix is what makes the digits usable from inside a tab at all.
+**Why these keys.** A repo tab is a live lazygit, and lazygit binds nearly everything: plain digits focus its panels, `[` / `]` switch panel tabs, `Tab` cycles, and every Ctrl key except `g`, `n`, `q`, `v` and `x` is taken (`Ctrl-a` is the tmux prefix, so Neovim never sees it). `Ctrl-Left` / `Ctrl-Right` belong to macOS Spaces, and tmux takes `Alt-<digit>` for its own windows.
+
+`Ctrl-Alt-<digit>` is free of all of that, but a terminal can only encode it with **extended keys**, which `tmux/.tmux.conf` now switches on (`set -s extended-keys on` plus the `extkeys` terminal feature). Without that setting the combination cannot be sent at all — which is why this started life as a `Ctrl-g` prefix, still kept as a fallback.
 
 The tabline is drawn from catppuccin's own tmux options — `@thm_*` and `@catppuccin_window_*`, read out of the running tmux — so it matches the window tabs along the bottom of the screen, down to the block widths, and changing `@catppuccin_flavor` moves both.
 
@@ -205,6 +208,7 @@ Prefix key: `Ctrl-a`.
 | `⌥1`-`⌥8`           | Jump to tmux window 1-8.        | No prefix. tmux takes these before nvim.    |
 | `⌥9`                | Jump to the last tmux window.   | Highest-numbered window, however many.      |
 | `Ctrl-a c`          | New tmux window.                | Starts in current pane path.                |
+| `Ctrl-Alt-<digit>`  | Passed through to the program.  | `extended-keys` is on, so Neovim can bind combinations a plain terminal cannot encode. |
 | `Ctrl-a G`          | A window per repo in a folder.  | Prompts for a root (prefilled with kompas); one window per `<root>/*/.git`, each a shell in that repo. Re-running only adds what is missing. |
 | `Ctrl-a e`          | Open an hourly scratch note.    | Splits right and opens `notes_YYMMDDHH.md`. |
 | `Ctrl-a o`          | Open today's todo note.         | Splits right and opens `todo_YYMMDD.md`.    |

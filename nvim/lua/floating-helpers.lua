@@ -72,6 +72,21 @@ function M.make_modal(buf, label, nav)
 		dead[#dead + 1] = "<A-" .. i .. ">"
 	end
 
+	-- Ctrl-Alt-<digit> jumps straight to a tab. It needs tmux's extended-keys
+	-- (set in .tmux.conf): without it the terminal cannot encode the combination
+	-- at all, which is why this used to be a Ctrl-g prefix.
+	if nav and nav.jump then
+		for i = 0, 9 do
+			vim.keymap.set({ "n", "t" }, "<C-M-" .. i .. ">", function()
+				nav.jump(i)
+			end, {
+				buffer = buf,
+				silent = true,
+				desc = "Tab " .. i .. " in " .. (label or "this float"),
+			})
+		end
+	end
+
 	if nav and nav.prev and nav.next then
 		vim.keymap.set({ "n", "t" }, "<A-h>", nav.prev, {
 			buffer = buf,
@@ -224,7 +239,8 @@ end
 --   height       same
 --   modal        keep focus inside (default true)
 --   label        names the float in the modal mappings' descriptions
---   nav          { prev = fn, next = fn }: Alt-h / Alt-l step between tabs
+--   nav          { prev, next, jump }: Alt-h / Alt-l step between tabs,
+--                Ctrl-Alt-<digit> jumps to one
 --   winhighlight window-local highlight overrides
 --   cursorline   highlight the cursor row
 --   close        add a clickable X to the float's winbar (costs one row)
