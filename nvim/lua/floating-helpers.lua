@@ -1,20 +1,37 @@
--- Shared behaviour for the floating windows in this config.
+-- The one way this config opens a floating window.
+--
+-- Four floats grew separately -- lazygit (\3), the org git tabs (\4), the
+-- terminal (\9) and the shortcut help (\?) -- each with its own copy of the
+-- centring arithmetic, its own scrolloff handling, and its own idea of whether
+-- focus could leave. The copies drifted: \9 never got the modal guard at all,
+-- and \3 and \4 each had to rediscover that a global sidescrolloff shifts a
+-- full-width TUI sideways.
+--
+-- So the behaviour lives here and the differences are flags. A new float is
+-- floats.open{...}; anything a float should do by default it does by default.
 
 local M = {}
 
--- Make a float modal: keep focus inside it.
+-- Ratios of the editor, because a float that is 90 columns wide is a different
+-- float on a laptop and on a 4k screen. Values above 1 are taken as absolute
+-- cells for the rare case that wants them.
+local function measure(value, total, fallback)
+	value = value or fallback
+	if value <= 1 then
+		return math.floor(total * value)
+	end
+	return math.min(math.floor(value), total)
+end
+
+-- Keep focus inside the float.
 --
 -- Every float here covers the editor, so handing focus to a window behind one
--- leaves it hanging over the screen with no way back to it. vim-tmux-navigator
--- binds Ctrl-hjkl globally and bufferline's Alt keys cycle buffers, and neither
--- knows a float is in front -- so both have to be answered per buffer.
+-- leaves it hanging over the screen with no way back. vim-tmux-navigator binds
+-- Ctrl-hjkl globally and bufferline's Alt keys cycle buffers; neither knows a
+-- float is in front, so both have to be answered per buffer.
 --
--- Ctrl-hjkl still crosses tmux panes, which is the part worth keeping: the float
--- is modal within nvim, not within the terminal.
---
--- Applied to every buffer of a float, not just terminal ones. A float's plain
--- buffers (the org git overview, the shortcut help sections) are ordinary
--- windows as far as those plugins are concerned.
+-- Ctrl-hjkl still crosses tmux panes, which is the part worth keeping: the
+-- float is modal within nvim, not within the terminal.
 function M.make_modal(buf, label)
 	for key, dir in pairs({ h = "L", j = "D", k = "U", l = "R" }) do
 		vim.keymap.set({ "n", "t" }, "<C-" .. key .. ">", function()
@@ -41,19 +58,91 @@ function M.make_modal(buf, label)
 	end
 end
 
--- :help opens in a float rather than a split.
+-- Settings that belong to the window rather than the buffer, reapplied whenever
+-- a float swaps in a different buffer.
+--
+-- scrolloff is zero for every float: they hold full-width TUI frames and fixed
+-- tables, and a scrolloff only ever scrolls those out of alignment -- a
+-- sidescrolloff of 5 cuts the left border off a lazygit frame and makes every
+-- panel look shifted.
+local function dress_window(win, opts)
+	vim.wo[win].sidescrolloff = 0
+	vim.wo[win].scrolloff = 0
+	if opts.winhighlight then
+		vim.wo[win].winhighlight = opts.winhighlight
+	end
+	if opts.cursorline ~= nil then
+		vim.wo[win].cursorline = opts.cursorline
+		vim.wo[win].cursorlineopt = "line"
+	end
+end
+
+-- Open a centred float. Returns buf, win.
+--
+--   buf          reuse this buffer, else a scratch one is created
+--   width        ratio of the editor (default 0.9), or cells if > 1
+--   height       same
+--   modal        keep focus inside (default true)
+--   label        names the float in the modal mappings' descriptions
+--   winhighlight window-local highlight overrides
+--   cursorline   highlight the cursor row
+--   border/title/title_pos/style passed through
+function M.open(opts)
+	opts = opts or {}
+
+	local height = measure(opts.height, vim.o.lines, 0.9)
+	local width = measure(opts.width, vim.o.columns, 0.9)
+	local buf = (opts.buf and vim.api.nvim_buf_is_valid(opts.buf)) and opts.buf or vim.api.nvim_create_buf(false, true)
+
+	local config = {
+		relative = "editor",
+		row = math.floor((vim.o.lines - height) / 2),
+		col = math.floor((vim.o.columns - width) / 2),
+		height = height,
+		width = width,
+		style = opts.style or "minimal",
+		border = opts.border or "rounded",
+	}
+	if opts.title then
+		config.title = opts.title
+		config.title_pos = opts.title_pos or "center"
+	end
+
+	local win = vim.api.nvim_open_win(buf, opts.enter ~= false, config)
+	dress_window(win, opts)
+
+	if opts.modal ~= false then
+		M.make_modal(buf, opts.label)
+	end
+
+	return buf, win
+end
+
+-- Swap a different buffer into an existing float: the tabbed floats keep one
+-- window and several buffers, and both the window dressing and the guard have
+-- to follow the buffer in.
+function M.attach(win, buf, opts)
+	opts = opts or {}
+	vim.api.nvim_win_set_buf(win, buf)
+	dress_window(win, opts)
+	if opts.modal ~= false then
+		M.make_modal(buf, opts.label)
+	end
+end
+
+-- :help opens in a float rather than a split. Not modal: help is a place you
+-- read something and then go back to work, and its own buffer is a normal one.
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "help",
 	callback = function()
-		local crbuf = vim.api.nvim_get_current_buf()
+		local buf = vim.api.nvim_get_current_buf()
 		vim.cmd("wincmd c")
-		vim.api.nvim_open_win(crbuf, true, {
-			relative = "editor",
-			width = math.floor(vim.o.columns * 0.4),
-			height = math.floor(vim.o.lines * 0.8),
-			col = math.floor(vim.o.columns * 0.1),
-			row = math.floor(vim.o.lines * 0.1),
-			border = "rounded",
+		M.open({
+			buf = buf,
+			width = 0.4,
+			height = 0.8,
+			style = "",
+			modal = false,
 		})
 	end,
 })

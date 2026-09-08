@@ -49,25 +49,11 @@ local function toggle_lazygit()
 		return
 	end
 
-	local h = math.floor(vim.o.lines * 0.9)
-	local w = math.floor(vim.o.columns * 0.9)
-	local buf = vim.api.nvim_buf_is_valid(lg_state.buf) and lg_state.buf or vim.api.nvim_create_buf(false, true)
-	local win = vim.api.nvim_open_win(buf, true, {
-		relative = "editor",
-		row = math.floor((vim.o.lines - h) / 2),
-		col = math.floor((vim.o.columns - w) / 2),
-		height = h,
-		width = w,
-		style = "minimal",
-		border = "rounded",
+	local buf, win = require("floating-helpers").open({
+		buf = lg_state.buf,
+		label = "lazygit",
 	})
 	lg_state.buf, lg_state.win = buf, win
-
-	-- A lazygit frame is exactly as wide as the window, so the global
-	-- sidescrolloff of 5 scrolls its left border out of view whenever lazygit
-	-- parks the cursor near the right edge, and every panel then looks shifted.
-	vim.wo[win].sidescrolloff = 0
-	vim.wo[win].scrolloff = 0
 
 	if vim.bo[buf].buftype ~= "terminal" then
 		local cmd, shim = lazygit_command()
@@ -86,8 +72,6 @@ local function toggle_lazygit()
 
 		-- Esc is lazygit's back key; the global map would steal it for normal mode.
 		vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf, desc = "Send Esc to lazygit" })
-
-		require("floating-helpers").make_modal(buf, "lazygit")
 
 		-- Every way back in must land in terminal mode, or keys go to Vim.
 		vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {

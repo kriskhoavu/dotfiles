@@ -417,8 +417,6 @@ local function attach_keys(buf, terminal)
 		M.show(0)
 	end, "Org git: overview tab")
 
-	floats.make_modal(buf, "the org git float")
-
 	if not terminal then
 		return
 	end
@@ -477,7 +475,7 @@ local function repo_buf(repo)
 
 	buf = vim.api.nvim_create_buf(false, true)
 	state.bufs[repo.path] = buf
-	vim.api.nvim_win_set_buf(state.win, buf)
+	floats.attach(state.win, buf, { label = "the org git float" })
 
 	local cmd, shim = lazygit.build()
 	-- An argv list, not a shell string: the paths handed to `-ucf` contain
@@ -537,8 +535,6 @@ function settle_terminal_view()
 	if not vim.api.nvim_win_is_valid(state.win) then
 		return
 	end
-	vim.wo[state.win].sidescrolloff = 0
-	vim.wo[state.win].scrolloff = 0
 	vim.fn.winrestview({ leftcol = 0, topline = 1 })
 	render_winbar()
 end
@@ -561,14 +557,12 @@ function M.show(idx)
 	state.current = idx
 
 	if idx == 0 then
-		vim.api.nvim_win_set_buf(state.win, overview_buf())
+		floats.attach(state.win, overview_buf(), { cursorline = true, label = "the org git float" })
 		render_overview()
 		render_winbar()
 		vim.cmd.stopinsert()
 		-- The cursor is the row selector here, so it must start on a repo rather
-		-- than on the header, and cursorline is what makes the selection visible.
-		vim.wo[state.win].cursorline = true
-		vim.wo[state.win].cursorlineopt = "line"
+		-- than on the header; cursorline (set by floats.attach) marks the row.
 		local row = repo_to_row[math.max(previous, 1)] or repo_to_row[1]
 		if row then
 			pcall(vim.api.nvim_win_set_cursor, state.win, { row, 0 })
@@ -578,8 +572,7 @@ function M.show(idx)
 
 	local repo = state.repos[idx]
 	local buf = repo_buf(repo)
-	vim.api.nvim_win_set_buf(state.win, buf)
-	vim.wo[state.win].cursorline = false
+	floats.attach(state.win, buf, { cursorline = false, label = "the org git float" })
 
 	render_winbar()
 	vim.cmd.startinsert()
@@ -617,20 +610,11 @@ function M.toggle(root)
 		return
 	end
 
-	local h = math.floor(vim.o.lines * 0.9)
-	local w = math.floor(vim.o.columns * 0.9)
-	state.win = vim.api.nvim_open_win(overview_buf(), true, {
-		relative = "editor",
-		row = math.floor((vim.o.lines - h) / 2),
-		col = math.floor((vim.o.columns - w) / 2),
-		height = h,
-		width = w,
-		style = "minimal",
-		border = "rounded",
+	_, state.win = floats.open({
+		buf = overview_buf(),
+		label = "the org git float",
+		winhighlight = chips.WINHIGHLIGHT,
 	})
-
-	vim.wo[state.win].winhighlight = chips.WINHIGHLIGHT
-
 
 	M.show(state.current)
 	refresh_status(function()

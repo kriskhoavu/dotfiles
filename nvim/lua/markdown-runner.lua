@@ -1,6 +1,7 @@
 -- Execute fenced code blocks (```sh / ```bash / ```shell) under the cursor.
 -- Keybindings: <leader>mr (run), <leader>ml (list background tasks)
 
+local floats = require("floating-helpers")
 local RUNNABLE = { sh = true, bash = true, shell = true }
 
 -- Tracks background tasks: { buf, job_id, label }
@@ -40,18 +41,12 @@ local function get_code_block_at_cursor()
 end
 
 local function open_buf_in_float(buf, label)
-	local height = math.floor(vim.o.lines * 0.4)
-	local width = math.floor(vim.o.columns * 0.8)
-	local win = vim.api.nvim_open_win(buf, true, {
-		relative = "editor",
-		row = math.floor((vim.o.lines - height) / 2),
-		col = math.floor((vim.o.columns - width) / 2),
-		width = width,
-		height = height,
-		style = "minimal",
-		border = "rounded",
+	local _, win = floats.open({
+		buf = buf,
+		width = 0.8,
+		height = 0.4,
 		title = "  " .. label .. "  ",
-		title_pos = "center",
+		label = "the markdown runner",
 	})
 	vim.cmd.startinsert()
 	local close_runner = function()
@@ -147,20 +142,11 @@ local function run_code_block()
 	f:write(table.concat(block_lines, "\n") .. "\n")
 	f:close()
 
-	local height = math.floor(vim.o.lines * 0.4)
-	local width = math.floor(vim.o.columns * 0.8)
-	local buf = vim.api.nvim_create_buf(false, true)
-
-	local win = vim.api.nvim_open_win(buf, true, {
-		relative = "editor",
-		row = math.floor((vim.o.lines - height) / 2),
-		col = math.floor((vim.o.columns - width) / 2),
-		width = width,
-		height = height,
-		style = "minimal",
-		border = "rounded",
+	local buf, win = floats.open({
+		width = 0.8,
+		height = 0.4,
 		title = "  Run: " .. lang .. " block  in " .. vim.fn.fnamemodify(cwd, ":t") .. "  ",
-		title_pos = "center",
+		label = "the markdown runner",
 	})
 
 	local job_id = vim.fn.termopen("bash " .. tmpfile, {

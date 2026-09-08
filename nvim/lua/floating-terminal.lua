@@ -4,20 +4,12 @@ local floats = require("floating-helpers")
 local state = { buf = -1, win = -1 }
 
 local function create_floating_window()
-	local height = math.floor(vim.o.lines * 0.8)
-	local width = math.floor(vim.o.columns * 0.8)
-	local buf = api.nvim_buf_is_valid(state.buf) and state.buf or api.nvim_create_buf(false, true)
-
-	local win = api.nvim_open_win(buf, true, {
-    row = math.floor((vim.o.lines - height) / 2),
-		col = math.floor((vim.o.columns - width) / 2),
-		height = height,
-		width = width,
-		style = "minimal",
-		border = "rounded",
-		relative = "editor",
+	return floats.open({
+		buf = state.buf,
+		width = 0.8,
+		height = 0.8,
+		label = "the floating terminal",
 	})
-	return buf, win
 end
 
 local function toggle_term()
@@ -29,7 +21,12 @@ local function toggle_term()
 	state.buf, state.win = create_floating_window()
 
 	if vim.bo[state.buf].buftype ~= "terminal" then
+		-- :terminal replaces the window's buffer rather than converting it, so the
+		-- scratch buffer the float was opened with is thrown away here -- along
+		-- with anything attached to it. Re-read the real buffer and guard that
+		-- one, or Ctrl-hjkl walks out of the float.
 		vim.cmd.terminal()
+		state.buf = api.nvim_get_current_buf()
 		vim.bo[state.buf].buflisted = false -- prevent it from appearing in bufferline
 		floats.make_modal(state.buf, "the floating terminal")
 	end

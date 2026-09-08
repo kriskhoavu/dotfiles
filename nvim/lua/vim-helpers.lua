@@ -128,8 +128,6 @@ function help_show(idx)
 			end)
 		end
 
-		floats.make_modal(buf, "the shortcut help")
-
 		vim.keymap.set("n", "q", close, { buffer = buf, silent = true, desc = "Close shortcut help" })
 		vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true, desc = "Close shortcut help" })
 		for i = 1, math.min(#help.sections, 9) do
@@ -153,7 +151,7 @@ function help_show(idx)
 		end, { buffer = buf, silent = true, desc = "Shortcut help: previous section" })
 	end
 
-	vim.api.nvim_win_set_buf(help.win, buf)
+	floats.attach(help.win, buf, { cursorline = true, label = "the shortcut help" })
 	help_render()
 end
 
@@ -179,25 +177,18 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 		return
 	end
 
-	local width = math.floor(vim.o.columns * 0.78)
-	local height = math.floor(vim.o.lines * 0.85)
-
-	-- nvim_open_win needs a buffer before help_show can pick the real one, and
-	-- that placeholder belongs to nobody: left alone it survived every close and
-	-- the buffer list grew by one per open.
+	-- nvim needs a buffer to open a window with, and help_show swaps the real one
+	-- in immediately; the placeholder is deleted below, or it would survive every
+	-- close and grow the buffer list by one per open.
 	local placeholder = vim.api.nvim_create_buf(false, true)
-	help.win = vim.api.nvim_open_win(placeholder, true, {
-		relative = "editor",
-		width = width,
-		height = height,
-		row = math.floor((vim.o.lines - height) / 2),
-		col = math.floor((vim.o.columns - width) / 2),
-		border = "rounded",
-		style = "minimal",
+	_, help.win = floats.open({
+		buf = placeholder,
+		width = 0.78,
+		height = 0.85,
+		label = "the shortcut help",
+		winhighlight = chips.WINHIGHLIGHT,
+		cursorline = true,
 	})
-	vim.wo[help.win].winhighlight = chips.WINHIGHLIGHT
-	vim.wo[help.win].cursorline = true
-	vim.wo[help.win].sidescrolloff = 0
 
 	help_show(math.min(help.current, #help.sections))
 
@@ -223,25 +214,20 @@ end, { noremap = true, silent = true, desc = "Copy diagnostic to clipboard" })
 
 -- Show folder/dir structure
 vim.api.nvim_create_user_command("ShowTree", function()
-	local buf = vim.api.nvim_create_buf(false, true)
-	local editor_width = vim.o.columns
-	local editor_height = vim.o.lines
-	local width = math.floor(editor_width * 0.6)
-	local height = math.floor(editor_height * 0.9)
+	local buf, win = floats.open({
+		width = 0.6,
+		label = "the tree view",
+	})
 
-	local row = math.floor((editor_height - height) / 2)
-	local col = math.floor((editor_width - width) / 2)
-	local opts = {
-		relative = "editor",
-		width = width,
-		height = height,
-		row = row,
-		col = col,
-		border = "rounded",
-		style = "minimal",
-	}
+	-- Modal like the other floats, so it needs a way out that is not :q.
+	for _, key in ipairs({ "q", "<Esc>" }) do
+		vim.keymap.set("n", key, function()
+			if vim.api.nvim_win_is_valid(win) then
+				vim.api.nvim_win_close(win, true)
+			end
+		end, { buffer = buf, silent = true, desc = "Close the tree view" })
+	end
 
-	local win = vim.api.nvim_open_win(buf, true, opts)
 	local job_id = vim.fn.jobstart("tree -L 4", {
 		stdout_buffered = true,
 		on_stdout = function(_, data)
