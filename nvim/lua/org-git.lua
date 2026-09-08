@@ -416,15 +416,12 @@ local function attach_keys(buf, terminal)
 		M.show(0)
 	end, "Org git: overview tab")
 
-	if not terminal then
-		return
-	end
-
-	-- Esc is lazygit's back key; a global normal-mode map would steal it.
-	map("t", "<Esc>", "<Esc>", "Send Esc to lazygit")
-
-	-- The float is modal: moving to an nvim window behind it strands lazygit
-	-- off-screen. Ctrl-hjkl still crosses tmux panes; buffer cycling is dead.
+	-- The float is modal, and that has to hold on every one of its buffers, not
+	-- just the lazygit ones: the overview is an ordinary window as far as
+	-- vim-tmux-navigator is concerned, so Ctrl-hjkl walked straight out of the
+	-- float and left it hanging behind the editor.
+	--
+	-- Ctrl-hjkl still crosses tmux panes; buffer cycling is dead.
 	for key, dir in pairs({ h = "L", j = "D", k = "U", l = "R" }) do
 		map({ "n", "t" }, "<C-" .. key .. ">", function()
 			if vim.env.TMUX then
@@ -440,6 +437,13 @@ local function attach_keys(buf, terminal)
 	for _, key in ipairs(dead) do
 		map({ "n", "t" }, key, "<Nop>", "Disabled while the org git float is open")
 	end
+
+	if not terminal then
+		return
+	end
+
+	-- Esc is lazygit's back key; a global normal-mode map would steal it.
+	map("t", "<Esc>", "<Esc>", "Send Esc to lazygit")
 end
 
 local function overview_buf()
