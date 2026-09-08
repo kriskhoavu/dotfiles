@@ -48,7 +48,13 @@ end
 --
 -- Ctrl-hjkl still crosses tmux panes, which is the part worth keeping: the
 -- float is modal within nvim, not within the terminal.
-function M.make_modal(buf, label)
+--
+-- `nav` (optional) puts Alt-h / Alt-l to work instead of killing them: in a
+-- tabbed float they step between tabs. They are free to take because tmux binds
+-- only the Alt digits, so these two reach nvim, and the buffer cycling they
+-- normally do is meaningless while a float is in front. The digits stay dead --
+-- tmux eats those before nvim ever sees them, which is why C-g 1-9 exists.
+function M.make_modal(buf, label, nav)
 	for key, dir in pairs({ h = "L", j = "D", k = "U", l = "R" }) do
 		vim.keymap.set({ "n", "t" }, "<C-" .. key .. ">", function()
 			if vim.env.TMUX then
@@ -61,10 +67,27 @@ function M.make_modal(buf, label)
 		})
 	end
 
-	local dead = { "<A-h>", "<A-l>" }
+	local dead = {}
 	for i = 1, 9 do
 		dead[#dead + 1] = "<A-" .. i .. ">"
 	end
+
+	if nav and nav.prev and nav.next then
+		vim.keymap.set({ "n", "t" }, "<A-h>", nav.prev, {
+			buffer = buf,
+			silent = true,
+			desc = "Previous tab in " .. (label or "this float"),
+		})
+		vim.keymap.set({ "n", "t" }, "<A-l>", nav.next, {
+			buffer = buf,
+			silent = true,
+			desc = "Next tab in " .. (label or "this float"),
+		})
+	else
+		dead[#dead + 1] = "<A-h>"
+		dead[#dead + 1] = "<A-l>"
+	end
+
 	for _, key in ipairs(dead) do
 		vim.keymap.set({ "n", "t" }, key, "<Nop>", {
 			buffer = buf,
@@ -201,6 +224,7 @@ end
 --   height       same
 --   modal        keep focus inside (default true)
 --   label        names the float in the modal mappings' descriptions
+--   nav          { prev = fn, next = fn }: Alt-h / Alt-l step between tabs
 --   winhighlight window-local highlight overrides
 --   cursorline   highlight the cursor row
 --   close        add a clickable X to the float's winbar (costs one row)
@@ -232,7 +256,7 @@ function M.open(opts)
 	dress_window(win, opts)
 
 	if opts.modal ~= false then
-		M.make_modal(buf, opts.label)
+		M.make_modal(buf, opts.label, opts.nav)
 	end
 
 	if opts.close then
@@ -250,7 +274,7 @@ function M.attach(win, buf, opts)
 	vim.api.nvim_win_set_buf(win, buf)
 	dress_window(win, opts)
 	if opts.modal ~= false then
-		M.make_modal(buf, opts.label)
+		M.make_modal(buf, opts.label, opts.nav)
 	end
 end
 

@@ -36,9 +36,20 @@ local state = {
 
 local ns = vim.api.nvim_create_namespace("OrgGit")
 
--- Forward declared: the winbar's close button closes over it, and that runs
--- before the window section defines it.
+-- Forward declared: the winbar's close button and the Alt-h/Alt-l tab step close
+-- over these, and both run before the window section defines them.
 local hide
+
+-- Alt-h / Alt-l step through the tabs, wrapping through the overview. The float
+-- passes these to floating-helpers, which would otherwise kill those keys.
+local nav = {
+	prev = function()
+		M.show(state.current <= 0 and #state.repos or state.current - 1)
+	end,
+	next = function()
+		M.show(state.current >= #state.repos and 0 or state.current + 1)
+	end,
+}
 
 -- Highlights ------------------------------------------------------------------
 
@@ -493,7 +504,7 @@ local function repo_buf(repo)
 
 	buf = vim.api.nvim_create_buf(false, true)
 	state.bufs[repo.path] = buf
-	floats.attach(state.win, buf, { label = "the org git float" })
+	floats.attach(state.win, buf, { label = "the org git float", nav = nav })
 
 	local cmd, shim = lazygit.build()
 	-- An argv list, not a shell string: the paths handed to `-ucf` contain
@@ -575,7 +586,7 @@ function M.show(idx)
 	state.current = idx
 
 	if idx == 0 then
-		floats.attach(state.win, overview_buf(), { cursorline = true, label = "the org git float" })
+		floats.attach(state.win, overview_buf(), { cursorline = true, label = "the org git float", nav = nav })
 		render_overview()
 		render_winbar()
 		vim.cmd.stopinsert()
@@ -590,7 +601,7 @@ function M.show(idx)
 
 	local repo = state.repos[idx]
 	local buf = repo_buf(repo)
-	floats.attach(state.win, buf, { cursorline = false, label = "the org git float" })
+	floats.attach(state.win, buf, { cursorline = false, label = "the org git float", nav = nav })
 
 	render_winbar()
 	vim.cmd.startinsert()
@@ -632,6 +643,7 @@ function M.toggle(root)
 		buf = overview_buf(),
 		label = "the org git float",
 		winhighlight = chips.WINHIGHLIGHT,
+		nav = nav,
 	})
 
 	M.show(state.current)

@@ -64,6 +64,21 @@ end
 
 local help = { win = -1, bufs = {}, current = 1, sections = nil }
 
+-- Forward declared: the tab click handler and the Alt-h/Alt-l nav both close
+-- over it, and both are built before it is defined.
+local help_show
+
+-- Alt-h / Alt-l step through the sections, the same gesture the org git float
+-- uses. floating-helpers would otherwise kill these keys inside the float.
+local help_nav = {
+	prev = function()
+		help_show((help.current - 2) % #help.sections + 1)
+	end,
+	next = function()
+		help_show(help.current % #help.sections + 1)
+	end,
+}
+
 -- Every section is its own buffer, so closing has to wipe them: otherwise each
 -- open leaves up to nine unlisted buffers behind for good.
 local function help_close()
@@ -100,10 +115,6 @@ local function help_render()
 
 	vim.wo[help.win].winbar = chips.tabline(tabs, help.current, 1, "ShortcutHelpTabClick") .. help.close_x
 end
-
--- Forward declared: the click handler is registered before help_show exists, and
--- the winbar names it as a string either way.
-local help_show
 
 function _G.ShortcutHelpTabClick(index)
 	help_show(index)
@@ -152,15 +163,11 @@ function help_show(idx)
 		vim.keymap.set("n", "<S-Tab>", function()
 			help_show((help.current - 2) % #help.sections + 1)
 		end, { buffer = buf, silent = true, desc = "Shortcut help: previous section" })
-		vim.keymap.set("n", "l", function()
-			help_show(help.current % #help.sections + 1)
-		end, { buffer = buf, silent = true, desc = "Shortcut help: next section" })
-		vim.keymap.set("n", "h", function()
-			help_show((help.current - 2) % #help.sections + 1)
-		end, { buffer = buf, silent = true, desc = "Shortcut help: previous section" })
+		-- h and l stay cursor motion: Alt-h / Alt-l now step sections, so taking
+		-- the plain keys as well would cost movement in a buffer people scroll.
 	end
 
-	floats.attach(help.win, buf, { cursorline = true, label = "the shortcut help" })
+	floats.attach(help.win, buf, { cursorline = true, label = "the shortcut help", nav = help_nav })
 	help_render()
 end
 
@@ -197,6 +204,7 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 		label = "the shortcut help",
 		winhighlight = chips.WINHIGHLIGHT,
 		cursorline = true,
+		nav = help_nav,
 	})
 
 	help_show(math.min(help.current, #help.sections))
