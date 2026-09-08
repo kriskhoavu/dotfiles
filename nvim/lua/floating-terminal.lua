@@ -37,7 +37,6 @@ local function toggle_term()
 		state.paint = floats.close_button(function()
 			return state.win
 		end, state.buf, {
-			close_label = "terminal",
 			on_close = function()
 				if api.nvim_win_is_valid(state.win) then
 					api.nvim_win_hide(state.win)

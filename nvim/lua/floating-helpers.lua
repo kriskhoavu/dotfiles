@@ -89,6 +89,41 @@ function _G.FloatsCloseClick(id)
 	end
 end
 
+-- Just the clickable X, as a winbar fragment. The tabbed floats already own
+-- their winbar, so they append this to what they draw rather than having it
+-- overwrite the tabs. Registered once per float; the string is reused on every
+-- render.
+--
+-- `win` may be a window id or a function returning one -- see close_button.
+function M.close_segment(win, buf, opts)
+	opts = opts or {}
+	next_id = next_id + 1
+	local id = next_id
+
+	closers[id] = function()
+		if opts.on_close then
+			opts.on_close()
+			return
+		end
+		local w = type(win) == "function" and win() or win
+		if w and vim.api.nvim_win_is_valid(w) then
+			vim.api.nvim_win_close(w, true)
+		end
+	end
+
+	if buf then
+		vim.api.nvim_create_autocmd("BufWipeout", {
+			buffer = buf,
+			once = true,
+			callback = function()
+				closers[id] = nil
+			end,
+		})
+	end
+
+	return "%" .. id .. "@v:lua.FloatsCloseClick@%#FloatChromeClose# \u{2715} %X%#FloatChrome# "
+end
+
 -- A right-aligned clickable X, in the float's winbar -- the one row of a float
 -- that nvim still owns when a terminal fills the rest, and the only place a
 -- click can land on nvim rather than on the program inside. Costs one row, so
@@ -102,33 +137,9 @@ function M.close_button(win, buf, opts)
 		return type(win) == "function" and win() or win
 	end
 
-	next_id = next_id + 1
-	local id = next_id
-
-	closers[id] = function()
-		if opts.on_close then
-			opts.on_close()
-		else
-			local w = current()
-			if w and vim.api.nvim_win_is_valid(w) then
-				vim.api.nvim_win_close(w, true)
-			end
-		end
-	end
-
-	vim.api.nvim_create_autocmd("BufWipeout", {
-		buffer = buf,
-		once = true,
-		callback = function()
-			closers[id] = nil
-		end,
-	})
-
 	-- close_label, not title: title is the border's, and a float may want both.
 	local left = opts.close_label and ("%#FloatChrome# " .. opts.close_label .. " ") or ""
-	local winbar = left
-		.. "%#FloatChrome#%="
-		.. "%" .. id .. "@v:lua.FloatsCloseClick@%#FloatChromeClose# \u{2715} %X%#FloatChrome# "
+	local winbar = left .. "%#FloatChrome#%=" .. M.close_segment(win, buf, opts)
 
 	local function paint()
 		local w = current()

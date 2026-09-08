@@ -22,7 +22,7 @@ Source: `nvim/lua/**`
 
 | Shortcut        | Mode    | What it does                                         | How to use it                                      |
 |-----------------|---------|------------------------------------------------------|----------------------------------------------------|
-| `\?`            | Normal  | Open this shortcut help center in a floating window. | One tab per section below, so you land in the one you want instead of scrolling the whole file. `1`-`9` pick a tab, `Tab` / `Shift-Tab` or `h` / `l` step through them, a mouse click picks one directly, `/` searches inside the current tab, `q` or `Esc` closes. `h` and `l` switch tabs here rather than moving the cursor. |
+| `\?`            | Normal  | Open this shortcut help center in a floating window. | One tab per section below, so you land in the one you want instead of scrolling the whole file. `1`-`9` pick a tab, `Tab` / `Shift-Tab` or `h` / `l` step through them, a mouse click picks one directly, `/` searches inside the current tab, and `q`, `Esc` or the `✕` at the right of the tabline closes. `h` and `l` switch tabs here rather than moving the cursor. |
 | `:ShortcutHelp` | Command | Open this shortcut help center.                      | Run as an Ex command. Called again while open, it closes the float.                              |
 
 The tabs are read from this file's `##` headings every time the float opens, so adding a section here adds a tab with no code change, and an edit shows up on the next `\?`.
@@ -35,7 +35,7 @@ The tabs are read from this file's `##` headings every time the float opens, so 
 | `\tt`    | Normal           | Open a real terminal buffer tab.            | Creates a new terminal buffer and enters insert mode.             |
 | `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`; inside lazygit it goes to lazygit instead. |
 | `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Useful inside CLI apps such as Codex, Claude, or other agent UIs. |
-| `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` cannot move focus out of the float. |
+| `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, click the `✕` at its top right, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` cannot move focus out of the float. |
 | `e`      | Terminal         | Open the selected file in nvim.             | Inside lazygit only: hides the float and edits the file in the nvim hosting it; `\3` or `\4` returns to the same session. `o` still opens in the default app. |
 | `\4`     | Normal, Terminal | Toggle the org git float: one tab per repo. | For a folder of sibling repos. Same float as `\3`, but tabbed across every repo in the org. See [Org Git](#org-git-many-repos-at-once). |
 
@@ -142,6 +142,7 @@ Every git action inside a repo tab is lazygit's own — stage with `space`, comm
 | Shortcut         | Mode             | What it does                                  | How to use it                                                                                      |
 |------------------|------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------|
 | `\4`             | Normal, Terminal | Open or hide the org float.                   | Opens on the overview. Hiding keeps every repo's lazygit running, so `\4` returns to the same tab. |
+| `✕` (click)      | Any tab          | Hide the float.                               | At the right end of the tabline. Hides rather than closes, like `\4` itself.                       |
 | `Ctrl-g` `1`-`9` | Any tab          | Jump straight to that repo.                   | Works **inside** a repo tab too: Neovim eats the `Ctrl-g`, so the digit never reaches lazygit.      |
 | `Ctrl-g` `0`     | Any tab          | Back to the overview.                         | The cursor lands on the repo you came from.                                                        |
 | Mouse click      | Any tab          | Jump to the clicked tab.                      | Works from inside a repo tab too: the tabline is Neovim's row, so lazygit never sees the click.     |

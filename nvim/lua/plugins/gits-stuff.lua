@@ -49,11 +49,29 @@ local function toggle_lazygit()
 		return
 	end
 
-	local buf, win = require("floating-helpers").open({
+	local floats = require("floating-helpers")
+	local buf, win = floats.open({
 		buf = lg_state.buf,
 		label = "lazygit",
 	})
 	lg_state.buf, lg_state.win = buf, win
+
+	-- Registered once, on the buffer that lives as long as the lazygit session;
+	-- repainted on every open because the winbar belongs to the window, which is
+	-- new each time the float is toggled back.
+	if not lg_state.paint then
+		lg_state.paint = floats.close_button(function()
+			return lg_state.win
+		end, buf, {
+			on_close = function()
+				if vim.api.nvim_win_is_valid(lg_state.win) then
+					vim.api.nvim_win_hide(lg_state.win)
+					lg_state.win = -1
+				end
+			end,
+		})
+	end
+	lg_state.paint()
 
 	if vim.bo[buf].buftype ~= "terminal" then
 		local cmd, shim = lazygit_command()

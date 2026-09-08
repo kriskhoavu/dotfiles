@@ -36,6 +36,10 @@ local state = {
 
 local ns = vim.api.nvim_create_namespace("OrgGit")
 
+-- Forward declared: the winbar's close button closes over it, and that runs
+-- before the window section defines it.
+local hide
+
 -- Highlights ------------------------------------------------------------------
 
 -- The tabline chips, the float ground and the catppuccin palette all come from
@@ -212,9 +216,23 @@ local function render_winbar()
 		tabs[#tabs + 1] = { label = repo.name, suffix = badge(state.status[repo.path]) }
 	end
 
+	-- The X is registered once and appended to every render: the tabline is
+	-- redrawn on each tab switch, and re-registering would leak a closer per
+	-- redraw.
+	state.close_x = state.close_x
+		or floats.close_segment(function()
+			return state.win
+		end, nil, {
+			-- Hide, not close: \4 is a toggle and every repo's lazygit is still
+			-- running behind it.
+			on_close = function()
+				hide()
+			end,
+		})
+
 	-- first_index 0: the overview is keyed C-g 0, so repo n is chip n, and the
 	-- click handler receives that same n.
-	vim.wo[state.win].winbar = chips.tabline(tabs, state.current + 1, 0, "OrgGitTabClick")
+	vim.wo[state.win].winbar = chips.tabline(tabs, state.current + 1, 0, "OrgGitTabClick") .. state.close_x
 end
 
 -- string.format's %-Ns pads by bytes, and the badge glyphs are three bytes wide
@@ -369,7 +387,7 @@ end
 
 -- Window ---------------------------------------------------------------------
 
-local function hide()
+function hide()
 	if vim.api.nvim_win_is_valid(state.win) then
 		pcall(vim.api.nvim_win_hide, state.win)
 	end

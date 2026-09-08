@@ -64,6 +64,24 @@ end
 
 local help = { win = -1, bufs = {}, current = 1, sections = nil }
 
+-- Every section is its own buffer, so closing has to wipe them: otherwise each
+-- open leaves up to nine unlisted buffers behind for good.
+local function help_close()
+	if vim.api.nvim_win_is_valid(help.win) then
+		vim.api.nvim_win_close(help.win, true)
+	end
+	help.win = -1
+	local stale = help.bufs
+	help.bufs = {}
+	vim.schedule(function()
+		for _, b in pairs(stale) do
+			if vim.api.nvim_buf_is_valid(b) then
+				pcall(vim.api.nvim_buf_delete, b, { force = true })
+			end
+		end
+	end)
+end
+
 local function help_render()
 	if not vim.api.nvim_win_is_valid(help.win) then
 		return
@@ -73,7 +91,14 @@ local function help_render()
 	for _, section in ipairs(help.sections) do
 		tabs[#tabs + 1] = { label = section.label }
 	end
-	vim.wo[help.win].winbar = chips.tabline(tabs, help.current, 1, "ShortcutHelpTabClick")
+	-- Registered once; the tabline is rebuilt on every tab switch and
+	-- re-registering would leak a closer per redraw.
+	help.close_x = help.close_x
+		or floats.close_segment(function()
+			return help.win
+		end, nil, { on_close = help_close })
+
+	vim.wo[help.win].winbar = chips.tabline(tabs, help.current, 1, "ShortcutHelpTabClick") .. help.close_x
 end
 
 -- Forward declared: the click handler is registered before help_show exists, and
@@ -110,23 +135,7 @@ function help_show(idx)
 		vim.bo[buf].modifiable = false
 		vim.bo[buf].buflisted = false
 
-		-- Every section is its own buffer, so closing has to wipe them: otherwise
-		-- each open leaves up to nine unlisted buffers behind for good.
-		local function close()
-			if vim.api.nvim_win_is_valid(help.win) then
-				vim.api.nvim_win_close(help.win, true)
-			end
-			help.win = -1
-			local stale = help.bufs
-			help.bufs = {}
-			vim.schedule(function()
-				for _, b in pairs(stale) do
-					if vim.api.nvim_buf_is_valid(b) then
-						pcall(vim.api.nvim_buf_delete, b, { force = true })
-					end
-				end
-			end)
-		end
+		local close = help_close
 
 		vim.keymap.set("n", "q", close, { buffer = buf, silent = true, desc = "Close shortcut help" })
 		vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true, desc = "Close shortcut help" })
