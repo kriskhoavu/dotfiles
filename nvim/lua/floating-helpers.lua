@@ -14,17 +14,15 @@ local M = {}
 
 -- Chrome for the close button. Not "FloatTitle" -- that is a builtin group nvim
 -- uses for every float's border title, and redefining it would repaint them all.
+--
+-- The X sits in a filled chip with the same rounded caps as the tab chips, so it
+-- reads as a button rather than as a stray glyph: catppuccin's red, crust text,
+-- and the caps carrying the fill colour on the float's own ground.
 local function set_highlights()
-	local function fg(group, fallback)
-		local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = group, link = false })
-		return (ok and hl and hl.fg) or fallback
-	end
-	local function bg(group, fallback)
-		local ok, hl = pcall(vim.api.nvim_get_hl, 0, { name = group, link = false })
-		return (ok and hl and hl.bg) or fallback
-	end
-	vim.api.nvim_set_hl(0, "FloatChrome", { fg = fg("Comment", nil), bg = bg("NormalFloat", nil) })
-	vim.api.nvim_set_hl(0, "FloatChromeClose", { fg = fg("DiagnosticError", nil), bg = bg("NormalFloat", nil) })
+	local c = require("tmux-chips").colors()
+	vim.api.nvim_set_hl(0, "FloatChrome", { fg = c.overlay_1, bg = c.bg })
+	vim.api.nvim_set_hl(0, "FloatChromeClose", { fg = c.crust, bg = c.red, bold = true })
+	vim.api.nvim_set_hl(0, "FloatChromeCloseCap", { fg = c.red, bg = c.bg })
 end
 
 set_highlights()
@@ -121,7 +119,19 @@ function M.close_segment(win, buf, opts)
 		})
 	end
 
-	return "%" .. id .. "@v:lua.FloatsCloseClick@%#FloatChromeClose# \u{2715} %X%#FloatChrome# "
+	-- The Nerd Font close glyph rather than the plain multiplication X: it is
+	-- drawn heavier and fills the cell, which is as "bigger" as a fixed-width
+	-- grid gets.
+	local chips = require("tmux-chips")
+	return "%"
+		.. id
+		.. "@v:lua.FloatsCloseClick@"
+		.. "%#FloatChromeCloseCap#"
+		.. chips.CAP_LEFT
+		.. "%#FloatChromeClose# \u{f00d} "
+		.. "%#FloatChromeCloseCap#"
+		.. chips.CAP_RIGHT
+		.. "%X%#FloatChrome# "
 end
 
 -- A right-aligned clickable X, in the float's winbar -- the one row of a float

@@ -26,14 +26,18 @@ local FALLBACK = {
 	blue = 0x89b4fa,
 	yellow = 0xf9e2af,
 	teal = 0x94e2d5,
+	red = 0xf38ba8,
 	green = 0xa6e3a1,
 	peach = 0xfab387,
 }
 
 -- Nerd Font half-circles, as escapes: written literally they are private-use
 -- codepoints that any tool in the pipeline may silently drop.
-local CAP_LEFT = "\u{e0b6}"
-local CAP_RIGHT = "\u{e0b4}"
+-- Exported: floating-helpers builds its close chip with the same caps, so every
+-- chip in this config has one shape.
+M.CAP_LEFT = "\u{e0b6}"
+M.CAP_RIGHT = "\u{e0b4}"
+local CAP_LEFT, CAP_RIGHT = M.CAP_LEFT, M.CAP_RIGHT
 
 local function read_tmux()
 	if not vim.env.TMUX then
