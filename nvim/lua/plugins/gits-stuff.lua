@@ -87,23 +87,7 @@ local function toggle_lazygit()
 		-- Esc is lazygit's back key; the global map would steal it for normal mode.
 		vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf, desc = "Send Esc to lazygit" })
 
-		-- The float is modal: moving to an nvim window behind it strands lazygit
-		-- off-screen. Ctrl-hjkl still crosses tmux panes; buffer cycling is dead.
-		local tmux_dir = { h = "L", j = "D", k = "U", l = "R" }
-		for key, dir in pairs(tmux_dir) do
-			vim.keymap.set({ "n", "t" }, "<C-" .. key .. ">", function()
-				if vim.env.TMUX then
-					vim.fn.system({ "tmux", "select-pane", "-" .. dir })
-				end
-			end, { buffer = buf, silent = true, desc = "Tmux pane " .. dir .. " (skip nvim windows)" })
-		end
-		local dead_keys = { "<A-h>", "<A-l>" }
-		for i = 1, 9 do
-			dead_keys[#dead_keys + 1] = "<A-" .. i .. ">"
-		end
-		for _, key in ipairs(dead_keys) do
-			vim.keymap.set({ "n", "t" }, key, "<Nop>", { buffer = buf, silent = true, desc = "Disabled while lazygit is open" })
-		end
+		require("floating-helpers").make_modal(buf, "lazygit")
 
 		-- Every way back in must land in terminal mode, or keys go to Vim.
 		vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {

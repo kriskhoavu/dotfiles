@@ -20,6 +20,7 @@
 
 local lazygit = require("lazygit-cmd")
 local chips = require("tmux-chips")
+local floats = require("floating-helpers")
 
 local M = {}
 
@@ -416,27 +417,7 @@ local function attach_keys(buf, terminal)
 		M.show(0)
 	end, "Org git: overview tab")
 
-	-- The float is modal, and that has to hold on every one of its buffers, not
-	-- just the lazygit ones: the overview is an ordinary window as far as
-	-- vim-tmux-navigator is concerned, so Ctrl-hjkl walked straight out of the
-	-- float and left it hanging behind the editor.
-	--
-	-- Ctrl-hjkl still crosses tmux panes; buffer cycling is dead.
-	for key, dir in pairs({ h = "L", j = "D", k = "U", l = "R" }) do
-		map({ "n", "t" }, "<C-" .. key .. ">", function()
-			if vim.env.TMUX then
-				vim.fn.system({ "tmux", "select-pane", "-" .. dir })
-			end
-		end, "Tmux pane " .. dir .. " (skip nvim windows)")
-	end
-
-	local dead = { "<A-h>", "<A-l>" }
-	for i = 1, 9 do
-		dead[#dead + 1] = "<A-" .. i .. ">"
-	end
-	for _, key in ipairs(dead) do
-		map({ "n", "t" }, key, "<Nop>", "Disabled while the org git float is open")
-	end
+	floats.make_modal(buf, "the org git float")
 
 	if not terminal then
 		return

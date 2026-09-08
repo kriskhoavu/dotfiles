@@ -23,6 +23,7 @@ end
 -- Tabs are derived from the file rather than listed here, so a new "##" section
 -- becomes a new tab with no code change.
 local chips = require("tmux-chips")
+local floats = require("floating-helpers")
 
 local SHORT_LABEL = {
 	["macOS Window Pairing"] = "macOS",
@@ -127,23 +128,7 @@ function help_show(idx)
 			end)
 		end
 
-		-- Same modal rule as the org git float: Ctrl-hjkl would otherwise hand
-		-- focus to a window behind the help and leave it floating there, and
-		-- Alt-h/l would cycle buffers underneath it.
-		for key, dir in pairs({ h = "L", j = "D", k = "U", l = "R" }) do
-			vim.keymap.set("n", "<C-" .. key .. ">", function()
-				if vim.env.TMUX then
-					vim.fn.system({ "tmux", "select-pane", "-" .. dir })
-				end
-			end, { buffer = buf, silent = true, desc = "Tmux pane " .. dir .. " (skip nvim windows)" })
-		end
-		local dead = { "<A-h>", "<A-l>" }
-		for i = 1, 9 do
-			dead[#dead + 1] = "<A-" .. i .. ">"
-		end
-		for _, key in ipairs(dead) do
-			vim.keymap.set("n", key, "<Nop>", { buffer = buf, silent = true, desc = "Disabled while the shortcut help is open" })
-		end
+		floats.make_modal(buf, "the shortcut help")
 
 		vim.keymap.set("n", "q", close, { buffer = buf, silent = true, desc = "Close shortcut help" })
 		vim.keymap.set("n", "<Esc>", close, { buffer = buf, silent = true, desc = "Close shortcut help" })

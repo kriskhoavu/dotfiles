@@ -1,5 +1,6 @@
 local api = vim.api
 local fn = vim.fn
+local floats = require("floating-helpers")
 local state = { buf = -1, win = -1 }
 
 local function create_floating_window()
@@ -30,6 +31,7 @@ local function toggle_term()
 	if vim.bo[state.buf].buftype ~= "terminal" then
 		vim.cmd.terminal()
 		vim.bo[state.buf].buflisted = false -- prevent it from appearing in bufferline
+		floats.make_modal(state.buf, "the floating terminal")
 	end
 
 	-- Ensure the terminal starts in insert mode
