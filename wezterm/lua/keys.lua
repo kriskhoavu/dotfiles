@@ -52,4 +52,22 @@ return function(config)
       end
     end) },
   }
+
+  -- Ctrl+Option+<digit>: jump straight to a tab in Neovim's floats (\4, \?).
+  --
+  -- Sent explicitly for the same reason Ctrl+<digit> above is: a plain terminal
+  -- has no control code for these combinations, so nothing is transmitted and
+  -- the keypress is simply lost. This writes the CSI-u form directly --
+  -- ESC [ <codepoint> ; 7 u, where 7 is 1 + alt(2) + ctrl(4).
+  --
+  -- tmux parses that and re-encodes it for the pane (it needs extended-keys on,
+  -- which tmux/.tmux.conf sets), and Neovim decodes it as <C-M-digit>. Outside
+  -- tmux, Neovim reads the sequence directly.
+  for digit = 0, 9 do
+    table.insert(config.keys, {
+      key = tostring(digit),
+      mods = "CTRL|OPT",
+      action = act.SendString("\x1b[" .. (48 + digit) .. ";7u"),
+    })
+  end
 end

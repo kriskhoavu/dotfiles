@@ -156,7 +156,13 @@ Every git action inside a repo tab is lazygit's own — stage with `space`, comm
 
 **Why these keys.** A repo tab is a live lazygit, and lazygit binds nearly everything: plain digits focus its panels, `[` / `]` switch panel tabs, `Tab` cycles, and every Ctrl key except `g`, `n`, `q`, `v` and `x` is taken (`Ctrl-a` is the tmux prefix, so Neovim never sees it). `Ctrl-Left` / `Ctrl-Right` belong to macOS Spaces, and tmux takes `Alt-<digit>` for its own windows.
 
-`Ctrl-Alt-<digit>` is free of all of that, but a terminal can only encode it with **extended keys**, which `tmux/.tmux.conf` now switches on (`set -s extended-keys on` plus the `extkeys` terminal feature). Without that setting the combination cannot be sent at all — which is why this started life as a `Ctrl-g` prefix, still kept as a fallback.
+`Ctrl-Alt-<digit>` is free of all of that, but a plain terminal has no control code for it, so nothing is transmitted and the keypress is simply lost. Three things carry it, and all three are needed:
+
+1. `wezterm/lua/keys.lua` sends the CSI-u form explicitly (`ESC [ <codepoint> ; 7 u`) — the same trick the `Ctrl-<digit>` bindings above it already use.
+2. `tmux/.tmux.conf` sets `extended-keys on` and the `extkeys` terminal feature, so tmux re-encodes it for the pane instead of swallowing it.
+3. Neovim decodes it as `<C-M-digit>`.
+
+`Ctrl-g` plus a digit is kept as a fallback for anywhere that chain is not in place.
 
 The tabline is drawn from catppuccin's own tmux options — `@thm_*` and `@catppuccin_window_*`, read out of the running tmux — so it matches the window tabs along the bottom of the screen, down to the block widths, and changing `@catppuccin_flavor` moves both.
 
