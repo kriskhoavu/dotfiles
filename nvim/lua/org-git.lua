@@ -646,7 +646,6 @@ function M.toggle(root)
 	_, state.win = floats.open({
 		buf = overview_buf(),
 		label = "the org git float",
-		winhighlight = chips.WINHIGHLIGHT,
 		nav = nav,
 	})
 

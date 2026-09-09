@@ -223,8 +223,17 @@ end
 local function dress_window(win, opts)
 	vim.wo[win].sidescrolloff = 0
 	vim.wo[win].scrolloff = 0
-	if opts.winhighlight then
-		vim.wo[win].winhighlight = opts.winhighlight
+
+	-- Every float gets catppuccin's ground unless it asks otherwise: the tabbed
+	-- ones opted in and the rest kept the editor's NormalFloat, so \9 sat on a
+	-- visibly different background from \4 for no reason anyone could see. Pass
+	-- winhighlight = false to keep the editor's.
+	local winhl = opts.winhighlight
+	if winhl == nil then
+		winhl = require("tmux-chips").WINHIGHLIGHT
+	end
+	if winhl then
+		vim.wo[win].winhighlight = winhl
 	end
 	if opts.cursorline ~= nil then
 		vim.wo[win].cursorline = opts.cursorline
@@ -241,7 +250,8 @@ end
 --   label        names the float in the modal mappings' descriptions
 --   nav          { prev, next, jump }: Alt-h / Alt-l step between tabs,
 --                Ctrl-Alt-<digit> jumps to one
---   winhighlight window-local highlight overrides
+--   winhighlight window-local highlight overrides; defaults to the catppuccin
+--                ground every float shares, false keeps the editor's
 --   cursorline   highlight the cursor row
 --   close        add a clickable X to the float's winbar (costs one row)
 --   close_label  text shown at the left of that winbar

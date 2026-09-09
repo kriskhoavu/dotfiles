@@ -207,7 +207,6 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 		width = 0.78,
 		height = 0.85,
 		label = "the shortcut help",
-		winhighlight = chips.WINHIGHLIGHT,
 		cursorline = true,
 		nav = help_nav,
 	})
