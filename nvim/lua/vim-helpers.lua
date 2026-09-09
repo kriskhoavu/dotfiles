@@ -137,7 +137,9 @@ function help_show(idx)
 
 		-- The heading is re-added: it is the section's own title, and without it
 		-- the markdown renderer has nothing to anchor the tab's content on.
-		local lines = {}
+		-- A blank row under the tabline: the heading sat directly against the tabs
+		-- and read as part of the header rather than as the start of the content.
+		local lines = { "" }
 		if section.intro then
 			vim.list_extend(lines, section.intro)
 		end

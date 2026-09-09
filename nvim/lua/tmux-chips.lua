@@ -142,7 +142,13 @@ M.WINHIGHLIGHT = "NormalFloat:TmuxChipNormal,FloatBorder:TmuxChipBorder,CursorLi
 -- (catppuccin's middle separator), and the name block opens with one space
 -- (@catppuccin_window_text is " #W").
 function M.tabline(tabs, current, first_index, on_click)
-	local parts = {}
+	-- One cell of ground before the first cap, matching the one the close chip
+	-- leaves after itself: without it the row is padded on the right only.
+	-- %< marks where the row is cut when it does not fit. It has to sit before
+	-- the tabs, not after them: truncation eats what follows the marker, so a
+	-- marker after the tabs chewed the close button off the right end instead.
+	-- Here the oldest tabs go and the button always survives.
+	local parts = { "%<%#TmuxChipFill# " }
 	local n = first_index or 1
 
 	for i, tab in ipairs(tabs) do
