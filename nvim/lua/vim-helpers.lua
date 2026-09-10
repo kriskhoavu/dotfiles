@@ -238,6 +238,7 @@ vim.api.nvim_create_user_command("ShowTree", function()
 	local buf, win = floats.open({
 		width = 0.6,
 		label = "the tree view",
+		close = true,
 	})
 
 	-- Modal like the other floats, so it needs a way out that is not :q.

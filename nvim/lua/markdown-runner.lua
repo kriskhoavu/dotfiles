@@ -41,15 +41,12 @@ local function get_code_block_at_cursor()
 end
 
 local function open_buf_in_float(buf, label)
-	local _, win = floats.open({
-		buf = buf,
-		width = 0.8,
-		height = 0.4,
-		title = "  " .. label .. "  ",
-		label = "the markdown runner",
-	})
-	vim.cmd.startinsert()
-	local close_runner = function()
+	local win
+	-- Declared before the float so the close button can call it: the X and Q are
+	-- the same action, and a runner window must warn about a live process rather
+	-- than vanish silently.
+	local close_runner
+	close_runner = function()
 		if vim.api.nvim_win_is_valid(win) then
 			local task
 			for _, t in ipairs(bg_tasks) do
@@ -65,6 +62,20 @@ local function open_buf_in_float(buf, label)
 			vim.api.nvim_win_close(win, true)
 		end
 	end
+
+	local _
+	_, win = floats.open({
+		buf = buf,
+		width = 0.8,
+		height = 0.4,
+		title = "  " .. label .. "  ",
+		label = "the markdown runner",
+		close = true,
+		on_close = function()
+			close_runner()
+		end,
+	})
+	vim.cmd.startinsert()
 	vim.keymap.set({ "n", "t" }, "Q", close_runner, { buffer = buf, silent = true, desc = "Close runner window" })
 end
 
@@ -142,11 +153,20 @@ local function run_code_block()
 	f:write(table.concat(block_lines, "\n") .. "\n")
 	f:close()
 
+	-- close_runner is defined below, once the job exists; the button reaches it
+	-- through this local so the X and Q stay one behaviour.
+	local close_runner
 	local buf, win = floats.open({
 		width = 0.8,
 		height = 0.4,
 		title = "  Run: " .. lang .. " block  in " .. vim.fn.fnamemodify(cwd, ":t") .. "  ",
 		label = "the markdown runner",
+		close = true,
+		on_close = function()
+			if close_runner then
+				close_runner()
+			end
+		end,
 	})
 
 	local job_id = vim.fn.termopen("bash " .. tmpfile, {
@@ -184,7 +204,7 @@ local function run_code_block()
 	vim.cmd.startinsert()
 
 	-- Q closes the window in either normal or terminal mode; the process keeps running.
-	local close_runner = function()
+	close_runner = function()
 		if vim.api.nvim_win_is_valid(win) then
 			local still_running = job_id and vim.fn.jobwait({ job_id }, 0)[1] == -1
 			if still_running then
