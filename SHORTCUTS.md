@@ -22,10 +22,43 @@ Source: `nvim/lua/**`
 
 | Shortcut        | Mode    | What it does                                         | How to use it                                      |
 |-----------------|---------|------------------------------------------------------|----------------------------------------------------|
-| `\?`            | Normal  | Open this shortcut help center in a floating window. | One tab per section below, so you land in the one you want instead of scrolling the whole file. `1`-`9` pick a tab, `Tab` / `Shift-Tab` or `h` / `l` step through them, a mouse click picks one directly, `/` searches inside the current tab, and `q`, `Esc` or the `✕` at the right of the tabline closes. `h` and `l` switch tabs here rather than moving the cursor. |
+| `\?`            | Normal  | Open this shortcut help center in a floating window. | One tab per section below, so you land in the one you want instead of scrolling the whole file. See [Floating Windows](#floating-windows) for the keys every float shares; `1`-`9` also pick a tab here, and `/` searches inside the current one. |
 | `:ShortcutHelp` | Command | Open this shortcut help center.                      | Run as an Ex command. Called again while open, it closes the float.                              |
 
 The tabs are read from this file's `##` headings every time the float opens, so adding a section here adds a tab with no code change, and an edit shows up on the next `\?`.
+
+### Floating Windows
+
+Every float in this config is built by one function (`nvim/lua/floating-helpers.lua`), so they look and behave alike no matter which one you opened. Seven of them exist:
+
+| Float          | Opens with        | Tabs | Pressing it again |
+|----------------|-------------------|------|--------------------|
+| lazygit        | `\3`              | —    | hides; the lazygit session keeps running |
+| org git        | `\4`              | ✔    | hides; every repo's lazygit keeps running |
+| terminal       | `\9`              | —    | hides; the shell keeps its history and cwd |
+| shortcut help  | `\?`              | ✔    | closes; sections are re-read on the next open |
+| tree view      | `:ShowTree`       | —    | closes |
+| markdown runner| `\mr`, `\ml`      | —    | closes; warns if the job is still running |
+
+**What they all share**
+
+| Shortcut            | What it does                        | How to use it                                                                                  |
+|---------------------|-------------------------------------|------------------------------------------------------------------------------------------------|
+| `✕` (click)         | Close or hide the float.            | Top right of every float. Does whatever pressing the float's own key again would do.            |
+| `Ctrl-h/j/k/l`      | Move between **tmux panes**.        | Never moves to a Neovim window: a float left behind the editor cannot be reached again.         |
+| `Alt-1`-`Alt-9`     | Nothing, deliberately.              | tmux takes these for its own windows before Neovim sees them.                                   |
+
+They are also centred at a ratio of the editor rather than a fixed size, share catppuccin's colours with the tmux status bar, and turn off `scrolloff` so a full-width TUI is never scrolled out of alignment. `:help` opens as a float too, but is deliberately *not* modal — it is a place you read and leave.
+
+**In a tabbed float** (`\4`, `\?`)
+
+| Shortcut              | What it does                | How to use it                                                                                  |
+|-----------------------|-----------------------------|--------------------------------------------------------------------------------------------------|
+| `Ctrl-Opt-<digit>`    | Jump straight to that tab.  | The digit on the chip is the digit you press. Works inside a lazygit tab, where plain digits belong to lazygit. |
+| `Alt-h` / `Alt-l`     | Previous / next tab.        | Wraps around through the first tab.                                                             |
+| Click a tab           | Jump to it.                 | The whole chip is clickable, rounded ends included.                                             |
+
+`Ctrl-Opt-<digit>` needs three things, and all three are in this repo: `wezterm/lua/keys.lua` sends the CSI-u form explicitly (a terminal has no control code for that combination, so nothing would be transmitted at all), `tmux/.tmux.conf` sets `extended-keys on` with the `extkeys` feature so tmux re-encodes it, and Neovim reads it as `<C-M-digit>`.
 
 ### Terminal And Floating Tools
 
@@ -46,7 +79,7 @@ The tabs are read from this file's `##` headings every time the float opens, so 
 | `\mr`    | Normal, Markdown      | Run the shell code block under the cursor. | Put cursor inside a fenced `sh`, `bash`, or `shell` block, then press `\mr`.  |
 | `mr`     | Normal, Markdown      | Run the shell code block under the cursor. | Shorter reach for `\mr`; buffer-local, so it shadows `m r` (set mark r) only in Markdown. |
 | _(both)_ | Normal, Markdown      | Blocks run from the document's repository root. | So relative paths like `deploy/docker/...` resolve the way the block intends, wherever Neovim was started. Outside a repo, the document's own folder is used. The float's title names the directory. |
-| `Q`      | Normal, runner window | Close the runner float.                    | Works directly in terminal mode; the process keeps running in the background. |
+| `Q` or `✕` | Normal, runner window | Close the runner float.                  | Works directly in terminal mode; the process keeps running in the background, and either way you are told when it is still going. |
 | `\ml`    | Normal, Markdown      | List markdown runner background tasks.     | Reopen running or finished task output.                                       |
 | `\mp`    | Normal, Markdown      | Toggle Markdown Preview.                   | Opens/stops browser preview.                                                  |
 | `\mr`    | Normal, global        | Toggle Render Markdown.                    | In Markdown buffers, the runner mapping is buffer-local and takes priority.   |
@@ -88,7 +121,7 @@ The tabs are read from this file's `##` headings every time the float opens, so 
 | Shortcut       | Mode     | What it does                                | How to use it                                                                                                            |
 |----------------|----------|---------------------------------------------|--------------------------------------------------------------------------------------------------------------------------|
 | `Ctrl-h/j/k/l` | Normal   | Move between Neovim/tmux panes.             | Works with vim-tmux-navigator.                                                                                           |
-| `Ctrl-h/j/k/l` | Terminal | Exit terminal mode, then move pane.         | Useful from terminal buffers. Inside every float (`\3`, `\4`, `\9`, `\?`, `:ShowTree`, the markdown runner) they only switch tmux panes, never nvim windows: a float left behind the editor is unreachable. `Alt-1`-`Alt-9` are dead there for the same reason — and tmux takes those before Neovim sees them anyway, which is why the org float uses `Ctrl-g` plus a digit. `Alt-h` / `Alt-l` are dead only in the floats that have no tabs; in `\4` and `\?` they step between tabs. All of them are built by `floating-helpers.open`, so this holds for any float added later unless it passes `modal = false`. |
+| `Ctrl-h/j/k/l` | Terminal | Exit terminal mode, then move pane.         | Useful from terminal buffers. Inside a float they only switch tmux panes, never nvim windows — see [Floating Windows](#floating-windows). |
 | `Ctrl-w c`     | Normal   | Close current split window.                 | Use to hide the active pane while keeping others open.                                                                   |
 | `\wr`          | Normal   | Toggle resize mode.                         | Then use `h/j/k/l`; press `Esc` or `\wr` to stop.                                                                        |
 | `\sd`          | Normal   | Split or move editor to the right.          | Splits inside Neovim. Also triggered by WezTerm `Ctrl+Cmd+Shift+D`.                                                      |
@@ -139,32 +172,20 @@ Source: `nvim/lua/org-git.lua`
 
 Every git action inside a repo tab is lazygit's own — stage with `space`, commit with `c`, amend with `A`, push with `P`, drill into hunks with `Enter`. Nothing is reimplemented here; the module only draws the tabs and the overview, because a single lazygit can only ever show one repo.
 
-| Shortcut         | Mode             | What it does                                  | How to use it                                                                                      |
-|------------------|------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------------|
-| `\4`             | Normal, Terminal | Open or hide the org float.                   | Opens on the overview. Hiding keeps every repo's lazygit running, so `\4` returns to the same tab. |
-| `✕` (click)      | Any tab          | Hide the float.                               | At the right end of the tabline. Hides rather than closes, like `\4` itself.                       |
-| `Ctrl-Alt-1`-`9` | Any tab          | Jump straight to that repo.                   | The digit on the chip is the digit you press. Works **inside** a repo tab: lazygit never sees it.   |
-| `Ctrl-Alt-0`     | Any tab          | Back to the overview.                         | The cursor lands on the repo you came from.                                                        |
-| `Ctrl-g` `0`-`9` | Any tab          | The same jumps, as a prefix.                  | Kept as a fallback for terminals that cannot encode `Ctrl-Alt-<digit>`.                            |
-| `Alt-h` / `Alt-l` | Any tab         | Previous / next tab.                          | Wraps around through the overview. Free to use here because buffer cycling is meaningless while a float covers the editor. |
-| Mouse click      | Any tab          | Jump to the clicked tab.                      | Works from inside a repo tab too: the tabline is Neovim's row, so lazygit never sees the click.     |
-| `1`-`9`          | Overview         | Jump to that repo.                            | On the overview the digits need no prefix, since lazygit is not listening there.                    |
-| `Enter`          | Overview         | Open the repo under the cursor.               | Its lazygit starts on first visit, not before.                                                     |
-| `r`              | Overview         | Re-read every repo's status.                  | Counts also refresh on their own each time you switch tabs.                                        |
-| `q`              | Overview         | Close the float.                              | Same as `\4`.                                                                                      |
-| `:OrgGit`        | Command          | Open the float, optionally for another root.  | `:OrgGit ~/some/other/org` switches roots; no argument reuses the current one.                      |
+| Shortcut          | Mode             | What it does                                 | How to use it                                                                                      |
+|-------------------|------------------|----------------------------------------------|------------------------------------------------------------------------------------------------------|
+| `\4`              | Normal, Terminal | Open or hide the org float.                  | Hiding keeps every repo's lazygit running, so `\4` returns to the same tab.                            |
+| `Ctrl-Opt-<digit>` | Any tab         | Jump to that repo; `0` is the overview.      | Works inside a repo tab too. Returning to the overview puts the cursor on the repo you came from.     |
+| `Alt-h` / `Alt-l`  | Any tab         | Previous / next repo.                        | Wraps around through the overview.                                                                    |
+| `1`-`9`           | Overview         | Jump to that repo.                           | On the overview the digits need no modifier, since lazygit is not listening there.                    |
+| `Enter`           | Overview         | Open the repo under the cursor.              | Its lazygit starts on first visit, not before.                                                       |
+| `r`               | Overview         | Re-read every repo's status.                 | Counts also refresh on their own each time you switch tabs.                                          |
+| `q`               | Overview         | Close the float.                             | Same as `\4`, as is the `✕`.                                                                          |
+| `:OrgGit`         | Command          | Open the float, optionally for another root. | `:OrgGit ~/some/other/org` switches roots; no argument reuses the current one.                        |
 
-**Why these keys.** A repo tab is a live lazygit, and lazygit binds nearly everything: plain digits focus its panels, `[` / `]` switch panel tabs, `Tab` cycles, and every Ctrl key except `g`, `n`, `q`, `v` and `x` is taken (`Ctrl-a` is the tmux prefix, so Neovim never sees it). `Ctrl-Left` / `Ctrl-Right` belong to macOS Spaces, and tmux takes `Alt-<digit>` for its own windows.
+Everything the float shares with the others — the `✕`, the modal `Ctrl-hjkl`, how the tab keys are carried from the keyboard — is in [Floating Windows](#floating-windows).
 
-`Ctrl-Alt-<digit>` is free of all of that, but a plain terminal has no control code for it, so nothing is transmitted and the keypress is simply lost. Three things carry it, and all three are needed:
-
-1. `wezterm/lua/keys.lua` sends the CSI-u form explicitly (`ESC [ <codepoint> ; 7 u`) — the same trick the `Ctrl-<digit>` bindings above it already use.
-2. `tmux/.tmux.conf` sets `extended-keys on` and the `extkeys` terminal feature, so tmux re-encodes it for the pane instead of swallowing it.
-3. Neovim decodes it as `<C-M-digit>`.
-
-`Ctrl-g` plus a digit is kept as a fallback for anywhere that chain is not in place.
-
-The tabline is drawn from catppuccin's own tmux options — `@thm_*` and `@catppuccin_window_*`, read out of the running tmux — so it matches the window tabs along the bottom of the screen, down to the block widths, and changing `@catppuccin_flavor` moves both.
+**Why not plain digits.** A repo tab is a live lazygit, and it binds nearly everything: the digits focus its panels, `[` / `]` switch panel tabs, `Tab` cycles, and every Ctrl key except `g`, `n`, `q`, `v` and `x` is taken. `Ctrl-Left` / `Ctrl-Right` belong to macOS Spaces, and tmux takes `Alt-<digit>`. `Ctrl-Opt-<digit>` is free of all of it.
 
 The overview lists each repo with its branch, how many files are dirty (`●`), how far it is ahead or behind (`↑` / `↓`), and its last commit subject. The tabline carries the same badges, so you can see which repos need attention without leaving the tab you are in.
 

@@ -245,7 +245,7 @@ local function render_winbar()
 			end,
 		})
 
-	-- first_index 0: the overview is keyed C-g 0, so repo n is chip n, and the
+	-- first_index 0: the overview is Ctrl-Alt-0, so repo n is chip n, and the
 	-- click handler receives that same n.
 	vim.wo[state.win].winbar = chips.tabline(tabs, state.current + 1, 0, "OrgGitTabClick") .. state.close_x
 end
@@ -383,7 +383,7 @@ local function render_overview()
 	end
 
 	lines[#lines + 1] = ""
-	local footer = "  \u{23ce} open    r refresh    q close        anywhere: C-g then 0-9"
+	local footer = "  \u{23ce} open    r refresh    q close        anywhere: C-M-0-9   M-h / M-l"
 	lines[#lines + 1] = footer
 	mark(#lines - 1, 0, #footer, "OrgGitFooter")
 
@@ -432,30 +432,22 @@ end
 -- `lazygit -c` leaves only ctrl+g / n / q / v / x free, and Ctrl-arrows belong to
 -- macOS Spaces. Consuming Ctrl-g in nvim means the second key never reaches
 -- lazygit, so digits work from inside any tab.
-local PREFIX = "<C-g>"
-
+-- Only the terminal tabs need buffer-local keys of their own now: the tab
+-- navigation lives in floating-helpers, and the Ctrl-g prefix that predated
+-- Ctrl-Alt-<digit> is gone. It was never worth keeping -- a two-key mapping does
+-- not fire in terminal mode, so it worked on the overview and silently did
+-- nothing inside the repo tab you were actually looking at.
 local function attach_keys(buf, terminal)
-	local function map(mode, lhs, rhs, desc)
-		vim.keymap.set(mode, lhs, rhs, { buffer = buf, silent = true, desc = desc })
-	end
-
-	for i = 1, 9 do
-		map({ "n", "t" }, PREFIX .. i, function()
-			M.show(i)
-		end, "Org git: repo tab " .. i)
-	end
-	-- 0 is the overview, keeping the whole scheme to one gesture: C-g then the
-	-- number you can see on the tab. Hiding the float stays \\4.
-	map({ "n", "t" }, PREFIX .. "0", function()
-		M.show(0)
-	end, "Org git: overview tab")
-
 	if not terminal then
 		return
 	end
 
 	-- Esc is lazygit's back key; a global normal-mode map would steal it.
-	map("t", "<Esc>", "<Esc>", "Send Esc to lazygit")
+	vim.keymap.set("t", "<Esc>", "<Esc>", {
+		buffer = buf,
+		silent = true,
+		desc = "Send Esc to lazygit",
+	})
 end
 
 local function overview_buf()
@@ -584,7 +576,7 @@ function M.show(idx)
 		return
 	end
 	-- Which repo the cursor should land on when going back to the overview: the
-	-- one you just came from, so C-g then Enter is a round trip.
+	-- one you just came from, so Ctrl-Alt-0 then Enter is a round trip.
 	local previous = state.current
 	idx = math.max(0, math.min(idx or 0, #state.repos))
 	state.current = idx
