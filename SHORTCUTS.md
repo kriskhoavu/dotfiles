@@ -226,12 +226,12 @@ Prefix key: `Ctrl-a`.
 | `Ctrl-a \`          | Split pane horizontally.        | Opens split in current pane path.           |
 | `Ctrl-a -`          | Split pane vertically.          | Opens split in current pane path.           |
 | `Ctrl-a r`          | Reload tmux config.             | Sources `~/.tmux.conf`.                     |
-| `Ctrl-a h` / `Ctrl-a l` | Previous / next window.     | Repeatable: `Ctrl-a` then `l l l` walks three along. Same motions as everywhere else. |
-| `Ctrl-a` + arrows   | Resize pane.                    | Repeatable; moves by 5 cells. The arrows took this over when `h` / `l` became window switching. |
+| `Ctrl-a h/j/k/l`    | Resize pane left/down/up/right. | Repeatable; moves by 5 cells.               |
 | `Ctrl-a m`          | Zoom/unzoom current pane.       | Toggle full-pane zoom.                      |
 | `Ctrl-a [` then `v` | Begin copy selection.           | Copy mode uses vi keys.                     |
 | `Ctrl-a [` then `y` | Copy selection.                 | Copies from tmux copy mode.                 |
 | `Ctrl-a L`          | Clear screen and scrollback.    | In nested tmux, use `Ctrl-a Ctrl-a L`.      |
+| `Ctrl-a Left/Right` | Previous / next tmux window.    | Also works with `Ctrl-a Ctrl-Left/Right`.   |
 | `⌥1`-`⌥8`           | Jump to tmux window 1-8.        | No prefix. tmux takes these before nvim.    |
 | `⌥9`                | Jump to the last tmux window.   | Highest-numbered window, however many.      |
 | `Ctrl-a c`          | New tmux window.                | Starts in current pane path.                |
