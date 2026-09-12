@@ -3,8 +3,8 @@ return {
     priority = 1000,
     lazy = false,
     config = function()
-        -- One Dark and One Light are the same theme; which one depends on what
-        -- the terminal answered for OSC 11. See lua/theme-mode.lua.
+        -- One Dark and One Light are the same theme; which one depends on the
+        -- appearance in ~/.config/kris-theme. See lua/theme-mode.lua.
         local mode = require("theme-mode")
         local c = mode.colors
 
@@ -35,10 +35,10 @@ return {
             -- paints -- the statusline, the tab line, Pmenu, Neo-tree's title
             -- bar and float chrome -- keeps coming from its own palette, and
             -- One Light's greys are near-white (#fafafa, #f0f0f0, #e6e6e6) with
-            -- a cool cast. Against the parchment ground those read as white
-            -- panels sitting on tan. So the light palette's neutrals are
-            -- replaced with the same ramp tmux and WezTerm use, and every group
-            -- derived from them follows.
+            -- a cool cast, and against this warm ground they read as grey
+            -- panels on paper. So the light palette's neutrals are replaced
+            -- with the same ramp WezTerm uses, and every group derived from
+            -- them follows.
             colors = mode.is_light and {
                 bg0 = c.ramp_0,
                 bg1 = c.ramp_1,
@@ -46,12 +46,13 @@ return {
                 bg3 = c.ramp_3,
                 bg_d = c.ramp_4,
                 fg = c.ink,
-                -- Darkened from the ramp: onedark's own grey is a muted 2.5:1
-                -- on its near-white ground, and the same step on parchment left
-                -- comments too faint to read.
+                -- Darkened from onedark's own grey, which is a muted 2.5:1 on
+                -- its near-white ground -- comments at that weight are no
+                -- easier to read on this one. c.muted is 5:1.
                 grey = c.muted,
                 light_grey = c.muted_ui,
-                bright_orange = "#c18401",
+                -- Claude's orange, deep enough to be text rather than a wash.
+                bright_orange = "#a6432a",
             } or {
                 -- Tweak to better match One Dark Islands
                 bright_orange = "#d19a66",

@@ -36,60 +36,86 @@ M.dark = {
   button_hover_fg      = "#FFFFFF",
   button_hover_bg      = "#252424",
 
-  accent = "#C9A84C",  -- right-status (git branch); sits on the tab bar
+  -- right-status (git branch). Orange in both appearances -- it is the one
+  -- indicator that should read the same wherever the eye is coming from, and
+  -- the gold it replaced was a second warm accent doing the same job. A step
+  -- lighter than Claude's #D97757, which at 5.6:1 on this bar was legible but
+  -- sat back into it; this reads at 7.4:1, and 6.4:1 on the light theme's
+  -- slightly lighter bar.
+  accent = "#E59578",
 }
 
--- "Novel warm": macOS Terminal.app "Novel", pulled deeper.
+-- "Claude light": Claude's own light interface, warmed further with its orange.
 --
--- Stock Novel (#DFDBC3) read as washed out here, so the whole parchment family
--- was deepened together -- about 9 degrees browner, 15% darker, slightly more
--- saturated -- rather than darkening the background alone, which would have
--- flattened the steps between the surfaces. nvim's theme-mode carries the same
--- shifted ramp, so the editor and the terminal body are one scale. tmux is not
--- on it: its bar stays dark in both appearances, and only its pane chrome
--- follows the appearance at all.
+-- This replaces a deepened Terminal.app "Novel" parchment (#C2B28A ground,
+-- brown inks). That ramp was warm but muddy -- a tan ground turns every syntax
+-- hue chalky, and the ink text on it never looked like text on paper. Claude's
+-- light appearance solves the same problem the other way: a warm near-white
+-- ground, near-black warm ink, and one saturated orange doing all the accent
+-- work. Here that ground is then tinted with 5% of the orange and taken 8%
+-- darker, which keeps the paper feel of Claude's white while giving the ink
+-- something warmer than paper to sit on. Both numbers were walked back from
+-- 10%: at 10% orange the ground was a blush rather than paper, and the last
+-- couple of points of darkness took it further from Claude's own light than
+-- the warmth was worth.
 --
--- The body is parchment with dark-brown text, sitting under the espresso chrome
--- above, so both appearances read as siblings. Novel's own ANSI values are
--- fully saturated and go garish on parchment, so these are the same hues pulled
--- down to ink strength.
+-- The grounds are Claude's four neutrals -- #FAF9F5 canvas, #F0EEE6 panel,
+-- #EBE9E1 raised, #DDDAD0 border -- with the whole ramp then carrying 5% of
+-- the accent orange and 8% less lightness, which is what warms Claude's paper
+-- white into this one: #EEDFD1 canvas, #E8DBCA, #E2D6C6, #DDD2C3, #D0C5B5,
+-- #C3B8A7. nvim's theme-mode carries the same six steps, so the editor and the
+-- terminal body are one scale.
 --
--- Every entry is tuned against the background above, not picked by eye: the
--- normals clear 5:1 and the brights 4:1. This matters more than it looks --
--- these started out tuned for stock Novel and were never re-checked when the
--- ground was deepened twice, which left bright green at 2.1:1 and every bright
--- below 3:1. Slots 7 and 15 are warm inks rather than the near-whites the names
--- suggest, because on a light ground "white" text has to be dark to exist.
+-- Text is #141413 at 14.1:1, not a softened grey -- the parchment palette this
+-- replaced put #241A17 on its ground at 8:1 and read as brown, which is what
+-- "the text looks off" came down to.
+--
+-- The ANSI set is the same hue wheel pulled to ink strength for this ground:
+-- every normal clears 5:1 against the canvas and every bright 4:1 (measured:
+-- normals 5.7-8.4, brights 4.6-5.2). They were re-tuned when the ground was
+-- first tinted -- against Claude's paper white they had 2-3 points of
+-- headroom, and darkening the ground spent most of it: red, green, yellow and
+-- six of the eight brights dropped under the floor. Slots 7 and 15 are warm greys rather
+-- than the near-whites their names suggest, because on a light ground "white"
+-- text has to be dark to exist at all.
+--
+-- The chrome stays dark, as it does in the dark theme and as tmux's bar does in
+-- both -- it frames the work rather than being part of it. It is Claude's own
+-- dark neutrals (#262624, #1F1E1D) rather than the old espresso browns, so the
+-- two halves of the theme are one family, and the active tab keeps the dark red
+-- it has in the dark theme. The orange is for the body and for the one accent
+-- on the bar (the branch in the right status), not for the tab itself: a full
+-- orange tab made the chrome the loudest thing on screen.
 M.light = {
-  foreground    = "#241A17",
-  background    = "#C2B28A",
-  cursor_bg     = "#73635A",
-  cursor_border = "#73635A",
-  cursor_fg     = "#C2B28A",
-  selection_bg  = "#B3935F",
-  selection_fg  = "#2B211E",
-  ansi    = { "#4A3B36", "#772016", "#32441B", "#543A00", "#1E4165", "#642A51", "#1A4545", "#483D2F" },
-  brights = { "#5A4A43", "#883021", "#415323", "#65480E", "#294F77", "#763860", "#245555", "#544632" },
+  foreground    = "#141413",
+  background    = "#EEDFD1",
+  cursor_bg     = "#C2552F",
+  cursor_border = "#C2552F",
+  cursor_fg     = "#FAF9F5",
+  selection_bg  = "#D3A184",
+  selection_fg  = "#141413",
+  ansi    = { "#3D3D3A", "#9C2D19", "#3D5F11", "#774D00", "#1F4E79", "#7A2E6B", "#155E5A", "#54524B" },
+  brights = { "#646461", "#AE3E23", "#456E1B", "#885B00", "#2A5F8F", "#8F3C7E", "#1B6F6C", "#66645C" },
 
-  tab_bar_bg         = "#2E2622",
+  tab_bar_bg         = "#262624",
   active_tab_bg      = "#7A2318",
-  active_tab_fg      = "#F2E9D6",
-  inactive_tab_bg    = "#2E2622",
-  inactive_tab_fg    = "#8A7A6C",
-  hover_tab_bg       = "#3A302B",
-  hover_tab_fg       = "#D8CDBA",
-  new_tab_fg         = "#6B5B50",
+  active_tab_fg      = "#FAF9F5",
+  inactive_tab_bg    = "#262624",
+  inactive_tab_fg    = "#8A8880",
+  hover_tab_bg       = "#30302E",
+  hover_tab_fg       = "#D9D7CF",
+  new_tab_fg         = "#6C6B68",
 
-  titlebar_bg          = "#2E2622",
-  titlebar_bg_inactive = "#241D1A",
-  titlebar_fg          = "#E4D9C4",
-  titlebar_fg_inactive = "#8A7A6C",
-  titlebar_border      = "#C9A84C",
-  button_fg            = "#C0B09A",
+  titlebar_bg          = "#262624",
+  titlebar_bg_inactive = "#1F1E1D",
+  titlebar_fg          = "#E5E3DB",
+  titlebar_fg_inactive = "#8A8880",
+  titlebar_border      = "#D97757",
+  button_fg            = "#B8B6AE",
   button_hover_fg      = "#FFFFFF",
-  button_hover_bg      = "#3E332D",
+  button_hover_bg      = "#3A3A37",
 
-  accent = "#C9A84C",
+  accent = "#E59578",  -- the same orange as the dark theme; see the note there
 }
 
 -- tmux paints its status bar this colour in both appearances (see

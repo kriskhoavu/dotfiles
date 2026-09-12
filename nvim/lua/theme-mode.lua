@@ -19,9 +19,9 @@
 -- grounds in vim-window, the line-number accent -- because those were picked
 -- against a dark ground and go invisible on a light one.
 --
--- The light values are the same parchment ramp as WezTerm's deepened Novel
--- background, so the editor and the terminal body are one warm scale. tmux's
--- bar is deliberately not on it -- it stays dark in both appearances.
+-- The light values are the same warmed ramp as WezTerm's Claude light palette,
+-- so the editor and the terminal body are one warm scale. tmux's bar is
+-- deliberately not on it -- it stays dark in both appearances.
 
 local M = {}
 
@@ -75,44 +75,49 @@ local dark = {
 }
 
 local light = {
-	fill_bg      = "#b9a47c",
-	tab_bg       = "#b49d74",
-	tab_fg       = "#514339",
-	visible_bg   = "#bda783",
-	visible_fg   = "#453e35",
-	separator    = "#8e7957",
+	fill_bg      = "#E2D6C6",
+	tab_bg       = "#E8DBCA",
+	tab_fg       = "#565653",
+	visible_bg   = "#DDD2C3",
+	visible_fg   = "#3D3D3A",
+	separator    = "#C3B8A7",
 
-	active_bg        = "#cdb992",
-	inactive_bg      = "#b29d77",
-	active_border    = "#a86400",
-	inactive_border  = "#94805f",
-	active_linenr    = "#5d4f40",
-	inactive_linenr  = "#8b785f",
+	active_bg        = "#EEDFD1",
+	inactive_bg      = "#E2D6C6",
+	active_border    = "#D97757",
+	inactive_border  = "#C3B8A7",
+	active_linenr    = "#42413C",
+	inactive_linenr  = "#75736C",
 
-	linenr_below = "#8a6d1f",
+	linenr_below = "#A6432A",
 
-	-- The parchment ramp, replacing One Light's near-white neutrals. Light only
-	-- -- see the note in the dark table above.
-	ramp_0 = "#c2b28a",
-	ramp_1 = "#bda783",
-	ramp_2 = "#b69e7b",
-	ramp_3 = "#b09870",
-	ramp_4 = "#a38c63",
-	ink = "#241a17",
-	muted = "#4b402e",
-	muted_ui = "#5a4f3b",
+	-- Claude's neutrals carrying 5% of the accent orange and 8% less
+	-- lightness -- the warmed ramp from WezTerm's palette, same six steps.
+	-- Light only, see the note in the dark table above. ramp_0 has to be
+	-- exactly WezTerm's background: `transparent` leaves Normal showing the
+	-- terminal through, and every panel onedark paints has to land on it.
+	ramp_0 = "#eedfd1",
+	ramp_1 = "#e8dbca",
+	ramp_2 = "#e2d6c6",
+	ramp_3 = "#ddd2c3",
+	ramp_4 = "#d0c5b5",
+	ink = "#141413",
+	muted = "#565653",
+	muted_ui = "#42413c",
 
-	-- One Light hues, the same roles
-	syn_keyword   = "#a626a4",
-	syn_type      = "#986801",
-	syn_parameter = "#a05a2c",
+	-- One Light hues, the same roles, pulled down far enough to hold up on this
+	-- ground: 5:1 and better, where One Light's own values sit at 2-3.
+	syn_keyword   = "#8f3c7e",
+	syn_type      = "#774d00",
+	syn_parameter = "#97401f",
 }
 
 M.colors = M.is_light and light or dark
 
 -- The selected buffer keeps a dark-red chip in both appearances -- it matches
--- WezTerm's active tab -- so everything drawn on top of it stays light either
--- way and is not part of the tables above.
+-- WezTerm's active tab, which stays dark red under the light theme too -- so
+-- everything drawn on top of it stays light either way and is not part of the
+-- tables above.
 M.selected_bg = M.is_light and "#7a2318" or "#590000"
 
 return M

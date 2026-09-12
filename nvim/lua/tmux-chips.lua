@@ -6,12 +6,12 @@
 -- tabs). One implementation because two copies would drift.
 --
 -- The colours follow the editor's appearance, not the running tmux. They used
--- to be read out of tmux so that changing @catppuccin_flavor moved every bar
+-- to be read out of tmux so that re-flavouring its bar moved every bar
 -- together, and that was right while tmux followed the appearance too. It no
--- longer does -- the status bar is deliberately mocha in both themes -- so
--- reading it produced a float with a mocha background under this palette's ink
--- foreground: #1e1e2e behind #3b2322, dark on dark at 1.4:1. Worse, the same
--- editor looked different inside and outside tmux.
+-- longer does -- the status bar is the same dark palette in both themes -- so
+-- reading it produced a float with the bar's dark background under this
+-- palette's ink foreground: #1e1e2e behind #3b2322, dark on dark at 1.4:1.
+-- Worse, the same editor looked different inside and outside tmux.
 --
 -- A float sits on top of the editor, so it takes the editor's side of the
 -- split. The chips still echo the tmux tabs in shape; only the colours part
@@ -19,7 +19,7 @@
 
 local M = {}
 
--- Mocha, and a parchment light counterpart on the shared warm ramp.
+-- Mocha, and a light counterpart on the warmed ramp (see theme-mode).
 local DARK = {
 	crust = 0x11111b,
 	bg = 0x1e1e2e,
@@ -34,16 +34,16 @@ local DARK = {
 }
 
 local LIGHT = {
-	crust = 0x241a17,
-	bg = 0xc2b28a,
-	text = 0x241a17,
-	surface_0 = 0xb49d74,
-	surface_1 = 0xa38c63,
-	overlay_1 = 0x65563d,
-	overlay_2 = 0x8b754d,
+	crust = 0x141413,
+	bg = 0xe2d6c6,
+	text = 0x141413,
+	surface_0 = 0xddd2c3,
+	surface_1 = 0xd0c5b5,
+	overlay_1 = 0x42413c,
+	overlay_2 = 0xc3b8a7,
 	current_number_bg = 0x7a2318,  -- the active-window chip, matching WezTerm's tab
-	current_number_fg = 0xf2e6cf,  -- and the light digit that sits on it
-	red = 0xf35e7e,
+	current_number_fg = 0xfaf9f5,  -- and the light digit that sits on it
+	red = 0xd97757,
 }
 
 local PALETTE = require("theme-mode").is_light and LIGHT or DARK
@@ -70,10 +70,10 @@ function M.colors()
 	return cached
 end
 
--- Chips, and the float ground they sit on. The ground is catppuccin's base, not
--- NormalFloat: with the editor's own float background the name blocks were
--- invisible -- onedark's #31353f against catppuccin's #313244 -- and the blocks
--- only read as blocks because tmux puts them on the darker bar.
+-- Chips, and the float ground they sit on. The ground is this palette's own
+-- base, not NormalFloat: with the editor's float background the name blocks
+-- were invisible -- onedark's #31353f against the chips' #313244 -- and the
+-- blocks only read as blocks because tmux puts them on the darker bar.
 function M.highlights()
 	local c = M.colors()
 	local hls = {
@@ -112,10 +112,9 @@ M.WINHIGHLIGHT = "NormalFloat:TmuxChipNormal,FloatBorder:TmuxChipBorder,CursorLi
 -- minwid through, so the number in the label is both what you see and what the
 -- handler receives.
 --
--- Geometry copied from tmux's window-status-format: the rounded cap is the
--- number block's left edge, so the digit carries a trailing space only
--- (catppuccin's middle separator), and the name block opens with one space
--- (@catppuccin_window_text is " #W").
+-- Geometry copied from tmux's window-status-format (see tmux/.tmux.conf): the
+-- rounded cap is the number block's left edge, so the digit carries a trailing
+-- space only, and the name block opens with one space -- " #W" there.
 function M.tabline(tabs, current, first_index, on_click)
 	-- One cell of ground before the first cap, matching the one the close chip
 	-- leaves after itself: without it the row is padded on the right only.
