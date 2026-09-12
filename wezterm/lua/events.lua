@@ -1,5 +1,6 @@
 local wezterm = require 'wezterm'
 local h       = require 'lua.helpers'
+local palette = require 'lua.palette'
 
 -- Caches
 local pane_cwd    = {}   -- pane_id → { path }
@@ -9,6 +10,7 @@ local TMUX_CHECK_TTL = 5 -- seconds
 -- Tab title: fixed 10px padding on each side.
 wezterm.on("format-tab-title", function(tab)
   local pane  = tab.active_pane
+  local p     = palette.current()
   -- Always prefer the pane's live cwd; fall back to cache only if unavailable
   local path
   if pane.current_working_dir then
@@ -24,9 +26,9 @@ wezterm.on("format-tab-title", function(tab)
   local content = string.format("%s%d  %s%s", PAD, tab.tab_index + 1, path and h.short_path(path) or pane.title, PAD)
 
   if tab.is_active then
-    return { { Attribute = { Intensity = "Bold" } }, { Foreground = { Color = "#FFFFFF" } }, { Text = content } }
+    return { { Attribute = { Intensity = "Bold" } }, { Foreground = { Color = p.active_tab_fg } }, { Text = content } }
   end
-  return { { Foreground = { Color = "#555555" } }, { Text = content } }
+  return { { Foreground = { Color = p.inactive_tab_fg } }, { Text = content } }
 end)
 
 -- Right status: cwd tracking + git branch
@@ -65,7 +67,7 @@ wezterm.on("update-right-status", function(window, pane)
   local status = h.git_branch(path)
   if status ~= "" then
     window:set_right_status(wezterm.format {
-      { Foreground = { Color = "#C9A84C" } },
+      { Foreground = { Color = palette.current().accent } },
       { Text = "  " .. status .. "  " },
     })
   else

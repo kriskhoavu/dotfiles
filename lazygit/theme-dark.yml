@@ -1,0 +1,18 @@
+# Dark half of the lazygit theme. Merged over config.yml by the wrapper in
+# zsh/git-stuff.zsh and by nvim/lua/lazygit-cmd.lua -- lazygit's -ucf takes a
+# comma-separated list and merges left to right.
+#
+# Only what differs by appearance lives here. Everything shared stays in
+# config.yml so the two halves cannot drift apart on settings that are not
+# about colour -- including delta itself, whose --dark default config.yml
+# already carries, which is why there is no git: block here.
+gui:
+  theme:
+    selectedLineBgColor:
+      - "#3d4966"
+    selectedRangeBgColor:
+      - "#3d4966"
+    cherryPickedCommitFgColor:
+      - "#519f50"
+    cherryPickedCommitBgColor:
+      - "#1e2030"

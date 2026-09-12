@@ -172,8 +172,11 @@ local function refresh_window_borders()
 end
 
 local function set_window_border_highlights()
-    -- Catppuccin Mocha base: a cool, muted surface for the focused window.
-    local active_background = "#1e1e2e"
+    -- A muted surface for the focused window, one step off the editor ground.
+    -- Per appearance: see lua/theme-mode.lua.
+    local c = require("theme-mode").colors
+    local active_background = c.active_bg
+    local inactive_background = c.inactive_bg
 
     local function copy_highlight_with_background(source, target, background)
         local highlight = api.nvim_get_hl(0, { name = source, link = false })
@@ -182,39 +185,39 @@ local function set_window_border_highlights()
     end
 
     api.nvim_set_hl(0, "ActiveWindowBorder", {
-        fg = "#ffcc00",
+        fg = c.active_border,
         ctermfg = 220,
         bold = true,
     })
     api.nvim_set_hl(0, "InactiveWindowBorder", {
-        fg = "#3a3f4b",
+        fg = c.inactive_border,
         ctermfg = 239,
     })
     api.nvim_set_hl(0, "ActiveWindowNormal", {
         bg = active_background,
     })
     api.nvim_set_hl(0, "ActiveWindowLineNr", {
-        fg = "#8fa1bd",
+        fg = c.active_linenr,
         bg = active_background,
     })
     api.nvim_set_hl(0, "ActiveWindowCursorLineNr", {
-        fg = "#ffcc00",
+        fg = c.active_border,
         bg = active_background,
         bold = true,
     })
     api.nvim_set_hl(0, "InactiveWindowNormal", {
-        bg = "#080a0f",
+        bg = inactive_background,
     })
     api.nvim_set_hl(0, "InactiveWindowLineNr", {
-        fg = "#4b5160",
-        bg = "#080a0f",
+        fg = c.inactive_linenr,
+        bg = inactive_background,
     })
     copy_highlight_with_background("NeoTreeNormal", "ActiveNeoTreeNormal", active_background)
-    copy_highlight_with_background("NeoTreeNormal", "InactiveNeoTreeNormal", "#080a0f")
+    copy_highlight_with_background("NeoTreeNormal", "InactiveNeoTreeNormal", inactive_background)
     copy_highlight_with_background("NeoTreeEndOfBuffer", "ActiveNeoTreeEndOfBuffer", active_background)
-    copy_highlight_with_background("NeoTreeEndOfBuffer", "InactiveNeoTreeEndOfBuffer", "#080a0f")
+    copy_highlight_with_background("NeoTreeEndOfBuffer", "InactiveNeoTreeEndOfBuffer", inactive_background)
     copy_highlight_with_background("NeoTreeSignColumn", "ActiveNeoTreeSignColumn", active_background)
-    copy_highlight_with_background("NeoTreeSignColumn", "InactiveNeoTreeSignColumn", "#080a0f")
+    copy_highlight_with_background("NeoTreeSignColumn", "InactiveNeoTreeSignColumn", inactive_background)
 end
 
 local border_group = api.nvim_create_augroup("active_window_border", { clear = true })

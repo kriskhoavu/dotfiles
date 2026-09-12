@@ -1,20 +1,24 @@
+# Everything here is appearance-independent. The colours, and the delta theme
+# flag that goes with them, live in theme-light.yml / theme-dark.yml and are
+# merged over this file -- lazygit's -ucf takes a comma-separated list and
+# merges left to right.
+#
+# Both halves are selected from ~/.config/kris-theme: the `lazygit` wrapper in
+# zsh/git-stuff.zsh does it for the terminal, and nvim/lua/lazygit-cmd.lua for
+# the floats.
 gui:
   theme:
-    # Softer colors for diffs
-    selectedLineBgColor:
-      - "#3d4966"
-    selectedRangeBgColor:
-      - "#3d4966"
-    cherryPickedCommitFgColor:
-      - "#519f50"
-    cherryPickedCommitBgColor:
-      - "#1e2030"
     # Use 256 color mode for better compatibility
     nerdFontsVersion: "3"
   showFileTree: true
   showRandomTip: true
   border: rounded
-# Use delta for better diff viewing if available
+
+# delta renders the diffs. It lives here, not in the theme halves, so a lazygit
+# started outside the `lazygit` wrapper -- a script, a bare shell, another tool
+# spawning it -- still gets delta rather than lazygit's own renderer. Only the
+# theme flag varies, and theme-light.yml overrides this whole entry to pass
+# --light instead.
 #
 # --side-by-side puts the old and new text in two columns. delta falls back to a
 # unified diff on its own when the pane is too narrow for two readable columns,
@@ -23,3 +27,4 @@ git:
   diffRenderers:
     - colorArg: always
       command: delta --dark --paging=never --side-by-side --width=$COLUMNS
+

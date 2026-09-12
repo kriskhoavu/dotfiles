@@ -1,0 +1,34 @@
+# Light half of the lazygit theme. See theme-dark.yml for how it is merged.
+#
+# The dark half's colours are hardcoded for a dark ground: #3d4966 as the
+# selected row put dark text on a dark navy band, and #519f50 sat at 1.7:1 on
+# the parchment. These are the equivalents from the shared warm ramp --
+# selection matches tmux's copy-mode highlight, and the greens are the terminal
+# palette's own, which are tuned against this background.
+gui:
+  theme:
+    selectedLineBgColor:
+      - "#b3935f"
+    selectedRangeBgColor:
+      - "#b3935f"
+    cherryPickedCommitFgColor:
+      - "#384c1e"
+    cherryPickedCommitBgColor:
+      - "#cdb992"
+    # lazygit's defaults here are tuned for a dark ground too: the active border
+    # is green and the inactive one near-white, both faint on parchment.
+    activeBorderColor:
+      - "#842318"
+      - bold
+    inactiveBorderColor:
+      - "#65563d"
+    optionsTextColor:
+      - "#224871"
+
+# Overrides config.yml's entry wholesale -- lists are replaced, not merged --
+# purely to swap --dark for --light. Without it delta renders for a dark ground:
+# washed-out backgrounds that vanish into the parchment.
+git:
+  diffRenderers:
+    - colorArg: always
+      command: delta --light --paging=never --side-by-side --width=$COLUMNS

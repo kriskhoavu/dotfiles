@@ -6,7 +6,11 @@ return {
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       -- High-contrast selected tab: dark-red surface with a bold white label.
-      local selected_background = "#590000"
+      -- The chip stays dark in both appearances -- it mirrors WezTerm's active
+      -- tab -- so only the unselected surfaces below change with the theme.
+      local mode = require("theme-mode")
+      local c = mode.colors
+      local selected_background = mode.selected_bg
 
       -- ":bdelete" on a buffer that is on screen closes its window too. With
       -- Neo-tree plus a single editing window that collapses the layout: the
@@ -50,9 +54,9 @@ return {
 
       require("bufferline").setup({
         highlights = {
-          fill = { bg = "#0f1117" },
-          background = { fg = "#7f8ea3", bg = "#1a1f2b" },
-          buffer_visible = { fg = "#aab7cf", bg = "#1f2633" },
+          fill = { bg = c.fill_bg },
+          background = { fg = c.tab_fg, bg = c.tab_bg },
+          buffer_visible = { fg = c.visible_fg, bg = c.visible_bg },
           buffer_selected = { fg = "#ffffff", bg = selected_background, bold = true, italic = false },
           indicator_selected = { fg = "#ffffff", bg = selected_background },
           close_button_selected = { fg = "#ffffff", bg = selected_background },
@@ -62,8 +66,8 @@ return {
           info_selected = { fg = "#89b4fa", bg = selected_background },
           warning_selected = { fg = "#f9e2af", bg = selected_background },
           error_selected = { fg = "#f38ba8", bg = selected_background },
-          separator = { fg = "#344055", bg = "#1a1f2b" },
-          separator_visible = { fg = "#344055", bg = "#1f2633" },
+          separator = { fg = c.separator, bg = c.tab_bg },
+          separator_visible = { fg = c.separator, bg = c.visible_bg },
           separator_selected = { fg = "#ffffff", bg = selected_background },
         },
         options = {

@@ -147,3 +147,19 @@ function cdr {
     cd "$(git rev-parse --show-toplevel 2>/dev/null)"
 }
 
+# 🎨 LAZYGIT
+
+# lazygit's colours are split into a light and a dark half (see
+# lazygit/config.yml). The right one is chosen here, at launch, rather than
+# exported once from .zshrc: prefix + T can flip the theme under a shell that
+# has been open for days, and an exported LG_CONFIG_FILE would still name the
+# half that was current when the shell started.
+#
+# Anything but "light" in the state file is dark, matching every other tool.
+lazygit() {
+    local theme=dark
+    [[ $(cat ~/.config/kris-theme 2>/dev/null) == light ]] && theme=light
+    local dir="$HOME/.config/lazygit"
+    LG_CONFIG_FILE="$dir/config.yml,$dir/theme-$theme.yml" command lazygit "$@"
+}
+

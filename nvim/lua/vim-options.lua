@@ -30,7 +30,7 @@ vim.opt.keymodel = ""         -- Keep selection behavior predictable
 
 -- Highlights
 vim.api.nvim_set_hl(0, "LineNrAbove", { fg = "white" })   -- Line numbers above cursor
-vim.api.nvim_set_hl(0, "LineNrBelow", { fg = "#ead84e" }) -- Line numbers below cursor
+vim.api.nvim_set_hl(0, "LineNrBelow", { fg = require("theme-mode").colors.linenr_below }) -- Line numbers below cursor
 
 -- Keymaps (general, non-plugin)
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selected lines up" })

@@ -1,20 +1,26 @@
--- A tabline of catppuccin chips for floating windows, matching the tmux window
--- tabs along the bottom of the screen: number block, name block, rounded caps,
--- same colours, same widths.
+-- A tabline of chips for floating windows, matching the shape of the tmux
+-- window tabs along the bottom of the screen: number block, name block, rounded
+-- caps, same widths.
 --
 -- Shared by org-git.lua (repo tabs) and vim-helpers.lua (the shortcut help
--- tabs). One implementation because the palette lookup is fiddly -- catppuccin
--- keeps its colours in tmux options, and the window options hold "#{@thm_mauve}"
--- rather than a colour, so the indirection has to be followed before the hex can
--- be parsed. Two copies of that would drift.
+-- tabs). One implementation because two copies would drift.
 --
--- The palette is read from the running tmux rather than pasted in, so changing
--- @catppuccin_flavor moves every bar together. Mocha is the fallback for a plain
--- terminal with no tmux to ask.
+-- The colours follow the editor's appearance, not the running tmux. They used
+-- to be read out of tmux so that changing @catppuccin_flavor moved every bar
+-- together, and that was right while tmux followed the appearance too. It no
+-- longer does -- the status bar is deliberately mocha in both themes -- so
+-- reading it produced a float with a mocha background under this palette's ink
+-- foreground: #1e1e2e behind #3b2322, dark on dark at 1.4:1. Worse, the same
+-- editor looked different inside and outside tmux.
+--
+-- A float sits on top of the editor, so it takes the editor's side of the
+-- split. The chips still echo the tmux tabs in shape; only the colours part
+-- company.
 
 local M = {}
 
-local FALLBACK = {
+-- Mocha, and a parchment light counterpart on the shared warm ramp.
+local DARK = {
 	crust = 0x11111b,
 	bg = 0x1e1e2e,
 	text = 0xcdd6f4,
@@ -22,14 +28,25 @@ local FALLBACK = {
 	surface_1 = 0x45475a,
 	overlay_1 = 0x7f849c,
 	overlay_2 = 0x9399b2,
-	mauve = 0xcba6f7,
-	blue = 0x89b4fa,
-	yellow = 0xf9e2af,
-	teal = 0x94e2d5,
+	current_number_bg = 0x590000,  -- the active-window chip, matching WezTerm's tab
+	current_number_fg = 0xffffff,  -- and the light digit that sits on it
 	red = 0xf38ba8,
-	green = 0xa6e3a1,
-	peach = 0xfab387,
 }
+
+local LIGHT = {
+	crust = 0x241a17,
+	bg = 0xc2b28a,
+	text = 0x241a17,
+	surface_0 = 0xb49d74,
+	surface_1 = 0xa38c63,
+	overlay_1 = 0x65563d,
+	overlay_2 = 0x8b754d,
+	current_number_bg = 0x7a2318,  -- the active-window chip, matching WezTerm's tab
+	current_number_fg = 0xf2e6cf,  -- and the light digit that sits on it
+	red = 0xf35e7e,
+}
+
+local PALETTE = require("theme-mode").is_light and LIGHT or DARK
 
 -- Nerd Font half-circles, as escapes: written literally they are private-use
 -- codepoints that any tool in the pipeline may silently drop.
@@ -39,60 +56,16 @@ M.CAP_LEFT = "\u{e0b6}"
 M.CAP_RIGHT = "\u{e0b4}"
 local CAP_LEFT, CAP_RIGHT = M.CAP_LEFT, M.CAP_RIGHT
 
-local function read_tmux()
-	if not vim.env.TMUX then
-		return nil
-	end
-
-	local ok, res = pcall(function()
-		return vim.system({ "tmux", "show", "-g" }, { text = true }):wait(500)
-	end)
-	if not ok or not res or res.code ~= 0 then
-		return nil
-	end
-
-	local raw = {}
-	for line in vim.gsplit(res.stdout, "\n", { trimempty = true }) do
-		local key, value = line:match('^@([%w_]+)%s+"?([^"]*)"?$')
-		if key then
-			raw[key] = value
-		end
-	end
-
-	local function hex(name)
-		local value = raw[name]
-		if not value then
-			return nil
-		end
-		local ref = value:match("^#{@([%w_]+)}$")
-		if ref then
-			value = raw[ref]
-		end
-		local digits = value and value:match("^#(%x%x%x%x%x%x)$")
-		return digits and tonumber(digits, 16) or nil
-	end
-
-	local palette = {}
-	for key, fallback in pairs(FALLBACK) do
-		palette[key] = hex("thm_" .. key) or fallback
-	end
-	palette.number_bg = hex("catppuccin_window_number_color") or palette.overlay_2
-	palette.name_bg = hex("catppuccin_window_text_color") or palette.surface_0
-	palette.current_number_bg = hex("catppuccin_window_current_number_color") or palette.mauve
-	palette.current_name_bg = hex("catppuccin_window_current_text_color") or palette.surface_1
-	return palette
-end
-
+-- The palette every caller styles against. Built once: the appearance is fixed
+-- for the life of the process, so there is nothing to invalidate.
 local cached = nil
 
--- The palette every caller styles against. Cached: it costs one tmux call, and
--- the colours only change when the flavor does, which also fires ColorScheme.
 function M.colors()
-	cached = cached or read_tmux() or vim.tbl_extend("force", FALLBACK, {
-		number_bg = FALLBACK.overlay_2,
-		name_bg = FALLBACK.surface_0,
-		current_number_bg = FALLBACK.mauve,
-		current_name_bg = FALLBACK.surface_1,
+	cached = cached or vim.tbl_extend("force", PALETTE, {
+		number_bg = PALETTE.overlay_2,
+		number_fg = PALETTE.crust,
+		name_bg = PALETTE.surface_0,
+		current_name_bg = PALETTE.surface_1,
 	})
 	return cached
 end
@@ -104,12 +77,14 @@ end
 function M.highlights()
 	local c = M.colors()
 	local hls = {
-		TmuxChipKey = { fg = c.crust, bg = c.number_bg },
+		TmuxChipKey = { fg = c.number_fg, bg = c.number_bg },
 		TmuxChipKeyCap = { fg = c.number_bg, bg = c.bg },
 		TmuxChip = { fg = c.text, bg = c.name_bg },
 		TmuxChipCap = { fg = c.name_bg, bg = c.bg },
 
-		TmuxChipCurrentKey = { fg = c.crust, bg = c.current_number_bg },
+		-- The active chip can be dark enough that crust is unreadable on it, so
+		-- its digit has its own colour rather than sharing the other chips'.
+		TmuxChipCurrentKey = { fg = c.current_number_fg, bg = c.current_number_bg },
 		TmuxChipCurrentKeyCap = { fg = c.current_number_bg, bg = c.bg },
 		TmuxChipCurrent = { fg = c.text, bg = c.current_name_bg },
 		TmuxChipCurrentCap = { fg = c.current_name_bg, bg = c.bg },

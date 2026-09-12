@@ -87,6 +87,13 @@ install_tmux() {
         ln -sf "$DOTFILES_DIR/tmux/scripts" "$HOME/.config/tmux/scripts"
         log_info "Tmux scripts linked!"
     fi
+
+    # Light/dark palettes, sourced by .tmux.conf per macOS appearance
+    if [ -d "$DOTFILES_DIR/tmux/themes" ]; then
+        backup_if_exists "$HOME/.config/tmux/themes"
+        ln -sfn "$DOTFILES_DIR/tmux/themes" "$HOME/.config/tmux/themes"
+        log_info "Tmux themes linked!"
+    fi
     
     # Install TPM (Tmux Plugin Manager) if not present
     if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
@@ -107,6 +114,10 @@ install_lazygit() {
     mkdir -p "$HOME/.config/lazygit"
     backup_if_exists "$HOME/.config/lazygit/config.yml"
     ln -sf "$DOTFILES_DIR/lazygit/config.yml" "$HOME/.config/lazygit/config.yml"
+    for _theme in theme-light.yml theme-dark.yml; do
+        backup_if_exists "$HOME/.config/lazygit/$_theme"
+        ln -sf "$DOTFILES_DIR/lazygit/$_theme" "$HOME/.config/lazygit/$_theme"
+    done
 
     # delta renders the diffs, side by side -- the config names it, so without it
     # every diff pane in lazygit reads "delta: command not found".
