@@ -88,7 +88,7 @@ install_tmux() {
         log_info "Tmux scripts linked!"
     fi
 
-    # Light/dark palettes, sourced by .tmux.conf per macOS appearance
+    # Light/dark palettes, sourced by .tmux.conf per ~/.config/kris-theme
     if [ -d "$DOTFILES_DIR/tmux/themes" ]; then
         backup_if_exists "$HOME/.config/tmux/themes"
         ln -sfn "$DOTFILES_DIR/tmux/themes" "$HOME/.config/tmux/themes"

@@ -16,8 +16,8 @@ local M = {}
 -- uses for every float's border title, and redefining it would repaint them all.
 --
 -- The X sits in a filled chip with the same rounded caps as the tab chips, so it
--- reads as a button rather than as a stray glyph: catppuccin's red, crust text,
--- and the caps carrying the fill colour on the float's own ground.
+-- reads as a button rather than as a stray glyph: the chip palette's red, its
+-- ink text, and the caps carrying the fill colour on the float's own ground.
 local function set_highlights()
 	local c = require("tmux-chips").colors()
 	vim.api.nvim_set_hl(0, "FloatChrome", { fg = c.overlay_1, bg = c.bg })
@@ -224,7 +224,7 @@ local function dress_window(win, opts)
 	vim.wo[win].sidescrolloff = 0
 	vim.wo[win].scrolloff = 0
 
-	-- Every float gets catppuccin's ground unless it asks otherwise: the tabbed
+	-- Every float gets the chip palette's ground unless it asks otherwise: the tabbed
 	-- ones opted in and the rest kept the editor's NormalFloat, so \9 sat on a
 	-- visibly different background from \4 for no reason anyone could see. Pass
 	-- winhighlight = false to keep the editor's.
@@ -250,7 +250,7 @@ end
 --   label        names the float in the modal mappings' descriptions
 --   nav          { prev, next, jump }: Alt-h / Alt-l step between tabs,
 --                Ctrl-Alt-<digit> jumps to one
---   winhighlight window-local highlight overrides; defaults to the catppuccin
+--   winhighlight window-local highlight overrides; defaults to the chip-palette
 --                ground every float shares, false keeps the editor's
 --   cursorline   highlight the cursor row
 --   close        add a clickable X to the float's winbar (costs one row)

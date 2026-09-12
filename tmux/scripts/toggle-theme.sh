@@ -59,16 +59,13 @@ echo "── tmux ──"
 if tmux info &>/dev/null; then
     # Just the theme file, not ~/.tmux.conf: sourcing the whole config re-runs
     # tpm and every plugin with it, measured at ~1.4s -- the bulk of what the
-    # keypress used to cost. Only two things vary by appearance: the five
-    # @kris_* options in the theme file, which pane-border-format reads through
-    # #{} at render time, and mode-style, which has to be re-applied by hand
-    # because catppuccin owns it at tpm time. Everything else the bar draws with
-    # is identical in both themes.
+    # keypress used to cost. The theme file is self-contained now: it sets the
+    # pane-chrome options, the two border styles, mode-style and the popup
+    # styles outright, so sourcing it is the whole job. (It used to need a
+    # second call to re-apply mode-style, which catppuccin claimed at tpm time.)
+    # Everything the status bar draws with is identical in both themes.
     echo "  sourcing themes/$TARGET.conf"
-    if (( ! DRY )); then
-        tmux source-file "$HOME/.config/tmux/themes/$TARGET.conf"
-        tmux set -gF mode-style "#{@kris_mode_style}"
-    fi
+    (( DRY )) || tmux source-file "$HOME/.config/tmux/themes/$TARGET.conf"
 else
     echo "  (no tmux server running)"
 fi

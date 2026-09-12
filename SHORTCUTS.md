@@ -48,7 +48,7 @@ Every float in this config is built by one function (`nvim/lua/floating-helpers.
 | `Ctrl-h/j/k/l`      | Move between **tmux panes**.        | Never moves to a Neovim window: a float left behind the editor cannot be reached again.         |
 | `Alt-1`-`Alt-9`     | Nothing, deliberately.              | tmux takes these for its own windows before Neovim sees them.                                   |
 
-They are also centred at a ratio of the editor rather than a fixed size, share catppuccin's colours with the tmux status bar, and turn off `scrolloff` so a full-width TUI is never scrolled out of alignment. `:help` opens as a float too, but is deliberately *not* modal — it is a place you read and leave.
+They are also centred at a ratio of the editor rather than a fixed size, share their colours with the tmux status bar, and turn off `scrolloff` so a full-width TUI is never scrolled out of alignment. `:help` opens as a float too, but is deliberately *not* modal — it is a place you read and leave.
 
 **In a tabbed float** (`\4`, `\?`)
 

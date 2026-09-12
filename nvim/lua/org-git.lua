@@ -57,7 +57,7 @@ local nav = {
 
 -- Highlights ------------------------------------------------------------------
 
--- The tabline chips, the float ground and the catppuccin palette all come from
+-- The tabline chips, the float ground and the shared chip palette all come from
 -- tmux-chips, which is shared with the shortcut help float. Only the colours of
 -- this module's own table are defined here.
 local function set_highlights()
