@@ -47,14 +47,36 @@ return function(config)
   -- window_padding is already 0, so that sliver is all that is left, and this
   -- build has no window_content_alignment to move it to the top instead.
   --
-  -- The strip is one cell tall, so it covers the remainder plus the rest of the
-  -- last row. That row is tmux's status bar, which paints its own opaque
+  -- The strip is 48px, which is one cell row plus the remainder under it
+  -- (measured on this display: the last row runs 1917-1952 and the window ends
+  -- at 1963). These numbers are physical pixels, not points -- the first
+  -- version of this said 24 and covered only the lower two thirds of the row. That row is tmux's status bar, which paints its own opaque
   -- background over it, so nothing changes while tmux is running. In a bare
-  -- shell the bottom line would sit on dark instead of parchment.
+  -- shell the bottom line would sit on dark instead of the light ground.
   --
-  -- It does not help the same remainder on the left and right edges: the grid is
-  -- centred horizontally and those few points stay parchment. Live with it, or
-  -- upgrade to a WezTerm with window_content_alignment.
+  -- The same remainder exists on the left and right edges, and for the body it
+  -- does not matter -- those points are the body's own colour either way. It
+  -- shows up only on the last row, where the light ground appeared as a notch
+  -- at each end of tmux's dark bar. The centred strip above does not reach
+  -- them (6000pt wide, centred, and still clipped short of the window edge),
+  -- so the two corners are patched by their own layers, anchored to the edge
+  -- they have to cover rather than centred. Same height as the strip, so the
+  -- three read as one band; in dark mode they change nothing, since those
+  -- points are already near-black.
+  --
+  -- This is all a stand-in for window_content_alignment, which would put the
+  -- remainder somewhere harmless and which this build does not have.
+  local bottom_band = function(align)
+    return {
+      source = { Color = p.status_bar_bg },
+      opacity = 1.0,
+      width = align == "Center" and 6000 or 48,
+      horizontal_align = align,
+      height = 48,
+      vertical_align = "Bottom",
+    }
+  end
+
   config.background = {
     {
       source = { Color = p.background },
@@ -62,14 +84,9 @@ return function(config)
       width = "100%",
       height = "100%",
     },
-    {
-      source = { Color = p.status_bar_bg },
-      opacity = 1.0,
-      width = 6000,
-      horizontal_align = "Center",
-      height = 24,
-      vertical_align = "Bottom",
-    },
+    bottom_band("Center"),
+    bottom_band("Left"),
+    bottom_band("Right"),
   }
 
   -- RESIZE alone drops the macOS title bar, and with it the traffic-light
