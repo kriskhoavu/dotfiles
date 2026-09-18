@@ -66,6 +66,12 @@ return {
           info_selected = { fg = "#89b4fa", bg = selected_background },
           warning_selected = { fg = "#f9e2af", bg = selected_background },
           error_selected = { fg = "#f38ba8", bg = selected_background },
+          -- The path prefix on a name two buffers share. Left unset these keep
+          -- the colorscheme's grey, a grey block inside the chip.
+          duplicate = { fg = c.tab_fg, bg = c.tab_bg, italic = false },
+          duplicate_visible = { fg = c.visible_fg, bg = c.visible_bg, italic = false },
+          duplicate_selected = { fg = "#ffffff", bg = selected_background, bold = true, italic = false },
+
           separator = { fg = c.separator, bg = c.tab_bg },
           separator_visible = { fg = c.separator, bg = c.visible_bg },
           separator_selected = { fg = "#ffffff", bg = selected_background },
