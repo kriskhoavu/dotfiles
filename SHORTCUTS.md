@@ -403,7 +403,7 @@ Leader key in VSCode Vim bindings: `\`.
 | `\gd` / `\gr` / `\gi`          | Definition / references / implementation.              | Normal mode.                                             |
 | `\bd` / `\bo`                  | Close editor / close other editors.                    | Normal mode.                                             |
 | `\hv`                          | Open SCM view.                                         | Normal mode.                                             |
-| `\hD`                          | File history.                                          | Normal mode.                                             |
+| `\hf`                          | File history.                                          | Normal mode.                                             |
 | `\hd`                          | Diff line with previous.                               | Normal mode.                                             |
 | `]h` / `[h`                    | Next / previous change.                                | Normal mode.                                             |
 | `Ctrl-n`                       | Add selection to next match.                           | Normal or visual mode.                                   |
@@ -429,7 +429,7 @@ Sources: `vim/.ideavimrc`, `intellij/Kris.xml`
 | `Ctrl-h/l`                               | Move between splitters.                                                   | IntelliJ splitter navigation.                  |
 | `H` / `L`                                | Previous / next tab.                                                      | Editor tab navigation.                         |
 | `\ff` / `\fg` / `\ft` / `\f.`            | Go to file / symbol / find in path / select in project.                   | Search and project navigation.                 |
-| `\hd` / `\hD` / `\hv`                    | Compare file / file history / commits tool window.                        | VCS workflow.                                  |
+| `\hd` / `\hf` / `\hv`                    | Compare file / file history / commits tool window.                        | VCS workflow.                                  |
 | `]h` / `[h`                              | Next / previous change marker.                                            | VCS hunk navigation.                           |
 | `\wh/wl/wj/wk`                           | Resize split left/right/down/up.                                          | Split management.                              |
 | `\1`, `\2`, `\3`, `\4`, `\7`, `\8`, `\9` | Project, Commit, Git, Services, Gradle, Database, Terminal.               | Tool window access.                            |
