@@ -36,56 +36,23 @@ M.dark = {
   button_hover_fg      = "#FFFFFF",
   button_hover_bg      = "#252424",
 
-  -- right-status (git branch). Orange in both appearances -- it is the one
-  -- indicator that should read the same wherever the eye is coming from, and
-  -- the gold it replaced was a second warm accent doing the same job. A step
-  -- lighter than Claude's #D97757, which at 5.6:1 on this bar was legible but
-  -- sat back into it; this reads at 7.4:1, and 6.4:1 on the light theme's
-  -- slightly lighter bar.
+  -- right-status (git branch), orange in both themes. A step lighter than
+  -- Claude's #D97757, which sat back into this bar at 5.6:1.
   accent = "#E59578",
 }
 
--- "Claude light": Claude's own light interface, warmed further with its orange.
+-- "Claude light": Claude's light interface, warmed with its own orange.
 --
--- This replaces a deepened Terminal.app "Novel" parchment (#C2B28A ground,
--- brown inks). That ramp was warm but muddy -- a tan ground turns every syntax
--- hue chalky, and the ink text on it never looked like text on paper. Claude's
--- light appearance solves the same problem the other way: a warm near-white
--- ground, near-black warm ink, and one saturated orange doing all the accent
--- work. Here that ground is then tinted with 5% of the orange and taken 8%
--- darker, which keeps the paper feel of Claude's white while giving the ink
--- something warmer than paper to sit on. Both numbers were walked back from
--- 10%: at 10% orange the ground was a blush rather than paper, and the last
--- couple of points of darkness took it further from Claude's own light than
--- the warmth was worth.
+-- Claude's four neutrals (#FAF9F5, #F0EEE6, #EBE9E1, #DDDAD0) carrying 5% of
+-- the accent orange and 8% less lightness: #EEDFD1 canvas, #E8DBCA, #E2D6C6,
+-- #DDD2C3, #D0C5B5, #C3B8A7. nvim's theme-mode carries the same six steps.
 --
--- The grounds are Claude's four neutrals -- #FAF9F5 canvas, #F0EEE6 panel,
--- #EBE9E1 raised, #DDDAD0 border -- with the whole ramp then carrying 5% of
--- the accent orange and 8% less lightness, which is what warms Claude's paper
--- white into this one: #EEDFD1 canvas, #E8DBCA, #E2D6C6, #DDD2C3, #D0C5B5,
--- #C3B8A7. nvim's theme-mode carries the same six steps, so the editor and the
--- terminal body are one scale.
+-- Text is #141413 at 14.1:1. The ANSI set is re-tuned for this ground -- every
+-- normal clears 5:1 and every bright 4:1 -- and slots 7 and 15 are warm greys,
+-- because on a light ground "white" text has to be dark to exist.
 --
--- Text is #141413 at 14.1:1, not a softened grey -- the parchment palette this
--- replaced put #241A17 on its ground at 8:1 and read as brown, which is what
--- "the text looks off" came down to.
---
--- The ANSI set is the same hue wheel pulled to ink strength for this ground:
--- every normal clears 5:1 against the canvas and every bright 4:1 (measured:
--- normals 5.7-8.4, brights 4.6-5.2). They were re-tuned when the ground was
--- first tinted -- against Claude's paper white they had 2-3 points of
--- headroom, and darkening the ground spent most of it: red, green, yellow and
--- six of the eight brights dropped under the floor. Slots 7 and 15 are warm greys rather
--- than the near-whites their names suggest, because on a light ground "white"
--- text has to be dark to exist at all.
---
--- The chrome stays dark, as it does in the dark theme and as tmux's bar does in
--- both -- it frames the work rather than being part of it. It is Claude's own
--- dark neutrals (#262624, #1F1E1D) rather than the old espresso browns, so the
--- two halves of the theme are one family, and the active tab keeps the dark red
--- it has in the dark theme. The orange is for the body and for the one accent
--- on the bar (the branch in the right status), not for the tab itself: a full
--- orange tab made the chrome the loudest thing on screen.
+-- Chrome stays dark in both themes, on Claude's dark neutrals, and the active
+-- tab keeps its dark red; the orange is for the body and the branch indicator.
 M.light = {
   foreground    = "#141413",
   background    = "#EEDFD1",
@@ -124,22 +91,10 @@ M.light = {
 M.dark.status_bar_bg = "#151414"
 M.light.status_bar_bg = "#151414"
 
--- Which half is current, from ~/.config/kris-theme.
---
--- Not wezterm.gui.get_appearance(): the theme is this config's own state, not
--- macOS's. tmux and Neovim cannot follow the system appearance on their own
--- anyway -- tmux caches the terminal background from when its client attached,
--- and nothing can tell a running editor the desktop changed -- so a switch
--- always meant running the toggle script. Once the script has to exist, having
--- it own the state is simpler than having it mirror macOS into three tools.
---
--- Missing or unreadable means dark, so a fresh machine with no state file looks
--- the way this config has always looked.
---
--- Read on every call rather than cached: the file is a few bytes, this runs at
--- most once per tab per status redraw, and a cache would have to be invalidated
--- on config reload anyway. The toggle script touches wezterm.lua to force that
--- reload.
+-- Which half is current, from ~/.config/kris-theme -- this config's own state,
+-- not macOS's, since tmux and Neovim cannot follow the system appearance
+-- anyway. Missing or unreadable means dark. Re-read on every call, so handlers
+-- that outlive a config reload pick up a switch.
 local STATE = os.getenv("HOME") .. "/.config/kris-theme"
 
 function M.current()

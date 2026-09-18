@@ -39,33 +39,15 @@ return function(config)
   config.macos_window_background_blur = 0
   config.text_background_opacity      = 1.0
 
-  -- Fully opaque body (tab bar stays opaque)
+  -- Fully opaque body, plus a dark band along the bottom edge.
   --
-  -- The second layer is a dark strip along the bottom edge. A window is rarely
-  -- an exact multiple of the cell height, and WezTerm fills the leftover with
-  -- the background -- a pale sliver under tmux's dark status bar in light mode.
-  -- window_padding is already 0, so that sliver is all that is left, and this
-  -- build has no window_content_alignment to move it to the top instead.
-  --
-  -- The strip is 48px, which is one cell row plus the remainder under it
-  -- (measured on this display: the last row runs 1917-1952 and the window ends
-  -- at 1963). These numbers are physical pixels, not points -- the first
-  -- version of this said 24 and covered only the lower two thirds of the row. That row is tmux's status bar, which paints its own opaque
-  -- background over it, so nothing changes while tmux is running. In a bare
-  -- shell the bottom line would sit on dark instead of the light ground.
-  --
-  -- The same remainder exists on the left and right edges, and for the body it
-  -- does not matter -- those points are the body's own colour either way. It
-  -- shows up only on the last row, where the light ground appeared as a notch
-  -- at each end of tmux's dark bar. The centred strip above does not reach
-  -- them (6000pt wide, centred, and still clipped short of the window edge),
-  -- so the two corners are patched by their own layers, anchored to the edge
-  -- they have to cover rather than centred. Same height as the strip, so the
-  -- three read as one band; in dark mode they change nothing, since those
-  -- points are already near-black.
-  --
-  -- This is all a stand-in for window_content_alignment, which would put the
-  -- remainder somewhere harmless and which this build does not have.
+  -- The window is rarely an exact multiple of the cell size, and WezTerm fills
+  -- the leftover with the terminal background -- a light notch under and beside
+  -- tmux's dark bar. The centred strip does not reach the window's edges, so
+  -- each corner gets its own layer anchored to the edge it covers. 48 physical
+  -- pixels is one cell row plus the remainder below it; at 24 it covered two
+  -- thirds of the row. Stands in for window_content_alignment, which this build
+  -- does not have.
   local bottom_band = function(align)
     return {
       source = { Color = p.status_bar_bg },
@@ -89,25 +71,24 @@ return function(config)
     bottom_band("Right"),
   }
 
-  -- RESIZE alone drops the macOS title bar, and with it the traffic-light
-  -- buttons: nothing is left to maximize the window. INTEGRATED_BUTTONS
-  -- puts them in the tab bar instead, keeping the title bar hidden.
+  -- RESIZE alone drops the title bar and the traffic lights with it;
+  -- INTEGRATED_BUTTONS puts them in the tab bar.
   config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 
-  -- Use macOS's own fullscreen for Ctrl-Cmd-F too, rather than WezTerm's
-  -- "simple" one. The green button always enters the native mode whatever this
-  -- is set to, and with INTEGRATED_BUTTONS that transition was sometimes leaving
-  -- a bare system title bar with no tab bar behind it. Having one fullscreen
-  -- path instead of two keeps the buttons and the tab bar in step.
+  -- Native fullscreen for Ctrl-Cmd-F too: the green button always uses it, and
+  -- two fullscreen paths left a bare title bar with no tab bar behind it.
   config.native_macos_fullscreen_mode = true
-  -- Padding only at the top. Anywhere else it shows the terminal background
-  -- around content that reaches the edge -- most visibly as a pale strip under
-  -- tmux's status bar in light mode, but the same applies to the sides.
+  -- Padding only at the top: anywhere else it shows the terminal background
+  -- around content that reaches the edge.
   config.window_padding     = { left = 0, right = 0, top = 4, bottom = 0 }
 
   -- ── Cursor ────────────────────────────────────────────────────────────────
   config.default_cursor_style = "BlinkingUnderline"
   config.cursor_blink_rate    = 500
+  -- Blink on and off rather than fading: the eased default repaints every frame
+  -- for as long as the window is open. See animation_fps in wezterm.lua.
+  config.cursor_blink_ease_in  = "Constant"
+  config.cursor_blink_ease_out = "Constant"
 
   -- ── Tab bar ───────────────────────────────────────────────────────────────
   config.use_fancy_tab_bar            = true
@@ -115,10 +96,8 @@ return function(config)
   config.tab_bar_at_bottom            = false
   config.tab_max_width                = 9999
 
-  -- The fancy tab bar has no height setting: WezTerm derives it from this
-  -- font's cell metrics, so bar height and label size move together (measured:
-  -- font_size 14 -> 27pt bar, 16 -> 35pt; a `scale` attribute on the font is
-  -- ignored). 14.0 keeps the labels at terminal size and the bar compact.
+  -- The fancy tab bar has no height setting -- WezTerm derives it from the
+  -- font's cell metrics (14 -> 27pt bar, 16 -> 35pt).
   config.window_frame = {
     font                            = wezterm.font("MesloLGS NF", { weight = "Bold" }),
     font_size                       = 14.0,
