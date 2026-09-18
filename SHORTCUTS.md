@@ -168,7 +168,7 @@ Stage and unstage only move that mark, so they can never lose work. **Reset is t
 
 Source: `nvim/lua/org-git.lua`
 
-`\3` shows one repo — the one you are in. `\4` shows **all of them**: a folder of sibling repos (a GitHub org checked out side by side, like `kompas`) becomes tabs in one float, with an overview tab across the whole set. The org root is found automatically: it is the parent of the repo you are in.
+`\3` shows one repo — the one you are in. `\4` shows **all of them**: a folder of sibling repos (a GitHub org checked out side by side, like `kompas`) becomes tabs in one float, with an overview tab across the whole set. The org root is found on every open: the directory you are in if it holds repos, otherwise the parent of the repo you are in.
 
 Every git action inside a repo tab is lazygit's own — stage with `space`, commit with `c`, amend with `A`, push with `P`, drill into hunks with `Enter`. Nothing is reimplemented here; the module only draws the tabs and the overview, because a single lazygit can only ever show one repo.
 
@@ -181,7 +181,7 @@ Every git action inside a repo tab is lazygit's own — stage with `space`, comm
 | `Enter`           | Overview         | Open the repo under the cursor.              | Its lazygit starts on first visit, not before.                                                       |
 | `r`               | Overview         | Re-read every repo's status.                 | Counts also refresh on their own each time you switch tabs.                                          |
 | `q`               | Overview         | Close the float.                             | Same as `\4`, as is the `✕`.                                                                          |
-| `:OrgGit`         | Command          | Open the float, optionally for another root. | `:OrgGit ~/some/other/org` switches roots; no argument reuses the current one.                        |
+| `:OrgGit`         | Command          | Open the float, optionally for another root. | `:OrgGit ~/some/other/org` switches roots, and that choice sticks across `\4`; a bare `:OrgGit` hands the float back to the directory you are in. |
 
 Everything the float shares with the others — the `✕`, the modal `Ctrl-hjkl`, how the tab keys are carried from the keyboard — is in [Floating Windows](#floating-windows).
 

@@ -31,6 +31,7 @@ local state = {
 	bufs = {}, -- repo path -> terminal buffer running its lazygit
 	overview = -1,
 	current = 0, -- 0 = overview, n = state.repos[n]
+	pinned = false, -- true once :OrgGit was given a root, which then sticks
 	status = {}, -- repo path -> { branch, dirty, ahead, behind, subject }
 }
 
@@ -107,18 +108,24 @@ local function discover(root)
 end
 
 -- The org root is the parent of the repo you are sitting in: from any file in
--- kompas/agent-plane the root is kompas, and every sibling repo comes along. Fall
--- back to the cwd itself so the module still works when invoked from the folder
--- that holds the repos rather than from inside one.
+-- kompas/agent-plane the root is kompas, and every sibling repo comes along.
+--
+-- Unless the cwd already holds repos, checked first: an org root can be a repo
+-- itself (kompas is), and walking up from one gave its parent's seventeen
+-- unrelated checkouts instead of its own five.
 local function resolve_root()
-	local found = vim.fs.find(".git", { path = vim.uv.cwd(), upward = true, limit = 1 })[1]
+	local cwd = vim.uv.cwd()
+	if #discover(cwd) > 0 then
+		return cwd
+	end
+	local found = vim.fs.find(".git", { path = cwd, upward = true, limit = 1 })[1]
 	if found then
 		local root = vim.fs.dirname(vim.fs.dirname(found))
 		if #discover(root) > 0 then
 			return root
 		end
 	end
-	return vim.uv.cwd()
+	return cwd
 end
 
 -- Status ---------------------------------------------------------------------
@@ -619,7 +626,10 @@ function M.toggle(root)
 		return
 	end
 
-	local new_root = root and vim.fn.expand(root) or state.root or resolve_root()
+	-- Re-resolved per toggle, so the float follows the cwd; it used to keep the
+	-- first root it saw for the life of the process. A hand-picked root sticks.
+	local new_root = root and vim.fn.expand(root) or (state.pinned and state.root) or resolve_root()
+	state.pinned = state.pinned or root ~= nil
 	if new_root ~= state.root then
 		state.root = new_root
 		state.repos = discover(new_root)
@@ -654,9 +664,12 @@ vim.keymap.set({ "n", "t" }, "<leader>4", function()
 	M.toggle()
 end, { desc = "Toggle org git (repo tabs)" })
 
--- :OrgGit with no argument uses the resolved root; with one it switches roots, so
--- a second org is a command away rather than a config change.
+-- :OrgGit <root> switches orgs and sticks across <leader>4; bare :OrgGit hands
+-- the float back to the cwd.
 vim.api.nvim_create_user_command("OrgGit", function(opts)
+	if opts.args == "" then
+		state.pinned = false
+	end
 	M.toggle(opts.args ~= "" and opts.args or nil)
 end, { nargs = "?", complete = "dir", desc = "Org-wide git float" })
 
