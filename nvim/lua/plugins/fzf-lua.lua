@@ -58,11 +58,30 @@ end
 return {
     "ibhagwan/fzf-lua",
     keys = {
+        -- Dotfiles are in this listing already -- fzf-lua's files provider
+        -- defaults to hidden = true, unlike its grep, which is why <leader>fT
+        -- has to ask for them. What it leaves out is what .gitignore does:
+        -- <leader>fF below.
         { "<leader>ff", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").files(opts) end, desc = "Find Files" },
-        { "<leader>ft", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").live_grep(opts) end, desc = "Live Grep" },
-        { "<leader>fg", function() focus_edit_window(); require("fzf-lua").git_files() end, desc = "Find Git Files" },
         {
-            "<leader>fG",
+            -- Everything on disk, ignore files included: secrets, .env files,
+            -- build output, node_modules. realm.env is the case this exists
+            -- for -- gitignored as deploy/.../secrets/*.env, so invisible to
+            -- every other finder here, and nothing in the repo could reach it.
+            "<leader>fF",
+            function()
+                local opts = with_neotree_directory({ no_ignore = true, hidden = true })
+                focus_edit_window()
+                require("fzf-lua").files(opts)
+            end,
+            desc = "Find Files including gitignored",
+        },
+        { "<leader>ft", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").live_grep(opts) end, desc = "Live Grep" },
+        { "<leader>fg", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").git_files(opts) end, desc = "Find Git Files" },
+        {
+            -- The uppercase twin of <leader>ft, not of <leader>fg: it was <leader>fG
+            -- and read as "git files, but more", which is the one thing it is not.
+            "<leader>fT",
             function()
                 local opts = with_neotree_directory({
                     rg_opts = "--hidden --glob '!.git/*' --column --line-number --no-heading --color=always -e",
@@ -70,7 +89,7 @@ return {
                 focus_edit_window()
                 require("fzf-lua").live_grep(opts)
             end,
-            desc = "Live Grep includes hidden files",
+            desc = "Live Grep including hidden files",
         },
         { "<leader>fb", function() focus_edit_window(); require("fzf-lua").buffers() end, desc = "Buffers" },
         { "<leader>fh", function() focus_edit_window(); require("fzf-lua").help_tags() end, desc = "Help Tags" },

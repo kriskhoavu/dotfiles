@@ -92,10 +92,11 @@ They are also centred at a ratio of the editor rather than a fixed size, share t
 | `\f.`       | Normal                   | Reveal current file in Neo-tree.             | Useful when you are deep in buffers.           |
 | `\gs`       | Normal                   | Toggle the Git status tree.                  | Same view as `<` / `>` cycling in Neo-tree.    |
 | `gf`        | Neo-tree                 | Open Finder at current node's directory.     | Press inside Neo-tree on any file or folder.   |
-| `\ff`       | Normal                   | Find files with fzf-lua.                     | Uses the Neo-tree directory when possible.     |
-| `\fg`       | Normal                   | Find Git-tracked files.                      | Searches files tracked by Git.                 |
-| `\fG`       | Normal                   | Find all files including hidden files.       | Excludes `.git`.                               |
-| `\ft`       | Normal                   | Live grep with fzf-lua.                      | Search text in the project.                    |
+| `\ff`       | Normal                   | Find files **by name**.                      | Dotfiles included; `.gitignore` respected. Uses the Neo-tree directory when possible. |
+| `\fF`       | Normal                   | Find files by name, **ignored ones too**.    | The only one that reaches secrets, `.env` files, build output, `node_modules`. |
+| `\fg`       | Normal                   | Find Git-**tracked** files by name.          | Nothing untracked, nothing outside a repo.     |
+| `\ft`       | Normal                   | Live grep — search **file contents**.        | Same visibility as `\ff`, minus dotfiles.      |
+| `\fT`       | Normal                   | Live grep **including hidden files**.        | Contents, not names. Excludes `.git`.          |
 | `\fb`       | Normal                   | List buffers.                                | Switch between open buffers.                   |
 | `\fh`       | Normal                   | Search help tags.                            | Opens Neovim help picker.                      |
 | `\fs`       | Normal                   | Search document symbols.                     | Uses LSP symbols when available.               |
@@ -428,7 +429,7 @@ Sources: `vim/.ideavimrc`, `intellij/Kris.xml`
 | Visual `J` / `K`                         | Move selected lines down / up.                                            | Visual-line selections work best.              |
 | `Ctrl-h/l`                               | Move between splitters.                                                   | IntelliJ splitter navigation.                  |
 | `H` / `L`                                | Previous / next tab.                                                      | Editor tab navigation.                         |
-| `\ff` / `\fg` / `\ft` / `\f.`            | Go to file / symbol / find in path / select in project.                   | Search and project navigation.                 |
+| `\ff` / `\fg` / `\ft` / `\f.`            | Go to file / Git-tracked file / find in path / select in project.         | Search and project navigation.                 |
 | `\hd` / `\hf` / `\hv`                    | Compare file / file history / commits tool window.                        | VCS workflow.                                  |
 | `]h` / `[h`                              | Next / previous change marker.                                            | VCS hunk navigation.                           |
 | `\wh/wl/wj/wk`                           | Resize split left/right/down/up.                                          | Split management.                              |
