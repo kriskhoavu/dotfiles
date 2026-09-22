@@ -31,6 +31,13 @@ local DARK = {
 	current_number_bg = 0x590000,  -- the active-window chip, matching WezTerm's tab
 	current_number_fg = 0xffffff,  -- and the light digit that sits on it
 	red = 0xf38ba8,
+	-- Accents for whatever is drawn on a chip or on the float, tuned against
+	-- both grounds: 5:1 or better on the name block, more on the float.
+	gold = 0xd8a657,
+	green = 0x7bbf6a,
+	teal = 0x6fc3bd,
+	blue = 0x89b4fa,
+	mauve = 0xcba6f7,
 }
 
 local LIGHT = {
@@ -44,6 +51,11 @@ local LIGHT = {
 	current_number_bg = 0x7a2318,  -- the active-window chip, matching WezTerm's tab
 	current_number_fg = 0xfaf9f5,  -- and the light digit that sits on it
 	red = 0xd97757,
+	gold = 0x7a5000,
+	green = 0x3d5f11,
+	teal = 0x155e5a,
+	blue = 0x1f4e79,
+	mauve = 0x7a2e6b,
 }
 
 local PALETTE = require("theme-mode").is_light and LIGHT or DARK

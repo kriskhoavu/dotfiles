@@ -64,13 +64,17 @@ local nav = {
 local function set_highlights()
 	local c = chips.colors()
 	local hls = {
-		OrgGitChipDirty = { fg = c.yellow, bg = c.name_bg },
-		OrgGitChipSync = { fg = c.teal, bg = c.name_bg },
+		-- The dirty count and the ahead/behind pair, drawn inside the chip.
+		-- Gold rather than the red the eye expects: dirty is the normal state
+		-- of a repo you are working in, not an error. Both read 5:1 or better
+		-- on the name block in either theme.
+		OrgGitChipDirty = { fg = c.gold, bg = c.name_bg, bold = true },
+		OrgGitChipSync = { fg = c.teal, bg = c.name_bg, bold = true },
 
 		OrgGitRepo = { fg = c.blue, bold = true },
 		OrgGitBranch = { fg = c.overlay_1 },
 		OrgGitClean = { fg = c.overlay_1 },
-		OrgGitDirty = { fg = c.yellow },
+		OrgGitDirty = { fg = c.gold },
 		OrgGitSync = { fg = c.teal },
 		OrgGitSubject = { fg = c.overlay_1, italic = true },
 		OrgGitHeader = { fg = c.text, bold = true },
@@ -214,13 +218,13 @@ local function badge(info)
 		out = out .. "%#" .. hl .. "#" .. text .. "%#TmuxChip#"
 	end
 	if (info.dirty or 0) > 0 then
-		add("OrgGitChipDirty", " \u{25cf}" .. info.dirty)
+		add("OrgGitChipDirty", "  \u{25cf} " .. info.dirty)
 	end
 	if (info.ahead or 0) > 0 then
-		add("OrgGitChipSync", " \u{2191}" .. info.ahead)
+		add("OrgGitChipSync", "  \u{2191} " .. info.ahead)
 	end
 	if (info.behind or 0) > 0 then
-		add("OrgGitChipSync", " \u{2193}" .. info.behind)
+		add("OrgGitChipSync", "  \u{2193} " .. info.behind)
 	end
 	return out
 end
@@ -264,6 +268,17 @@ local function pad(text, width)
 	return text .. string.rep(" ", math.max(0, fill))
 end
 
+-- Cut to width, with an ellipsis in the last cell. pad() only ever adds, so a
+-- value wider than its column used to push every column after it along the row
+-- -- a branch like feature/ap-010-budgeted-memory-peer-identity ran into the
+-- status column and the table stopped being a table.
+local function fit(text, width)
+	if vim.fn.strdisplaywidth(text) <= width then
+		return text
+	end
+	return vim.fn.strcharpart(text, 0, math.max(1, width - 1)) .. "\u{2026}"
+end
+
 local function render_overview()
 	if not vim.api.nvim_buf_is_valid(state.overview) then
 		return
@@ -274,6 +289,18 @@ local function render_overview()
 		width = math.max(width, vim.fn.strdisplaywidth(repo.name))
 	end
 	width = math.max(width, 4) + 2
+
+	-- The branch column takes the width it needs, between 14 and 32. Long
+	-- branch names are the common case here (feature/<ticket>-<slug>), so a
+	-- fixed column either wasted half the row or overflowed it; anything past
+	-- 32 is clipped, since the tail of a slug is worth less than the columns
+	-- after it.
+	local branch_w = 0
+	for _, repo in ipairs(state.repos) do
+		local info = state.status[repo.path] or {}
+		branch_w = math.max(branch_w, vim.fn.strdisplaywidth(info.branch or "?"))
+	end
+	branch_w = math.min(math.max(branch_w + 2, 14), 32)
 
 	-- The header answers "does anything here need me?" before the eye reaches the
 	-- table: totals across the whole org, which is the one number no per-repo
@@ -291,10 +318,10 @@ local function render_overview()
 	local header = "  " .. vim.fs.basename(state.root)
 	local summary = ("   \u{00b7}   %d repos"):format(#state.repos)
 	if total_dirty > 0 then
-		summary = summary .. ("   \u{25cf}%d in %d"):format(total_dirty, repos_dirty)
+		summary = summary .. ("   \u{25cf} %d in %d"):format(total_dirty, repos_dirty)
 	end
 	if total_ahead > 0 then
-		summary = summary .. ("   \u{2191}%d to push"):format(total_ahead)
+		summary = summary .. ("   \u{2191} %d to push"):format(total_ahead)
 	end
 	if total_dirty == 0 and total_ahead == 0 then
 		summary = summary .. "   all clean"
@@ -303,7 +330,7 @@ local function render_overview()
 	local columns = "  "
 		.. pad("", 4)
 		.. pad("repo", width)
-		.. pad("branch", 14)
+		.. pad("branch", branch_w)
 		.. pad("status", 9)
 		.. pad("sync", 7)
 		.. "last commit"
@@ -326,13 +353,15 @@ local function render_overview()
 
 	for i, repo in ipairs(state.repos) do
 		local info = state.status[repo.path] or {}
-		local dirty = (info.dirty or 0) > 0 and ("●" .. info.dirty) or "clean"
+		-- A space after the dot, as in the chips: the glyph and the count read
+		-- as one smudged token without it.
+		local dirty = (info.dirty or 0) > 0 and ("\u{25cf} " .. info.dirty) or "clean"
 		local sync = ""
 		if (info.ahead or 0) > 0 then
-			sync = sync .. "↑" .. info.ahead
+			sync = sync .. "\u{2191} " .. info.ahead
 		end
 		if (info.behind or 0) > 0 then
-			sync = sync .. (sync ~= "" and " " or "") .. "↓" .. info.behind
+			sync = sync .. (sync ~= "" and " " or "") .. "\u{2193} " .. info.behind
 		end
 
 		-- A repo whose branch has no commits yet has no subject to show; an em
@@ -345,17 +374,18 @@ local function render_overview()
 		-- The overview inherits 'wrap', so a long subject spills onto the next
 		-- rows and desyncs the cursor-to-repo mapping. Truncated to what is left
 		-- of the window instead.
-		local used = 2 + 4 + width + 14 + 9 + 7
+		local used = 2 + 4 + width + branch_w + 9 + 7
 		local room = math.max(12, vim.api.nvim_win_get_width(state.win) - used - 2)
 		if vim.fn.strdisplaywidth(subject) > room then
 			subject = vim.fn.strcharpart(subject, 0, room - 1) .. "…"
 		end
 
+		local branch = fit(info.branch or "?", branch_w - 2)
 		local cells = {
 			"  ",
 			pad(tostring(i), 4),
 			pad(repo.name, width),
-			pad(info.branch or "?", 14),
+			pad(branch, branch_w),
 			pad(dirty, 9),
 			pad(sync, 7),
 			subject,
@@ -377,7 +407,7 @@ local function render_overview()
 
 		mark(row, offsets[2], #cells[2], "OrgGitIndex")
 		mark(row, offsets[3], #repo.name, "OrgGitRepo")
-		mark(row, offsets[4], #(info.branch or "?"), "OrgGitBranch")
+		mark(row, offsets[4], #branch, "OrgGitBranch")
 		mark(row, offsets[5], #dirty, (info.dirty or 0) > 0 and "OrgGitDirty" or "OrgGitClean")
 		if sync ~= "" then
 			mark(row, offsets[6], #sync, "OrgGitSync")
