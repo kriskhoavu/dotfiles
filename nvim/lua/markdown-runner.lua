@@ -40,6 +40,13 @@ local function get_code_block_at_cursor()
 	return nil, nil
 end
 
+-- Q hides the window in either normal or terminal mode and leaves the job
+-- running; \ml brings it back. Not q or Esc: in terminal mode both belong to
+-- whatever is running, and a runner is often a pager or a prompt that wants them.
+local function set_close_keys(buf, close_runner)
+	vim.keymap.set({ "n", "t" }, "Q", close_runner, { buffer = buf, silent = true, desc = "Hide runner, keep it running" })
+end
+
 local function open_buf_in_float(buf, label)
 	local win
 	-- Declared before the float so the close button can call it: the X and Q are
@@ -76,7 +83,7 @@ local function open_buf_in_float(buf, label)
 		end,
 	})
 	vim.cmd.startinsert()
-	vim.keymap.set({ "n", "t" }, "Q", close_runner, { buffer = buf, silent = true, desc = "Close runner window" })
+	set_close_keys(buf, close_runner)
 end
 
 local function list_bg_tasks()
@@ -213,8 +220,12 @@ local function run_code_block()
 			vim.api.nvim_win_close(win, true)
 		end
 	end
-	vim.keymap.set({ "n", "t" }, "Q", close_runner, { buffer = buf, silent = true, desc = "Close runner window" })
+	set_close_keys(buf, close_runner)
 end
+
+-- \ml is global, unlike the runners: a task outlives the document it came from,
+-- and it was unreachable the moment you opened another file.
+vim.keymap.set("n", "<leader>ml", list_bg_tasks, { desc = "List background markdown runner tasks" })
 
 -- Only bind in markdown files
 vim.api.nvim_create_autocmd("FileType", {
@@ -230,9 +241,6 @@ vim.api.nvim_create_autocmd("FileType", {
 			buffer = true,
 			desc = "Run markdown code block under cursor",
 		})
-		vim.keymap.set("n", "<leader>ml", list_bg_tasks, {
-			buffer = true,
-			desc = "List background markdown runner tasks",
-		})
+
 	end,
 })
