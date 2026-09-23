@@ -1,3 +1,49 @@
+-- Directories the uppercase searches never walk.
+--
+-- \fF and \fT drop git's ignore rules, which is the point of them -- a
+-- workspace root that lists its own sub-repos in .gitignore (kompas does, so
+-- that nothing commits a gitlink) otherwise hides every file in every plane
+-- from an ordinary search. Dropping the rules also lets in the junk they were
+-- keeping out, so this list goes back over the top: measured in kompas, 35252
+-- files becomes 1864.
+--
+-- A name with no slash matches at any depth, so "node_modules" catches all
+-- sixteen of them. Add to this list and both searches follow.
+local EXCLUDE = {
+	".git",
+	"node_modules",
+	".venv",
+	"venv",
+	"__pycache__",
+	"dist",
+	"build",
+	"target",
+	".gradle",
+	"vendor",
+	".next",
+	".turbo",
+	"coverage",
+	".terraform",
+	".mypy_cache",
+	".pytest_cache",
+}
+
+local function rg_excludes()
+	local out = {}
+	for _, dir in ipairs(EXCLUDE) do
+		out[#out + 1] = ("-g '!%s'"):format(dir)
+	end
+	return table.concat(out, " ")
+end
+
+local function fd_excludes()
+	local out = {}
+	for _, dir in ipairs(EXCLUDE) do
+		out[#out + 1] = ("--exclude %s"):format(dir)
+	end
+	return table.concat(out, " ")
+end
+
 local function neotree_directory()
     if vim.bo.filetype ~= "neo-tree" then
         return nil
@@ -64,32 +110,37 @@ return {
         -- <leader>fF below.
         { "<leader>ff", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").files(opts) end, desc = "Find Files" },
         {
-            -- Everything on disk, ignore files included: secrets, .env files,
-            -- build output, node_modules. realm.env is the case this exists
-            -- for -- gitignored as deploy/.../secrets/*.env, so invisible to
-            -- every other finder here, and nothing in the repo could reach it.
+            -- Everything on disk, ignore rules dropped and EXCLUDE put back.
+            -- Reaches what .gitignore hides: secrets and .env files, and the
+            -- sub-repos of a workspace that ignores them.
             "<leader>fF",
             function()
-                local opts = with_neotree_directory({ no_ignore = true, hidden = true })
+                local opts = with_neotree_directory({
+                    fd_opts = "--color=never --type f --type l --hidden --no-ignore " .. fd_excludes(),
+                    rg_opts = "--color=never --files --hidden --no-ignore " .. rg_excludes(),
+                })
                 focus_edit_window()
                 require("fzf-lua").files(opts)
             end,
-            desc = "Find Files including gitignored",
+            desc = "Find Files everywhere (ignore rules off)",
         },
         { "<leader>ft", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").live_grep(opts) end, desc = "Live Grep" },
         { "<leader>fg", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").git_files(opts) end, desc = "Find Git Files" },
         {
-            -- The uppercase twin of <leader>ft, not of <leader>fg: it was <leader>fG
-            -- and read as "git files, but more", which is the one thing it is not.
+            -- The uppercase twin of <leader>ft, not of <leader>fg: it was
+            -- <leader>fG and read as "git files, but more", which is the one
+            -- thing it is not. Same rules as <leader>fF, for contents.
             "<leader>fT",
             function()
                 local opts = with_neotree_directory({
-                    rg_opts = "--hidden --glob '!.git/*' --column --line-number --no-heading --color=always -e",
+                    rg_opts = "--column --line-number --no-heading --color=always --smart-case --hidden --no-ignore "
+                        .. rg_excludes()
+                        .. " -e",
                 })
                 focus_edit_window()
                 require("fzf-lua").live_grep(opts)
             end,
-            desc = "Live Grep including hidden files",
+            desc = "Live Grep everywhere (ignore rules off)",
         },
         { "<leader>fb", function() focus_edit_window(); require("fzf-lua").buffers() end, desc = "Buffers" },
         { "<leader>fh", function() focus_edit_window(); require("fzf-lua").help_tags() end, desc = "Help Tags" },
