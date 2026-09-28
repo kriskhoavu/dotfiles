@@ -160,6 +160,29 @@ return {
                 width = 0.90,
                 height = 0.85,
                 preview = { layout = "horizontal" },
+                -- Keep focus in the picker, like every other float here.
+                --
+                -- fzf-lua builds its own window rather than going through
+                -- floating-helpers, so it never got the modal guard: Ctrl-hjkl
+                -- is bound globally by vim-tmux-navigator in terminal mode too,
+                -- and the picker is a terminal, so those keys threw focus to a
+                -- window behind the popup and left it hanging there.
+                --
+                -- The four are then handed back to fzf in terminal mode, where
+                -- Ctrl-j and Ctrl-k are its own list movement. make_modal sends
+                -- them to tmux, which is right for a float you read and wrong
+                -- for one you are typing into.
+                on_create = function()
+                    local buf = vim.api.nvim_get_current_buf()
+                    require("floating-helpers").make_modal(buf, "the fzf picker")
+                    for _, key in ipairs({ "<C-h>", "<C-j>", "<C-k>", "<C-l>" }) do
+                        vim.keymap.set("t", key, key, {
+                            buffer = buf,
+                            silent = true,
+                            desc = "Send " .. key .. " to fzf",
+                        })
+                    end
+                end,
             },
             fzf_colors = { true, bg = "-1", gutter = "-1" },
             keymap = { fzf = { ["ctrl-q"] = "select-all+accept" } },
