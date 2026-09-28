@@ -88,11 +88,15 @@ return {
           follow_current_file = { enabled = false },
           filtered_items = {
             -- visible keeps every entry on screen; the hide_* flags only mark
-            -- them as filtered, which is what dims them. With hide_dotfiles
-            -- off, dotfiles were not marked at all and rendered at full
-            -- brightness.
+            -- them as filtered, which is what dims them.
+            --
+            -- So dotfiles are deliberately not marked: a leading dot says where
+            -- a file sits in a convention, not that it matters less, and
+            -- .github or .claude is as much a part of the tree as anything
+            -- else. Being ignored by git is the thing worth dimming, and that
+            -- is the one flag left on.
             visible = true,
-            hide_dotfiles = true,
+            hide_dotfiles = false,
             hide_gitignored = true,
           },
           components = {
