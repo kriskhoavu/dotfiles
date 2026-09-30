@@ -3,7 +3,7 @@
 --
 -- The problem this solves: lazygit is one repo per process, so no lazygit can
 -- ever show repo tabs. A folder of sibling repos (a GitHub org checked out side
--- by side, like ~/.../kompas) therefore needs the tabline drawn by nvim, with one
+-- by side, like ~/.../fen) therefore needs the tabline drawn by nvim, with one
 -- lazygit terminal per repo swapped into a single float. That is all this module
 -- is -- tab bookkeeping and a status overview. Every git action inside a tab is
 -- lazygit's own; nothing here reimplements staging, committing or pushing.
@@ -94,7 +94,13 @@ vim.api.nvim_create_autocmd("ColorScheme", { callback = set_highlights, desc = "
 
 -- Discovery ------------------------------------------------------------------
 
-local function discover(root)
+-- `include_root` adds the root itself when it is a repo, ahead of its children:
+-- fen carries the README and the scripts that tie its planes together, and
+-- its commits were the one thing the float could not show. Off by default
+-- because resolve_root asks this same question to decide whether a directory
+-- holds repos, and a root that counted itself would answer yes from inside any
+-- repo -- the float would then offer that repo alone instead of its siblings.
+local function discover(root, include_root)
 	local repos = {}
 	for name, kind in vim.fs.dir(root) do
 		-- A symlinked repo checkout reports as "link", so both kinds are walked.
@@ -108,14 +114,17 @@ local function discover(root)
 	table.sort(repos, function(a, b)
 		return a.name < b.name
 	end)
+	if include_root and vim.uv.fs_stat(vim.fs.joinpath(root, ".git")) then
+		table.insert(repos, 1, { name = vim.fs.basename(root), path = root })
+	end
 	return repos
 end
 
 -- The org root is the parent of the repo you are sitting in: from any file in
--- kompas/agent-plane the root is kompas, and every sibling repo comes along.
+-- fen/agent-plane the root is fen, and every sibling repo comes along.
 --
 -- Unless the cwd already holds repos, checked first: an org root can be a repo
--- itself (kompas is), and walking up from one gave its parent's seventeen
+-- itself (fen is), and walking up from one gave its parent's seventeen
 -- unrelated checkouts instead of its own five.
 local function resolve_root()
 	local cwd = vim.uv.cwd()
@@ -662,7 +671,7 @@ function M.toggle(root)
 	state.pinned = state.pinned or root ~= nil
 	if new_root ~= state.root then
 		state.root = new_root
-		state.repos = discover(new_root)
+		state.repos = discover(new_root, true)
 		state.status = {}
 		state.current = 0
 	end

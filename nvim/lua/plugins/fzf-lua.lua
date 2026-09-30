@@ -1,10 +1,10 @@
 -- Directories the uppercase searches never walk.
 --
 -- \fF and \fT drop git's ignore rules, which is the point of them -- a
--- workspace root that lists its own sub-repos in .gitignore (kompas does, so
+-- workspace root that lists its own sub-repos in .gitignore (fen does, so
 -- that nothing commits a gitlink) otherwise hides every file in every plane
 -- from an ordinary search. Dropping the rules also lets in the junk they were
--- keeping out, so this list goes back over the top: measured in kompas, 35252
+-- keeping out, so this list goes back over the top: measured in fen, 35252
 -- files becomes 1864.
 --
 -- A name with no slash matches at any depth, so "node_modules" catches all

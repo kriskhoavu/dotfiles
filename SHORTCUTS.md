@@ -169,7 +169,7 @@ Stage and unstage only move that mark, so they can never lose work. **Reset is t
 
 Source: `nvim/lua/org-git.lua`
 
-`\3` shows one repo — the one you are in. `\4` shows **all of them**: a folder of sibling repos (a GitHub org checked out side by side, like `kompas`) becomes tabs in one float, with an overview tab across the whole set. The org root is found on every open: the directory you are in if it holds repos, otherwise the parent of the repo you are in.
+`\3` shows one repo — the one you are in. `\4` shows **all of them**: a folder of sibling repos (a GitHub org checked out side by side, like `fen`) becomes tabs in one float, with an overview tab across the whole set. The org root is found on every open: the directory you are in if it holds repos, otherwise the parent of the repo you are in.
 
 Every git action inside a repo tab is lazygit's own — stage with `space`, commit with `c`, amend with `A`, push with `P`, drill into hunks with `Enter`. Nothing is reimplemented here; the module only draws the tabs and the overview, because a single lazygit can only ever show one repo.
 
@@ -237,7 +237,7 @@ Prefix key: `Ctrl-a`.
 | `⌥9`                | Jump to the last tmux window.   | Highest-numbered window, however many.      |
 | `Ctrl-a c`          | New tmux window.                | Starts in current pane path.                |
 | `Ctrl-Alt-<digit>`  | Passed through to the program.  | `extended-keys` is on, so Neovim can bind combinations a plain terminal cannot encode. |
-| `Ctrl-a G`          | A window per repo in a folder.  | Prompts for a root (prefilled with kompas); one window per `<root>/*/.git`, each a shell in that repo. Re-running only adds what is missing. |
+| `Ctrl-a G`          | A window per repo in a folder.  | Prompts for a root (prefilled with fen); one window per `<root>/*/.git`, each a shell in that repo. Re-running only adds what is missing. |
 | `Ctrl-a e`          | Open an hourly scratch note.    | Splits right and opens `notes_YYMMDDHH.md`. |
 | `Ctrl-a o`          | Open today's todo note.         | Splits right and opens `todo_YYMMDD.md`.    |
 | `Ctrl-a v`          | Open Neovim in a right split.   | Starts from current pane path.              |
