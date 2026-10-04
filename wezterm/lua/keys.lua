@@ -12,7 +12,6 @@ return function(config)
     { key = "RightArrow", mods = "OPT",       action = act.SendString("\x1bf") },    -- Option+Right → word fwd
     { key = "Enter",      mods = "OPT",       action = act.SendString("\x1b\r") },   -- Option+Enter → Alt+Enter
     { key = "d",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\sd") }, -- Ctrl+Cmd+Shift+D → nvim <leader>sd
-    { key = "t",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\st") }, -- Ctrl+Cmd+Shift+T → nvim <leader>st
     -- Leader chords are prefixed with <C-\><C-n> rather than ESC so they work
     -- from insert/terminal mode. A bare ESC also fires nvim's own <esc> maps:
     -- in Diffview that closed the view, then the leader key reopened it.
