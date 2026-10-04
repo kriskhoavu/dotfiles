@@ -149,11 +149,9 @@ function cdr {
 
 # 🎨 LAZYGIT
 
-# lazygit's colours are split into a light and a dark half (see
-# lazygit/config.yml). The right one is chosen here, at launch, rather than
-# exported once from .zshrc: prefix + T can flip the theme under a shell that
-# has been open for days, and an exported LG_CONFIG_FILE would still name the
-# half that was current when the shell started.
+# lazygit's colours are split into halves (lazygit/config.yml). Chosen at
+# launch, not exported from .zshrc: prefix + T can flip the theme under a shell
+# open for days, and an exported LG_CONFIG_FILE would name the old half.
 #
 # Anything but "light" in the state file is dark, matching every other tool.
 lazygit() {

@@ -18,11 +18,9 @@ end
 
 local last_tmux_title = nil
 
--- Windows named by hand carry @manual_name (set only by the prefix+C and
--- prefix+, bindings in tmux/.tmux.conf; plain prefix+c does not set it).
--- Renaming those to the current buffer would throw the chosen label away on
--- every buffer or pane switch, so leave them be.
--- Renaming to an empty name in tmux clears the mark and hands the window back.
+-- Hand-named windows carry @manual_name, set by prefix+C and prefix+, in
+-- tmux/.tmux.conf. Renaming those would throw the chosen label away on every
+-- buffer switch. An empty name in tmux clears the mark and hands it back.
 local function tmux_window_is_manually_named()
     local pane = vim.env.TMUX_PANE
     if not pane then

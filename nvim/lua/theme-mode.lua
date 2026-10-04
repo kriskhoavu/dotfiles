@@ -1,27 +1,17 @@
--- Light or dark, and the colours that cannot be asked of the colorscheme.
+-- Light or dark, and the colours the colorscheme cannot be asked for.
 --
--- The appearance is this config's own state, in ~/.config/kris-theme, not the
--- terminal's and not macOS's. Neovim can be told what the terminal background
--- is (OSC 11, answered while the TUI starts) but that answer is wrong under
--- tmux, which replies from a value it cached when its client attached and never
--- re-asks -- so an editor opened in a long-lived tmux server inherits whatever
--- the desktop looked like that morning. A file has no such lag.
+-- State lives in ~/.config/kris-theme, not the terminal and not macOS: OSC 11
+-- answers wrong under tmux, which replies from a value cached when its client
+-- attached, so an editor in a long-lived server inherits that morning's
+-- desktop. Anything but "light" is dark.
 --
--- Anything but "light" is dark, so a machine with no state file looks the way
--- this config has always looked.
+-- Nothing re-checks after startup; a switch means restarting nvim, which
+-- prefix + T does everywhere. The trade is no polling anywhere.
 --
--- Nothing re-checks after startup: a switch means restarting Neovim, which
--- prefix + T does for every reachable instance. That is the deal this config
--- takes, in exchange for no polling anywhere.
---
--- Most colours follow the colorscheme on their own. What lands here is the
--- handful of places that set a hex directly -- the bufferline, the window
--- grounds in vim-window, the line-number accent -- because those were picked
--- against a dark ground and go invisible on a light one.
---
--- The light values are the same warmed ramp as WezTerm's Claude light palette,
--- so the editor and the terminal body are one warm scale. tmux's bar is
--- deliberately not on it -- it stays dark in both appearances.
+-- Only the places that set a hex directly land here -- bufferline, the window
+-- grounds, the line-number accent -- picked on a dark ground and invisible on
+-- a light one. The light values are WezTerm's warmed ramp, so editor and
+-- terminal are one scale. tmux's bar stays dark in both.
 
 local M = {}
 
@@ -64,9 +54,8 @@ local dark = {
 
 	linenr_below = "#ead84e",
 
-	-- No ramp here: One Dark's own neutrals are already right on a dark ground,
-	-- so the light table's ramp_*/ink/muted keys have no dark counterpart and
-	-- onedark.lua reads them only on the light branch.
+	-- No ramp: One Dark's neutrals are already right on a dark ground, so the
+	-- light table's ramp_*/ink/muted keys are read only on the light branch.
 
 	-- onedark syntax overrides (One Dark hues)
 	syn_keyword   = "#c678dd",
@@ -91,11 +80,9 @@ local light = {
 
 	linenr_below = "#A6432A",
 
-	-- Claude's neutrals carrying 5% of the accent orange and 8% less
-	-- lightness -- the warmed ramp from WezTerm's palette, same six steps.
-	-- Light only, see the note in the dark table above. ramp_0 has to be
-	-- exactly WezTerm's background: `transparent` leaves Normal showing the
-	-- terminal through, and every panel onedark paints has to land on it.
+	-- Claude's neutrals with 5% accent orange and 8% less lightness, the same
+	-- six steps as WezTerm's ramp. ramp_0 must be exactly WezTerm's
+	-- background: Normal is transparent, so every panel lands on it.
 	ramp_0 = "#eedfd1",
 	ramp_1 = "#e8dbca",
 	ramp_2 = "#e2d6c6",
@@ -114,10 +101,8 @@ local light = {
 
 M.colors = M.is_light and light or dark
 
--- The selected buffer keeps a dark-red chip in both appearances -- it matches
--- WezTerm's active tab, which stays dark red under the light theme too -- so
--- everything drawn on top of it stays light either way and is not part of the
--- tables above.
+-- The selected buffer keeps a dark-red chip in both appearances, matching
+-- WezTerm's active tab, so what sits on it stays light either way.
 M.selected_bg = M.is_light and "#7a2318" or "#590000"
 
 return M

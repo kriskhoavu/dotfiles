@@ -6,10 +6,9 @@
 # The windows are workspaces, not a git UI -- nothing is launched in them. Reach
 # for git however you normally would once you are in the tab.
 #
-# The root is an argument, not a constant -- the session is named after the root's
-# basename, so several roots can be open at once as separate sessions. Called with
-# no argument it uses $PWD, which is why the tmux binding passes
-# #{pane_current_path}: run-shell's own cwd is the server's, not the pane's.
+# The root is an argument: the session is named after its basename, so several
+# can be open at once. With none it uses $PWD -- hence the binding passing
+# #{pane_current_path}, since run-shell's cwd is the server's, not the pane's.
 #
 # Repos are found one level deep as <root>/*/.git, tested with -e rather than -d so
 # worktrees and submodules -- where .git is a file holding a gitdir pointer -- are

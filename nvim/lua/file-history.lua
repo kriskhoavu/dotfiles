@@ -1,10 +1,8 @@
 -- Back / forward navigation across files, like IntelliJ's Cmd+[ and Cmd+].
 --
--- Neovim's own jumplist is close but not the same: it is per-window, it only
--- records "jumps" (so a plain buffer switch leaves no trace), and it steps
--- through positions rather than files, so crossing back to the previous file
--- can take several presses. This keeps a single browser-style history of the
--- files visited, one entry per file, and steps between them.
+-- The jumplist is per-window, records only jumps (a buffer switch leaves no
+-- trace) and steps through positions, not files. This is one browser-style
+-- history, one entry per file.
 --
 -- Stepping back re-:edits the recorded path, which is why a file that was
 -- closed in the meantime comes back.

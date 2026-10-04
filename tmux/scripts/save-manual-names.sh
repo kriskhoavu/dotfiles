@@ -1,11 +1,9 @@
 #!/bin/bash
 # Save the window names the user chose by hand, for tmux-resurrect.
 #
-# prefix+C and prefix+, mark such a window with @manual_name, which nvim checks
-# before renaming the window to the current buffer (see nvim/lua/vim-window.lua).
-# resurrect saves no user options, so after a restore every window looked
-# automatic again and its label was overwritten on the next buffer switch. Run
-# from @resurrect-hook-post-save-all.
+# prefix+C and prefix+, set @manual_name, which nvim checks before renaming a
+# window (nvim/lua/vim-window.lua). resurrect saves no user options, so without
+# this every restored window looked automatic again. Post-save-all hook.
 
 set -uo pipefail
 

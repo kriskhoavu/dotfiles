@@ -1,19 +1,14 @@
--- A terminal opened in Neovim is a child of Neovim, not of tmux: Neovim's own
--- terminal emulator sits in between. $TMUX is inherited all the same, so a TUI
--- running there believes it talks straight to tmux and wraps its clipboard
--- writes in tmux's DCS passthrough form. Neovim's emulator has no passthrough
--- support, so the wrapper is dropped and the payload lands on screen as raw
--- base64 -- a Claude Code session corrupts itself the moment it copies.
+-- A terminal in Neovim is a child of Neovim, not of tmux, but inherits $TMUX
+-- anyway. A TUI then wraps its clipboard writes in tmux's DCS passthrough form,
+-- which Neovim's emulator cannot decode: the wrapper is dropped and the payload
+-- lands on screen as raw base64. Hiding $TMUX gets plain OSC 52 instead.
 --
--- Hiding $TMUX from the child alone is enough: it then emits plain OSC 52,
--- which Neovim does understand. Neovim keeps its own $TMUX, so
--- vim-tmux-navigator is untouched, and `tmux` from inside the shell still
--- reaches the server over the default socket.
+-- Neovim keeps its own $TMUX, so vim-tmux-navigator is untouched, and `tmux`
+-- still reaches the server over the default socket.
 local M = {}
 
--- For jobstart/termopen opts, which take an env table rather than inheriting
--- one. An empty value reads as "not in tmux" to every shell and TUI that
--- checks, and jobstart has no way to remove a variable outright.
+-- For jobstart/termopen, which take an env table. Empty reads as "not in tmux"
+-- everywhere; jobstart cannot remove a variable outright.
 M.job_env = { TMUX = "", TMUX_PANE = "" }
 
 function M.without_tmux(fn)

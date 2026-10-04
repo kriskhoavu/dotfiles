@@ -1,10 +1,9 @@
 #!/bin/bash
 # Put the hand-picked window names back after a tmux-resurrect restore.
 #
-# The name as well as the mark: resurrect restores nvim, and nvim renames the
-# window to its first buffer before this hook runs. Matched on session and
-# index, which survive a restore, rather than on the name, which is the thing
-# that may have been clobbered. Run from @resurrect-hook-post-restore-all.
+# The name as well as the mark: nvim renames the window to its first buffer
+# before this hook runs. Matched on session and index, which survive a restore,
+# not on the name, which is what gets clobbered. Post-restore-all hook.
 
 set -uo pipefail
 

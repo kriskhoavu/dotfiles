@@ -1,23 +1,12 @@
--- The one way this config opens a floating window.
---
--- Four floats grew separately -- lazygit (\3), the org git tabs (\4), the
--- terminal (\9) and the shortcut help (\?) -- each with its own copy of the
--- centring arithmetic, its own scrolloff handling, and its own idea of whether
--- focus could leave. The copies drifted: \9 never got the modal guard at all,
--- and \3 and \4 each had to rediscover that a global sidescrolloff shifts a
--- full-width TUI sideways.
---
--- So the behaviour lives here and the differences are flags. A new float is
--- floats.open{...}; anything a float should do by default it does by default.
+-- The one way this config opens a floating window. \3, \4, \9 and \? each had
+-- their own copy of the centring, the scrolloff and the focus guard, and the
+-- copies drifted. Behaviour lives here; the differences are flags.
 
 local M = {}
 
--- Chrome for the close button. Not "FloatTitle" -- that is a builtin group nvim
--- uses for every float's border title, and redefining it would repaint them all.
---
--- The X sits in a filled chip with the same rounded caps as the tab chips, so it
--- reads as a button rather than as a stray glyph: the chip palette's red, its
--- ink text, and the caps carrying the fill colour on the float's own ground.
+-- Chrome for the close button. Not "FloatTitle": that is builtin and used for
+-- every float's border title. The X sits in a capped chip so it reads as a
+-- button rather than a stray glyph.
 local function set_highlights()
 	local c = require("tmux-chips").colors()
 	vim.api.nvim_set_hl(0, "FloatChrome", { fg = c.overlay_1, bg = c.bg })
@@ -28,9 +17,8 @@ end
 set_highlights()
 vim.api.nvim_create_autocmd("ColorScheme", { callback = set_highlights, desc = "Float chrome highlights" })
 
--- Ratios of the editor, because a float that is 90 columns wide is a different
--- float on a laptop and on a 4k screen. Values above 1 are taken as absolute
--- cells for the rare case that wants them.
+-- Ratios of the editor: 90 columns is a different float on a laptop and on 4k.
+-- Above 1 means absolute cells.
 local function measure(value, total, fallback)
 	value = value or fallback
 	if value <= 1 then
@@ -39,21 +27,13 @@ local function measure(value, total, fallback)
 	return math.min(math.floor(value), total)
 end
 
--- Keep focus inside the float.
+-- Keep focus inside the float: a float covers the editor, so focus behind one
+-- leaves it hanging with no way back. vim-tmux-navigator's Ctrl-hjkl and
+-- bufferline's Alt keys are global and have to be answered per buffer.
 --
--- Every float here covers the editor, so handing focus to a window behind one
--- leaves it hanging over the screen with no way back. vim-tmux-navigator binds
--- Ctrl-hjkl globally and bufferline's Alt keys cycle buffers; neither knows a
--- float is in front, so both have to be answered per buffer.
---
--- Ctrl-hjkl still crosses tmux panes, which is the part worth keeping: the
--- float is modal within nvim, not within the terminal.
---
--- `nav` (optional) puts Alt-h / Alt-l to work instead of killing them: in a
--- tabbed float they step between tabs. They are free to take because tmux binds
--- only the Alt digits, so these two reach nvim, and the buffer cycling they
--- normally do is meaningless while a float is in front. The digits stay dead --
--- tmux eats those before nvim ever sees them, which is why C-g 1-9 exists.
+-- Ctrl-hjkl still crosses tmux panes: modal within nvim, not within the
+-- terminal. `nav` puts Alt-h / Alt-l to work stepping between tabs instead of
+-- killing them; the Alt digits stay dead because tmux eats those first.
 function M.make_modal(buf, label, nav)
 	for key, dir in pairs({ h = "L", j = "D", k = "U", l = "R" }) do
 		vim.keymap.set({ "n", "t" }, "<C-" .. key .. ">", function()
@@ -72,9 +52,8 @@ function M.make_modal(buf, label, nav)
 		dead[#dead + 1] = "<A-" .. i .. ">"
 	end
 
-	-- Ctrl-Alt-<digit> jumps straight to a tab. It needs tmux's extended-keys
-	-- (set in .tmux.conf): without it the terminal cannot encode the combination
-	-- at all, which is why this used to be a Ctrl-g prefix.
+	-- Ctrl-Alt-<digit> jumps to a tab. Needs tmux's extended-keys, or the
+	-- terminal cannot encode the combination at all.
 	if nav and nav.jump then
 		for i = 0, 9 do
 			vim.keymap.set({ "n", "t" }, "<C-M-" .. i .. ">", function()
@@ -112,9 +91,8 @@ function M.make_modal(buf, label, nav)
 	end
 end
 
--- Close buttons, by float. A winbar click label can only name a global function
--- and hand it a number, so each float's closer is parked here under an id and
--- the label carries that id.
+-- A winbar click label can only name a global function and pass a number, so
+-- each float's closer is parked here under an id.
 local closers = {}
 local next_id = 0
 
@@ -125,12 +103,8 @@ function _G.FloatsCloseClick(id)
 	end
 end
 
--- Just the clickable X, as a winbar fragment. The tabbed floats already own
--- their winbar, so they append this to what they draw rather than having it
--- overwrite the tabs. Registered once per float; the string is reused on every
--- render.
---
--- `win` may be a window id or a function returning one -- see close_button.
+-- The clickable X alone, as a winbar fragment: the tabbed floats append it to
+-- what they already draw. `win` may be a window id or a function returning one.
 function M.close_segment(win, buf, opts)
 	opts = opts or {}
 	next_id = next_id + 1
@@ -157,9 +131,8 @@ function M.close_segment(win, buf, opts)
 		})
 	end
 
-	-- The Nerd Font close glyph rather than the plain multiplication X: it is
-	-- drawn heavier and fills the cell, which is as "bigger" as a fixed-width
-	-- grid gets.
+	-- The Nerd Font glyph, not a plain X: it fills the cell, which is as bigger
+	-- as a fixed grid gets.
 	local chips = require("tmux-chips")
 	return "%"
 		.. id
@@ -172,14 +145,10 @@ function M.close_segment(win, buf, opts)
 		.. "%X%#FloatChrome# "
 end
 
--- A right-aligned clickable X, in the float's winbar -- the one row of a float
--- that nvim still owns when a terminal fills the rest, and the only place a
--- click can land on nvim rather than on the program inside. Costs one row, so
--- it is opt-in.
--- `win` may be a window id or a function returning one. A float that is hidden
--- and reopened -- \9 is a toggle -- gets a new window every time while keeping
--- its buffer, so a captured id goes stale and the button would paint into a
--- window that no longer exists.
+-- A right-aligned X in the winbar: the one row nvim still owns when a terminal
+-- fills the rest, so the only place a click reaches nvim. Costs a row, opt-in.
+-- `win` may be a function: a toggled float keeps its buffer but gets a new
+-- window each time, so a captured id goes stale.
 function M.close_button(win, buf, opts)
 	local function current()
 		return type(win) == "function" and win() or win
@@ -197,37 +166,28 @@ function M.close_button(win, buf, opts)
 	end
 	paint()
 
-	-- vim-options.lua blanks 'winbar' for every terminal buffer, to keep terminal
-	-- chrome out of the way. That rule is right in general and wrong for a button
-	-- drawn in the winbar, so repaint after it rather than carving an exception
-	-- into it.
+	-- vim-options.lua blanks 'winbar' for terminal buffers. Right in general,
+	-- wrong for this button, so repaint after it rather than add an exception.
 	vim.api.nvim_create_autocmd({ "TermOpen", "BufEnter", "WinEnter" }, {
 		buffer = buf,
 		callback = paint,
 		desc = "Repaint the float's close button",
 	})
 
-	-- Returned because those autocmds fire *during* nvim_open_win, before the
-	-- caller has assigned the new window id, so a reopened float needs one paint
-	-- once it knows where it is.
+	-- Returned because those autocmds fire during nvim_open_win, before the
+	-- caller holds the new window id.
 	return paint
 end
 
--- Settings that belong to the window rather than the buffer, reapplied whenever
--- a float swaps in a different buffer.
---
--- scrolloff is zero for every float: they hold full-width TUI frames and fixed
--- tables, and a scrolloff only ever scrolls those out of alignment -- a
--- sidescrolloff of 5 cuts the left border off a lazygit frame and makes every
--- panel look shifted.
+-- Window-local settings, reapplied whenever a float swaps in another buffer.
+-- scrolloff is zero everywhere: floats hold full-width TUI frames, and a
+-- sidescrolloff of 5 cuts the left border off a lazygit frame.
 local function dress_window(win, opts)
 	vim.wo[win].sidescrolloff = 0
 	vim.wo[win].scrolloff = 0
 
-	-- Every float gets the chip palette's ground unless it asks otherwise: the tabbed
-	-- ones opted in and the rest kept the editor's NormalFloat, so \9 sat on a
-	-- visibly different background from \4 for no reason anyone could see. Pass
-	-- winhighlight = false to keep the editor's.
+	-- The chip palette's ground unless asked otherwise, or \9 and \4 sit on
+	-- visibly different backgrounds. Pass false to keep the editor's.
 	local winhl = opts.winhighlight
 	if winhl == nil then
 		winhl = require("tmux-chips").WINHIGHLIGHT
@@ -292,9 +252,8 @@ function M.open(opts)
 	return buf, win
 end
 
--- Swap a different buffer into an existing float: the tabbed floats keep one
--- window and several buffers, and both the window dressing and the guard have
--- to follow the buffer in.
+-- Swap a buffer into an existing float. The tabbed floats keep one window and
+-- several buffers, so the dressing and the guard follow the buffer in.
 function M.attach(win, buf, opts)
 	opts = opts or {}
 	vim.api.nvim_win_set_buf(win, buf)
@@ -304,8 +263,7 @@ function M.attach(win, buf, opts)
 	end
 end
 
--- :help opens in a float rather than a split. Not modal: help is a place you
--- read something and then go back to work, and its own buffer is a normal one.
+-- :help in a float, not a split. Not modal: you read it and go back to work.
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "help",
 	callback = function()

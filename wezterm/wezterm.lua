@@ -25,11 +25,9 @@ config.max_fps                   = 60
 -- Paces the cursor blink, which was repainting continuously: wezterm-gui sat at
 -- 17-21% CPU idle, 2-6% after this and the Constant ease in appearance.lua.
 config.animation_fps             = 1
--- IME off: with it on, macOS buffers a held key as marked text and delivers the
--- lot on release -- j from line 1 crawls to 10, sticks, then jumps to the end.
--- Nothing below sees it (nvim eats a 250-key burst cleanly, tmux or not), and
--- selecting a plain layout does not help; tested with ABC current. The cost is
--- Telex and any other composed input inside the terminal.
+-- IME off: with it on macOS buffers a held key as marked text and delivers the
+-- lot on release -- j crawls to line 10, sticks, then jumps to the end. Nothing
+-- below sees it, and a plain layout does not help. Costs Telex in the terminal.
 config.use_ime                   = false
 -- Kept Ctrl-/Alt- bindings away from the IME. Flips back with use_ime.
 -- config.macos_forward_to_ime_modifier_mask = "SHIFT"

@@ -33,24 +33,19 @@ local function isUserApp(app)
 end
 
 local function isSelectableWindow(window)
-  -- `isStandard()` is unnecessarily strict here: some apps expose a maximized
-  -- window with a non-standard accessibility subrole. The AXWindow role still
-  -- filters out controls such as Chrome's companion status-bar window.
+  -- `isStandard()` is too strict: some apps maximize with a non-standard
+  -- subrole. AXWindow still filters out things like Chrome's status-bar window.
   --
-  -- `AXUnknown` is the one subrole worth rejecting: apps park invisible helper
-  -- panels there. Cisco Secure Client, for example, keeps a fully transparent,
-  -- titleless notification panel alive, which would otherwise appear as a
-  -- second "Untitled window" row that focuses nothing.
+  -- `AXUnknown` is where apps park invisible helper panels -- Cisco Secure
+  -- Client's transparent notification panel would list as a dead row.
   return window:id() ~= nil
     and window:role() == "AXWindow"
     and window:subrole() ~= "AXUnknown"
     and not window:isMinimized()
 end
 
--- One accessibility scan produces the full list; the pair picker derives its
--- own list from that snapshot instead of scanning a second time. Scanning is by
--- far the slowest part of opening a chooser, so the result is cached and reused
--- while the fresh scan runs in the background.
+-- One scan feeds both pickers. Scanning is the slowest part of opening a
+-- chooser, so the snapshot is reused while a fresh scan runs behind it.
 local cachedChoices = nil
 
 local function collectChoices()
@@ -74,9 +69,8 @@ local function collectChoices()
     end
   end
 
-  -- macOS does not always expose a true fullscreen window through the
-  -- Accessibility API. Keep such running apps reachable in the switcher even
-  -- when there is no window object to list.
+  -- A true fullscreen window is not always exposed through the Accessibility
+  -- API, so keep those apps reachable with no window object to list.
   for _, app in ipairs(hs.application.runningApplications()) do
     local bundleID = app:bundleID()
     if isUserApp(app) and bundleID ~= nil and not appsWithWindows[bundleID] then
@@ -207,9 +201,8 @@ local function leftScreenTopLeft()
     return nil
   end
 
-  -- `hs.chooser:width()` is a percentage of the primary screen's width — the
-  -- same screen it centers on by default. Estimating the chooser's width from
-  -- that keeps the centering right when the displays differ in resolution.
+  -- `hs.chooser:width()` is a percentage of the primary screen, the one it
+  -- centres on, so estimate from that or mixed resolutions drift.
   local frame = target:fullFrame()
   local sizingScreen = hs.screen.primaryScreen() or target
   local width = sizingScreen:fullFrame().w * chooserWidthPercent / 100
@@ -220,9 +213,8 @@ end
 -- background refreshes can rebuild the right list.
 local chooserTransform = {}
 
--- Show instantly from the last snapshot, then swap in a fresh one. The
--- accessibility scan can take a noticeable moment, and doing it before `show()`
--- is what made the dialog feel delayed.
+-- Show from the last snapshot, then swap in a fresh one: scanning before
+-- `show()` is what made the dialog feel delayed.
 local function showChooser(chooser, transform)
   chooserTransform[chooser] = transform
 
@@ -332,11 +324,9 @@ end)
 -- Cmd-Shift-Space: searchable replacement for app/window switching.
 hs.hotkey.bind(windowSwitcherModifiers, "space", showWindowSwitcher)
 
--- In either chooser, Cmd-Delete force quits the highlighted app. Keycode 51 is
--- the Delete (Backspace) key; requiring Cmd exactly means a bare Delete still
--- edits the search field and no other modifier combination triggers a quit.
--- Returning true consumes the key only while a chooser is visible, so normal
--- behavior elsewhere is unaffected.
+-- Cmd-Delete force quits the highlighted app. Keycode 51 is Delete; requiring
+-- Cmd exactly leaves a bare Delete editing the search field. Returning true
+-- consumes the key only while a chooser is visible.
 local deleteKeyCode = 51
 local deleteKeyWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
   local deleteKey = event:getKeyCode() == deleteKeyCode and event:getFlags():containExactly({ "cmd" })

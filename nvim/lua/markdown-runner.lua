@@ -120,12 +120,10 @@ local function list_bg_tasks()
 	end)
 end
 
--- Where to run a block from. Relative paths in a code block are almost always
--- written against the repository root ("deploy/docker/...", "src/main.rs"), not
--- against wherever Neovim happened to be started, and not against the document
--- itself -- a file under deploy/docker/local/ still refers to deploy/docker/...
--- from the top. So resolve the enclosing repository and fall back to the
--- document's own directory when there isn't one.
+-- Relative paths in a code block are written against the repository root, not
+-- against nvim's cwd and not against the document -- a file under
+-- deploy/docker/local/ still says deploy/docker/... So resolve the repo, and
+-- fall back to the document's directory when there is none.
 local function block_cwd(buf)
 	local file = vim.api.nvim_buf_get_name(buf)
 	if file == "" then

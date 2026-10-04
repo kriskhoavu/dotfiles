@@ -1,14 +1,10 @@
 -- Directories the uppercase searches never walk.
 --
--- \fF and \fT drop git's ignore rules, which is the point of them -- a
--- workspace root that lists its own sub-repos in .gitignore (fen does, so
--- that nothing commits a gitlink) otherwise hides every file in every plane
--- from an ordinary search. Dropping the rules also lets in the junk they were
--- keeping out, so this list goes back over the top: measured in fen, 35252
--- files becomes 1864.
+-- \fF and \fT drop git's ignore rules, so a workspace that gitignores its own
+-- sub-repos stops hiding them. That also lets the junk back in, so this list
+-- goes over the top: in fen, 35252 files becomes 1864.
 --
--- A name with no slash matches at any depth, so "node_modules" catches all
--- sixteen of them. Add to this list and both searches follow.
+-- No slash means any depth. Add here and both searches follow.
 local EXCLUDE = {
 	".git",
 	"node_modules",
@@ -104,15 +100,13 @@ end
 return {
     "ibhagwan/fzf-lua",
     keys = {
-        -- Dotfiles are in this listing already -- fzf-lua's files provider
-        -- defaults to hidden = true, unlike its grep, which is why <leader>fT
-        -- has to ask for them. What it leaves out is what .gitignore does:
-        -- <leader>fF below.
+        -- Dotfiles are already here: the files provider defaults to
+        -- hidden = true, unlike grep. What it misses is what .gitignore
+        -- hides -- that is \fF.
         { "<leader>ff", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").files(opts) end, desc = "Find Files" },
         {
-            -- Everything on disk, ignore rules dropped and EXCLUDE put back.
-            -- Reaches what .gitignore hides: secrets and .env files, and the
-            -- sub-repos of a workspace that ignores them.
+            -- Everything on disk: ignore rules dropped, EXCLUDE put back.
+            -- Reaches .env files and gitignored sub-repos.
             "<leader>fF",
             function()
                 local opts = with_neotree_directory({
@@ -127,9 +121,8 @@ return {
         { "<leader>ft", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").live_grep(opts) end, desc = "Live Grep" },
         { "<leader>fg", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").git_files(opts) end, desc = "Find Git Files" },
         {
-            -- The uppercase twin of <leader>ft, not of <leader>fg: it was
-            -- <leader>fG and read as "git files, but more", which is the one
-            -- thing it is not. Same rules as <leader>fF, for contents.
+            -- The uppercase twin of \ft, not \fg -- it was \fG, which read
+            -- as "git files, but more". Same rules as \fF, for contents.
             "<leader>fT",
             function()
                 local opts = with_neotree_directory({
@@ -160,18 +153,13 @@ return {
                 width = 0.90,
                 height = 0.85,
                 preview = { layout = "horizontal" },
-                -- Keep focus in the picker, like every other float here.
+                -- Keep focus in the picker. fzf-lua builds its own window, so
+                -- it never got the modal guard, and vim-tmux-navigator's
+                -- Ctrl-hjkl threw focus behind the popup.
                 --
-                -- fzf-lua builds its own window rather than going through
-                -- floating-helpers, so it never got the modal guard: Ctrl-hjkl
-                -- is bound globally by vim-tmux-navigator in terminal mode too,
-                -- and the picker is a terminal, so those keys threw focus to a
-                -- window behind the popup and left it hanging there.
-                --
-                -- The four are then handed back to fzf in terminal mode, where
-                -- Ctrl-j and Ctrl-k are its own list movement. make_modal sends
-                -- them to tmux, which is right for a float you read and wrong
-                -- for one you are typing into.
+                -- The four then go back to fzf, where Ctrl-j/k are its list
+                -- movement: make_modal sends them to tmux, right for a float
+                -- you read and wrong for one you type into.
                 on_create = function(e)
                     local buf = e and e.bufnr or vim.api.nvim_get_current_buf()
                     require("floating-helpers").make_modal(buf, "the fzf picker")
@@ -184,21 +172,16 @@ return {
                             desc = "Send " .. key .. " to fzf",
                         })
                     end
-                    -- Ctrl-l steps into the preview, which is a real window and
-                    -- can be read and scrolled like one. Ctrl-h steps back, and
-                    -- is bound on the preview buffer at the same time: over
-                    -- there it would otherwise be vim-tmux-navigator's and
-                    -- would throw focus out of the picker for good.
-                    -- Esc, answered by fzf itself.
+                    -- Ctrl-l steps into the preview, a real window. Ctrl-h
+                    -- steps back, bound on the preview buffer too, or it is
+                    -- vim-tmux-navigator's there and focus leaves for good.
                     --
-                    -- fzf-lua binds esc inside fzf as an execute-silent that
-                    -- spawns a fresh nvim to call back into this one; when any
-                    -- link in that chain does not complete, the key does
-                    -- nothing at all and the picker cannot be closed -- found
-                    -- twice in one session, one of them alive for 2h18m. Ctrl-C
-                    -- is bound in fzf as print(ctrl-c)+accept, which fzf answers
-                    -- on its own, so this sends that byte straight down the
-                    -- terminal channel: no child process, nothing to hang.
+                    -- Esc, answered by fzf itself. fzf-lua binds esc as an
+                    -- execute-silent that spawns a fresh nvim to call back
+                    -- here; when any link fails the key does nothing at all
+                    -- and the picker cannot be closed (seen twice in a
+                    -- session, one alive 2h18m). Ctrl-C is print+accept, which
+                    -- fzf answers alone -- so send that byte down the channel.
                     local function abort()
                         local chan = vim.bo[buf].channel
                         if chan and chan > 0 then
@@ -224,11 +207,8 @@ return {
                                 vim.cmd.startinsert()
                             end
                         end, { buffer = preview_buf, silent = true, desc = "Back to the fzf list" })
-                        -- Esc closes the picker from here too. It is fzf's own
-                        -- abort, handed to it down the terminal channel, rather
-                        -- than a window being closed behind its back -- the
-                        -- preview belongs to a running fzf, and killing the
-                        -- window without telling it leaves the process behind.
+                        -- Esc from here too, as fzf's own abort: closing the
+                        -- window behind a running fzf leaves the process.
                         vim.keymap.set("n", "<Esc>", function()
                             if not vim.api.nvim_win_is_valid(fzf_winid) then
                                 return

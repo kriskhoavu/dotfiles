@@ -1,21 +1,11 @@
--- A tabline of chips for floating windows, matching the shape of the tmux
--- window tabs along the bottom of the screen: number block, name block, rounded
--- caps, same widths.
+-- Chips for floating windows, shaped like the tmux window tabs: number block,
+-- name block, rounded caps, same widths. Shared by org-git.lua and
+-- vim-helpers.lua, so the two cannot drift.
 --
--- Shared by org-git.lua (repo tabs) and vim-helpers.lua (the shortcut help
--- tabs). One implementation because two copies would drift.
---
--- The colours follow the editor's appearance, not the running tmux. They used
--- to be read out of tmux so that re-flavouring its bar moved every bar
--- together, and that was right while tmux followed the appearance too. It no
--- longer does -- the status bar is the same dark palette in both themes -- so
--- reading it produced a float with the bar's dark background under this
--- palette's ink foreground: #1e1e2e behind #3b2322, dark on dark at 1.4:1.
--- Worse, the same editor looked different inside and outside tmux.
---
--- A float sits on top of the editor, so it takes the editor's side of the
--- split. The chips still echo the tmux tabs in shape; only the colours part
--- company.
+-- Colours follow the editor, not the running tmux. They used to be read from
+-- tmux, which stopped working once the bar went dark in both themes: that gave
+-- dark-on-dark at 1.4:1, and the same editor looked different inside tmux.
+-- A float sits on the editor, so it takes the editor's side.
 
 local M = {}
 
@@ -60,10 +50,8 @@ local LIGHT = {
 
 local PALETTE = require("theme-mode").is_light and LIGHT or DARK
 
--- Nerd Font half-circles, as escapes: written literally they are private-use
--- codepoints that any tool in the pipeline may silently drop.
--- Exported: floating-helpers builds its close chip with the same caps, so every
--- chip in this config has one shape.
+-- Nerd Font half-circles as escapes: written literally they are private-use
+-- codepoints any tool may drop. Exported so the close chip shares the shape.
 M.CAP_LEFT = "\u{e0b6}"
 M.CAP_RIGHT = "\u{e0b4}"
 local CAP_LEFT, CAP_RIGHT = M.CAP_LEFT, M.CAP_RIGHT
@@ -82,10 +70,9 @@ function M.colors()
 	return cached
 end
 
--- Chips, and the float ground they sit on. The ground is this palette's own
--- base, not NormalFloat: with the editor's float background the name blocks
--- were invisible -- onedark's #31353f against the chips' #313244 -- and the
--- blocks only read as blocks because tmux puts them on the darker bar.
+-- Chips and their ground. This palette's own base, not NormalFloat: against
+-- the editor's float background the name blocks were invisible (#31353f vs
+-- #313244) -- they only read as blocks on a darker ground.
 function M.highlights()
 	local c = M.colors()
 	local hls = {
@@ -115,25 +102,19 @@ end
 
 M.WINHIGHLIGHT = "NormalFloat:TmuxChipNormal,FloatBorder:TmuxChipBorder,CursorLine:TmuxChipCursorLine"
 
--- tabs: { { label = "overview", suffix = "%#Group#..." }, ... }, index 1 upward.
--- `current` is 1-based to match. `first_index` is the digit shown on the first
--- chip, for callers whose first tab is keyed 0.
+-- tabs: { { label = "overview", suffix = "%#Group#..." }, ... }, 1-based, as is
+-- `current`. `first_index` is the digit on the first chip, for 0-keyed callers.
 --
--- `on_click` is the name of a global Lua function, called with the clicked
--- chip's own number as its first argument -- statusline click labels pass their
--- minwid through, so the number in the label is both what you see and what the
--- handler receives.
+-- `on_click` names a global Lua function, called with the clicked chip's
+-- number: click labels pass their minwid through.
 --
--- Geometry copied from tmux's window-status-format (see tmux/.tmux.conf): the
--- rounded cap is the number block's left edge, so the digit carries a trailing
--- space only, and the name block opens with one space -- " #W" there.
+-- Geometry copied from tmux's window-status-format: the cap is the number
+-- block's left edge, so the digit carries only a trailing space.
 function M.tabline(tabs, current, first_index, on_click)
-	-- One cell of ground before the first cap, matching the one the close chip
-	-- leaves after itself: without it the row is padded on the right only.
-	-- %< marks where the row is cut when it does not fit. It has to sit before
-	-- the tabs, not after them: truncation eats what follows the marker, so a
-	-- marker after the tabs chewed the close button off the right end instead.
-	-- Here the oldest tabs go and the button always survives.
+	-- One cell of ground before the first cap, matching the close chip's, or
+	-- the row is padded on the right only.
+	-- %< marks where the row is cut. Before the tabs, not after: truncation
+	-- eats what follows the marker, so after them it ate the close button.
 	local parts = { "%<%#TmuxChipFill# " }
 	local n = first_index or 1
 

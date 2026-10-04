@@ -25,10 +25,9 @@ local function toggle_term()
 	end
 
 	if vim.bo[state.buf].buftype ~= "terminal" then
-		-- :terminal replaces the window's buffer rather than converting it, so the
-		-- scratch buffer the float was opened with is thrown away here -- along
-		-- with anything attached to it. Re-read the real buffer and guard that
-		-- one, or Ctrl-hjkl walks out of the float.
+		-- :terminal replaces the window's buffer rather than converting it, so
+		-- the scratch buffer and everything attached to it is thrown away.
+		-- Re-read and guard the real one, or Ctrl-hjkl walks out of the float.
 		term_env.without_tmux(vim.cmd.terminal)
 		state.buf = api.nvim_get_current_buf()
 		vim.bo[state.buf].buflisted = false -- prevent it from appearing in bufferline
@@ -65,10 +64,9 @@ end
 
 -- <leader>tt: Open a real terminal as a bufferline tab
 vim.keymap.set("n", "<leader>tt", function()
-	-- "enew" replaces the buffer in the current window, so running it while the
-	-- cursor sits in Neo-tree hands the sidebar to the terminal and leaves the
-	-- tree to be rescued by the NeoTreeRedirect autocmd. Pick a real editing
-	-- window up front, splitting one off the sidebar if none exists.
+	-- "enew" replaces the current window's buffer, so from Neo-tree it hands
+	-- the sidebar to the terminal. Pick an editing window up front, splitting
+	-- one off if there is none.
 	local target = nil
 	if is_editing_window(api.nvim_get_current_win()) then
 		target = api.nvim_get_current_win()

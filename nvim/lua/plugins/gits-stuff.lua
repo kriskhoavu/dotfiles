@@ -13,13 +13,11 @@ local function reset_lazygit()
 	lg_state.buf, lg_state.win = -1, -1
 end
 
--- Called over RPC by scripts/lazygit-open.sh when lazygit's `e` runs. The float
--- is hidden rather than closed, so the lazygit session survives and <leader>3
--- brings it back exactly where it was.
+-- Called over RPC by scripts/lazygit-open.sh on lazygit's `e`. Hidden, not
+-- closed, so the session survives and \3 brings it back where it was.
 function _G.LazygitOpenFile(path, line)
-	-- The RPC arrives mid-keystroke inside the terminal job. Deferring keeps the
-	-- window juggling out of that context, and lets the shim return immediately
-	-- instead of blocking lazygit's UI.
+	-- The RPC arrives mid-keystroke inside the terminal job: defer, so the shim
+	-- returns at once instead of blocking lazygit's UI.
 	vim.schedule(function()
 		if vim.api.nvim_win_is_valid(lg_state.win) then
 			vim.api.nvim_win_hide(lg_state.win)
@@ -56,9 +54,8 @@ local function toggle_lazygit()
 	})
 	lg_state.buf, lg_state.win = buf, win
 
-	-- Registered once, on the buffer that lives as long as the lazygit session;
-	-- repainted on every open because the winbar belongs to the window, which is
-	-- new each time the float is toggled back.
+	-- Registered once on the long-lived buffer, repainted on every open: the
+	-- winbar belongs to the window, which is new on each toggle.
 	if not lg_state.paint then
 		lg_state.paint = floats.close_button(function()
 			return lg_state.win
@@ -75,9 +72,8 @@ local function toggle_lazygit()
 
 	if vim.bo[buf].buftype ~= "terminal" then
 		local cmd, shim = lazygit_command()
-		-- An argv list, not a shell string: the paths handed to `-ucf` contain
-		-- spaces. The shim's own path travels in the environment so the overlay
-		-- YAML never has to name it.
+		-- An argv list, not a shell string: the `-ucf` paths contain spaces.
+		-- The shim travels in the environment, so the YAML never names it.
 		vim.fn.termopen(cmd, {
 			env = vim.tbl_extend("error", require("term-env").job_env, { LAZYGIT_NVIM_OPEN = shim }),
 			-- Reads the state, not a captured handle: the float is recreated on
@@ -120,18 +116,16 @@ local function close_keys()
     }
 end
 
--- <leader>hd / <leader>hD open a gitsigns diff: a read-only `gitsigns://`
--- revision buffer beside the file. Getting back out is the awkward part, so the
--- teardown lives here rather than in the keymap: the revision pane gets its own
--- q/<esc>, and a bare `:q` from either pane is caught as well.
+-- \hd / \hD open a read-only `gitsigns://` revision buffer beside the file.
+-- Getting out is the awkward part, so the teardown lives here: the revision
+-- pane gets q/<esc>, and a bare `:q` from either pane is caught too.
 
 local function is_revision_buf(buf)
     return vim.api.nvim_buf_get_name(buf):match("^gitsigns://") ~= nil
 end
 
--- The revision panes of the current tab. They are matched by name rather than by
--- the 'diff' option: gitsigns clears 'diff' itself on some teardown paths, and a
--- pane left behind by `:q` would then be invisible to this code.
+-- Matched by name, not by 'diff': gitsigns clears that on some teardown paths,
+-- and a pane left by `:q` would then be invisible here.
 local function revision_windows(tab)
     local revision = {}
     for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
@@ -146,12 +140,9 @@ end
 -- when `:q` has already taken its window away.
 local diff_origin = {}
 
--- The panes showing the file this diff was opened from. Matching the remembered
--- buffer, rather than every window with 'diff' set, keeps an unrelated diff in
--- the same tab (Diffview's blob panes, a hand-rolled :diffsplit) out of the
--- teardown. Only when the diff was started outside these keymaps -- `:Gitsigns
--- diffthis` -- is there nothing to match, and then clearing every diff window is
--- still better than leaving 'diff' set on the file.
+-- Matched against the remembered buffer, not every window with 'diff', so an
+-- unrelated diff in the same tab stays out of the teardown. With nothing to
+-- match (`:Gitsigns diffthis`), clearing them all still beats leaving 'diff'.
 local function origin_windows(tab)
     local origin = diff_origin[tab]
     local known = origin ~= nil and vim.api.nvim_buf_is_valid(origin)
@@ -176,9 +167,8 @@ local function close_gitsigns_diff_view()
     end
     local file = origin_windows(tab)
 
-    -- 'diff' is a window option, so it has to be cleared while the windows still
-    -- exist. Only this view's panes are touched, which leaves an unrelated diff
-    -- (Diffview, a hand-rolled :diffsplit) alone -- `diffoff!` would not.
+    -- 'diff' is a window option, so clear it while the windows exist. Only
+    -- this view's panes, which `diffoff!` would not respect.
     for _, group in ipairs({ revision, file }) do
         for _, win in ipairs(group) do
             if vim.api.nvim_win_is_valid(win) then
@@ -189,9 +179,8 @@ local function close_gitsigns_diff_view()
         end
     end
 
-    -- `:q` in the file pane leaves the revision blob as the only window. It is an
-    -- `acwrite` view of the git index, where `:w` would stage lines, so put the
-    -- real file back instead of closing the last window and stranding the user.
+    -- `:q` in the file pane leaves the revision blob alone on screen -- an
+    -- `acwrite` view of the index where `:w` stages lines. Put the file back.
     if #file == 0 then
         local keep = table.remove(revision, 1)
         local origin = diff_origin[tab]
@@ -211,10 +200,8 @@ local function close_gitsigns_diff_view()
     diff_origin[tab] = nil
 end
 
--- Keying the toggle off an open revision pane, rather than off `vim.wo.diff`,
--- matters: gitsigns resets 'diff' when the revision buffer is hidden, and a
--- toggle that trusted it would diff the git index against itself and stack up
--- another pane every press.
+-- Keyed off an open revision pane, not `vim.wo.diff`: gitsigns resets that when
+-- the buffer hides, so a toggle trusting it stacks a pane on every press.
 local function toggle_gitsigns_diff(base)
     if #revision_windows(0) > 0 then
         close_gitsigns_diff_view()
@@ -227,9 +214,8 @@ end
 
 local gitsigns_diff_group = vim.api.nvim_create_augroup("GitsignsDiffViewClose", { clear = true })
 
--- gitsigns builds the revision buffer asynchronously, so its exit keys are bound
--- when the window shows up. Binding them after the `diffthis` call returns would
--- leave a window in which no key gets you out.
+-- gitsigns builds the revision buffer asynchronously, so bind the exit keys
+-- when the window appears -- after `diffthis` returns is too early.
 vim.api.nvim_create_autocmd("BufWinEnter", {
     group = gitsigns_diff_group,
     pattern = "gitsigns://*",
@@ -323,9 +309,8 @@ return {
         config = function(_, opts)
             require("diffview").setup(opts)
 
-            -- Diffview's left pane is a git blob with no path on disk, so LSPs
-            -- can't resolve the project and flood it with bogus errors. Diff mode
-            -- is for reading: mute diagnostics until the view closes.
+            -- Diffview's left pane is a blob with no path, so LSPs cannot
+            -- resolve the project and flood it. Mute until the view closes.
             local diagnostics_were_enabled = true
             vim.api.nvim_create_autocmd("User", {
                 group = vim.api.nvim_create_augroup("DiffviewQuietDiagnostics", { clear = true }),

@@ -9,11 +9,9 @@ return {
 		local ts = require("nvim-treesitter")
 		ts.setup()
 
-		-- This plugin's main branch dropped the old option table: setup() only
-		-- understands install_dir, so the ensure_installed/highlight/indent
-		-- options here were silently ignored and no parser was ever installed.
-		-- Parsers are requested explicitly, and highlighting is started per
-		-- buffer instead of being switched on globally.
+		-- main dropped the old option table: setup() understands only
+		-- install_dir, so ensure_installed/highlight/indent were ignored and no
+		-- parser installed. Request parsers explicitly, highlight per buffer.
 		local languages = {
 			"bash",
 			"groovy",

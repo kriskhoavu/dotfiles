@@ -28,10 +28,9 @@ return {
           if not current then return end
 
           if not current:is_expanded() then
-            -- Only the unloaded branch of toggle_directory renders and fires the
-            -- callback; for an already scanned node it does neither once
-            -- skip_redraw is set, which left a collapsed directory expanded in
-            -- the tree but never repainted. Drive that case here instead.
+            -- toggle_directory only renders on its unloaded branch; with
+            -- skip_redraw an already scanned node collapses but never
+            -- repaints. Drive that case here.
             if current.loaded == false then
               fs.toggle_directory(state, current, nil, true, false, function()
                 vim.schedule(function()
@@ -87,14 +86,9 @@ return {
           group_empty_dirs = false,
           follow_current_file = { enabled = false },
           filtered_items = {
-            -- visible keeps every entry on screen; the hide_* flags only mark
-            -- them as filtered, which is what dims them.
-            --
-            -- So dotfiles are deliberately not marked: a leading dot says where
-            -- a file sits in a convention, not that it matters less, and
-            -- .github or .claude is as much a part of the tree as anything
-            -- else. Being ignored by git is the thing worth dimming, and that
-            -- is the one flag left on.
+            -- visible keeps everything on screen; the hide_* flags only mark
+            -- entries as filtered, which is what dims them. A leading dot is
+            -- a convention, not a demotion -- only gitignored is dimmed.
             visible = true,
             hide_dotfiles = false,
             hide_gitignored = true,
@@ -115,9 +109,8 @@ return {
                 }
               end
 
-              -- Dim dotfiles and ignored entries the way the icon already does:
-              -- overriding this component dropped the dimming the default one
-              -- applies, so only the icon stayed gray.
+              -- Overriding this component drops the dimming the default one
+              -- applies, which left only the icon gray.
               if config.use_filtered_colors ~= false then
                 local filtered_by = common.filtered_by(config, node, state)
                 highlight = filtered_by.highlight or highlight
@@ -161,12 +154,10 @@ return {
         git_status = {
           window = {
             mappings = {
-              -- The source ships staging and commit actions but no diff, so
-              -- reviewing a change means leaving the tree. gd joins the g-prefixed
-              -- family and opens Diffview scoped to the file under the cursor.
-              -- Go through the Lua API, not :DiffviewOpen: the command only
-              -- exists once the plugin has loaded, and passing the path as its
-              -- own argument keeps paths with spaces intact.
+              -- The source has staging and commits but no diff. gd opens
+              -- Diffview on the file under the cursor. Lua API, not
+              -- :DiffviewOpen: the command exists only once loaded, and a
+              -- separate argument keeps paths with spaces intact.
               ["gd"] = function(state)
                 local node = state.tree:get_node()
                 if not node or not node.path or node.type == "directory" then return end
@@ -238,11 +229,9 @@ return {
             vim.api.nvim_win_set_buf(target, buf)
             vim.api.nvim_set_current_win(target)
           else
-            -- No editing window exists yet — split one off to the right and
-            -- move the file into it, then hand the tree window back to the
-            -- tree. The old "wincmd l | edit #" threw E499 whenever there was
-            -- no alternate file, which is exactly the state left behind after
-            -- closing the last file buffer.
+            -- No editing window yet: split one off, move the file into it,
+            -- hand the tree window back. "wincmd l | edit #" threw E499 with
+            -- no alternate file -- exactly the state after closing the last.
             vim.cmd("rightbelow vsplit")
             vim.api.nvim_win_set_buf(0, buf)
             if neotree_buf_id and vim.api.nvim_buf_is_valid(neotree_buf_id)
@@ -261,11 +250,9 @@ return {
           vim.cmd("Neotree filesystem reveal left")
           vim.cmd("wincmd l")
 
-          -- A restored session brings its terminal back as an unloaded buffer,
-          -- and an unloaded buffer reports buftype "", so matching on buftype
-          -- alone misses it: every start opened another terminal and left the
-          -- previous ones listed in the bufferline. Match the term:// name
-          -- instead, keep a live terminal, and wipe the husks.
+          -- A restored terminal comes back unloaded, and an unloaded buffer
+          -- reports buftype "", so buftype alone misses it and every start
+          -- added another. Match the term:// name, keep one, wipe the husks.
           local live, dead = nil, {}
           for _, buf in ipairs(vim.api.nvim_list_bufs()) do
             if vim.api.nvim_buf_is_valid(buf)

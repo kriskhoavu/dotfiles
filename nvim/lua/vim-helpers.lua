@@ -15,10 +15,8 @@ local function find_shortcut_help()
 	end
 end
 
--- The help is a tabbed float, one tab per "##" section of SHORTCUTS.md, sharing
--- the tmux-style chips with the org git float. The file is over 400 lines: as a
--- single markdown buffer, finding the tmux table meant scrolling past every
--- Neovim mapping, and the sections are already grouped by purpose.
+-- A tabbed float, one tab per "##" section of SHORTCUTS.md, sharing the chips
+-- with the org git float. The file is 400+ lines, already grouped by purpose.
 --
 -- Tabs are derived from the file rather than listed here, so a new "##" section
 -- becomes a new tab with no code change.
@@ -135,10 +133,8 @@ function help_show(idx)
 		buf = vim.api.nvim_create_buf(false, true)
 		help.bufs[idx] = buf
 
-		-- The heading is re-added: it is the section's own title, and without it
-		-- the markdown renderer has nothing to anchor the tab's content on.
-		-- A blank row under the tabline: the heading sat directly against the tabs
-		-- and read as part of the header rather than as the start of the content.
+		-- The heading goes back: the markdown renderer needs it to anchor on.
+		-- The blank row keeps it from reading as part of the tabline.
 		local lines = { "" }
 		if section.intro then
 			vim.list_extend(lines, section.intro)

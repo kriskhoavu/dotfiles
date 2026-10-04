@@ -1,12 +1,10 @@
 #!/bin/bash
 # Flip this config between light and dark.
 #
-# The theme is our own state, in ~/.config/kris-theme, not macOS's. None of the
-# three tools can follow the system appearance by itself: tmux answers an OSC 11
-# query from a value it cached when its client attached, nothing can tell a
-# running Neovim the desktop changed, and WezTerm only re-reads its config when
-# a config file changes. Since a script has to exist either way, it owns the
-# state rather than mirroring macOS into three places.
+# The theme is our own state, in ~/.config/kris-theme. None of the three tools
+# can follow macOS alone: tmux answers OSC 11 from a cached value, nothing can
+# tell a running nvim, and WezTerm re-reads only on a file change. A script has
+# to exist either way, so it owns the state.
 #
 # Anything but "light" in that file is dark, so a missing file is dark.
 #
@@ -57,23 +55,17 @@ fi
 
 echo "── tmux ──"
 if tmux info &>/dev/null; then
-    # Just the theme file, not ~/.tmux.conf: sourcing the whole config re-runs
-    # tpm and every plugin with it, measured at ~1.4s -- the bulk of what the
-    # keypress used to cost. The theme file is self-contained now: it sets the
-    # pane-chrome options, the two border styles, mode-style and the popup
-    # styles outright, so sourcing it is the whole job. (It used to need a
-    # second call to re-apply mode-style, which catppuccin claimed at tpm time.)
-    # Everything the status bar draws with is identical in both themes.
+    # The theme file only, not ~/.tmux.conf: sourcing the whole config re-runs
+    # tpm and every plugin, ~1.4s. The theme file is self-contained, and the
+    # status bar is identical in both themes.
     echo "  sourcing themes/$TARGET.conf"
     (( DRY )) || tmux source-file "$HOME/.config/tmux/themes/$TARGET.conf"
 else
     echo "  (no tmux server running)"
 fi
 
-# Neovim runs the editor as `nvim --embed` behind the TUI, and its socket is
-# named for that pid. --remote-expr blocks forever against an instance that is
-# busy or waiting on a prompt, so cap every call. (Same guard as
-# reload-shells.sh, for the same reason.)
+# The socket is named for the `nvim --embed` pid behind the TUI. --remote-expr
+# blocks forever on a busy instance, so cap every call.
 nvim_expr() {
     perl -e 'alarm 4; exec @ARGV' nvim --server "$1" --remote-expr "$2" 2>/dev/null
 }
@@ -96,9 +88,8 @@ for sock in "${socks[@]}"; do
     fi
     printf '  restart nvim %-8s\n' "$pid"
     ((restarted++))
-    # `wall` first: plain :restart quits with :qall, which refuses to leave a
-    # modified buffer behind. Writing everything first matches what this config
-    # already does on BufLeave and FocusLost.
+    # `wall` first: :restart quits with :qall, which refuses a modified
+    # buffer. Matches what BufLeave and FocusLost already do.
     #
     # The restart tears down this very socket, so the call is expected to return
     # nothing -- that is success, not the timeout above.

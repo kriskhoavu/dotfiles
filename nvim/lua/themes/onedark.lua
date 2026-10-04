@@ -9,11 +9,8 @@ return {
         local c = mode.colors
 
         -- Neo-tree chrome the palette cannot reach: the title bar sets only a
-        -- background, so it inherits whatever foreground happens to be current,
-        -- and the tab chips and their separators carry near-black literals from
-        -- the plugin itself. Light only -- dark already reads correctly with
-        -- onedark's own values, and these are exactly the groups that would
-        -- change it.
+        -- background, and the tab chips carry near-black literals from the
+        -- plugin. Light only; dark already reads correctly.
         local neotree_chrome = mode.is_light and {
             NeoTreeTitleBar = { fg = c.ink, bg = c.ramp_4 },
             NeoTreeTabActive = { fg = c.ink, bg = c.ramp_0, bold = true },
@@ -31,14 +28,10 @@ return {
                 strings = "none",
                 variables = "none",
             },
-            -- `transparent` only clears Normal. Every surface onedark actually
-            -- paints -- the statusline, the tab line, Pmenu, Neo-tree's title
-            -- bar and float chrome -- keeps coming from its own palette, and
-            -- One Light's greys are near-white (#fafafa, #f0f0f0, #e6e6e6) with
-            -- a cool cast, and against this warm ground they read as grey
-            -- panels on paper. So the light palette's neutrals are replaced
-            -- with the same ramp WezTerm uses, and every group derived from
-            -- them follows.
+            -- `transparent` clears Normal only; every surface onedark paints
+            -- still comes from its own palette. One Light's greys are cool
+            -- near-whites and read as grey panels on this warm ground, so the
+            -- light neutrals are swapped for WezTerm's ramp.
             colors = mode.is_light and {
                 bg0 = c.ramp_0,
                 bg1 = c.ramp_1,
@@ -46,8 +39,7 @@ return {
                 bg3 = c.ramp_3,
                 bg_d = c.ramp_4,
                 fg = c.ink,
-                -- Darkened from onedark's own grey, which is a muted 2.5:1 on
-                -- its near-white ground -- comments at that weight are no
+                -- onedark's own grey is 2.5:1 on its near-white ground, no
                 -- easier to read on this one. c.muted is 5:1.
                 grey = c.muted,
                 light_grey = c.muted_ui,

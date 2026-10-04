@@ -1,11 +1,8 @@
-# Neovim's :terminal is a terminal emulator in its own right, so a shell started
-# there is a child of Neovim, not of tmux -- but it inherits $TMUX all the same.
-# Anything that checks it then believes it talks straight to tmux and wraps
-# clipboard writes in tmux's DCS passthrough form, which Neovim cannot decode:
-# the wrapper is dropped and the payload lands on screen as raw base64. Claude
-# Code corrupts its own session the moment it copies. Dropping $TMUX here makes
-# every such program fall back to plain OSC 52, which Neovim does handle.
-# `tmux` still reaches its server over the default socket.
+# A shell in Neovim's :terminal is a child of Neovim, not of tmux, but inherits
+# $TMUX anyway. Anything that checks it wraps clipboard writes in tmux's DCS
+# passthrough form, which Neovim cannot decode -- the payload lands on screen as
+# raw base64. Dropping $TMUX gets plain OSC 52 instead. `tmux` still reaches its
+# server over the default socket.
 if [[ -n "$NVIM" && -n "$TMUX" ]]; then
   unset TMUX TMUX_PANE
 fi
@@ -15,12 +12,10 @@ ZSH_DISABLE_COMPFIX="true"
 DISABLE_AUTO_UPDATE="true"
 DISABLE_MAGIC_FUNCTIONS="true"
 
-# Normalize fpath before OMZ touches it.
-# `brew shellenv` (in ~/.zprofile) exports FPATH, so every nested shell inherits it and
-# oh-my-zsh.sh prepends its own 7 dirs again — fpath grows by 7 per nesting level. OMZ
-# fingerprints $fpath into the zcompdump and deletes the dump whenever that changes, so
-# login and nested shells kept invalidating each other and paid a full compinit (~1-3s)
-# on every alternation. Deduping and sorting makes the fingerprint shell-independent.
+# Normalize fpath before OMZ touches it. `brew shellenv` exports FPATH, so OMZ
+# prepends its 7 dirs again per nesting level. OMZ fingerprints $fpath into the
+# zcompdump and drops the dump when it changes, so login and nested shells kept
+# invalidating each other at ~1-3s a time. Dedupe makes it shell-independent.
 typeset -U fpath
 fpath=(${(o)fpath})
 
@@ -34,9 +29,8 @@ ZSH_COMPDUMP="${ZDOTDIR:-$HOME}/.zcompdump-${ZSH_VERSION}"
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 
-# Speed up compinit: intercept OMZ's call to use -C (cached dump) when dump is fresh.
-# OMZ deletes the dump when its version or fpath changes, so we fall back to a full
-# scan only then. This alone saves ~1-3s per shell startup.
+# Intercept OMZ's compinit to use -C while the dump is fresh; OMZ deletes it
+# when its version or fpath changes, so a full scan happens only then. ~1-3s.
 function compinit() {
   unfunction compinit
   autoload -Uz compinit
@@ -75,9 +69,8 @@ plugins=(
     zsh-history-substring-search
 )
 
-# OMZ recompiles the dump under a mkdir lock. If a shell is killed mid-recompile the lock
-# leaks and OMZ silently skips the .zwc forever. Clear it only once it is minutes old, so a
-# lock held by a shell starting right now is left alone.
+# OMZ recompiles under a mkdir lock; a shell killed mid-recompile leaks it and
+# OMZ silently skips the .zwc forever. Clear only once it is minutes old.
 _zsh_stale_lock=( "${ZSH_COMPDUMP}.lock"(N/mm+5) )
 (( $#_zsh_stale_lock )) && rmdir "${ZSH_COMPDUMP}.lock" 2>/dev/null
 unset _zsh_stale_lock
@@ -122,9 +115,8 @@ function _set_wezterm_tab_title() {
   local osc7
   local target_path="${1:-$PWD}"
 
-  # OSC 7: report cwd to WezTerm so tab title + git status work
-  # Inside tmux the sequence must be wrapped in a DCS passthrough,
-  # otherwise tmux intercepts it and WezTerm never sees it.
+  # OSC 7: report cwd to WezTerm for the tab title and git status. Inside tmux
+  # it needs the DCS passthrough wrapper, or tmux eats it.
   if [ -n "$TMUX" ]; then
     osc7=$'\ePtmux;\e\e]7;file://'"$HOST$target_path"$'\a\e\\'
   else

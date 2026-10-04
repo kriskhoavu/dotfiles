@@ -91,10 +91,9 @@ M.light = {
 M.dark.status_bar_bg = "#151414"
 M.light.status_bar_bg = "#151414"
 
--- Which half is current, from ~/.config/kris-theme -- this config's own state,
--- not macOS's, since tmux and Neovim cannot follow the system appearance
--- anyway. Missing or unreadable means dark. Re-read on every call, so handlers
--- that outlive a config reload pick up a switch.
+-- Which half is current, from ~/.config/kris-theme: this config's own state,
+-- since tmux and nvim cannot follow macOS anyway. Missing means dark. Re-read
+-- every call, so handlers outliving a reload see a switch.
 local STATE = os.getenv("HOME") .. "/.config/kris-theme"
 
 function M.current()

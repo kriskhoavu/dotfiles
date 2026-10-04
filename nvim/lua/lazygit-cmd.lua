@@ -20,10 +20,9 @@ function M.build()
 	if vim.uv.fs_stat(user_config) then
 		table.insert(configs, user_config)
 	end
-	-- The half of the lazygit theme that matches the current appearance. Same
-	-- split, and the same state file, as the `lazygit` wrapper in
-	-- zsh/git-stuff.zsh -- the floats would otherwise always get the dark one,
-	-- since only ~/.config/lazygit/config.yml is read by default.
+	-- The half matching the current appearance, same split and state file as
+	-- the wrapper in zsh/git-stuff.zsh. Without it the floats always get dark:
+	-- only ~/.config/lazygit/config.yml is read by default.
 	local theme = require("theme-mode").is_light and "theme-light.yml" or "theme-dark.yml"
 	local theme_config = vim.fs.joinpath(vim.env.XDG_CONFIG_HOME or vim.fn.expand("~/.config"), "lazygit", theme)
 	if vim.uv.fs_stat(theme_config) then

@@ -1,16 +1,13 @@
--- Helm templates are Go templates, not YAML: yamlls reports every {{ ... }} as
--- "Missing , or : between flow map items". This plugin detects charts as the
--- "helm" filetype -- which yamlls ignores and helm_ls claims -- and ships the
--- Go template syntax that plain YAML highlighting cannot provide.
+-- Helm templates are Go templates, not YAML, and yamlls reports every {{ }} as
+-- "Missing , or : between flow map items". This plugin claims them as the
+-- "helm" filetype and ships the Go template syntax.
 return {
 	"towolf/vim-helm",
 	lazy = false, -- its ftdetect has to run before the first chart file opens
 	init = function()
-		-- vim-helm switches the filetype from inside a "FileType yaml" autocmd,
-		-- so the yaml syntax load finishes last and leaves b:current_syntax as
-		-- "yaml": syntax/helm.vim is sourced but its Go template groups never
-		-- apply, and everything inside {{ }} renders as a plain scalar. Ask for
-		-- the helm syntax again once the filetype has settled.
+		-- vim-helm switches filetype from inside a "FileType yaml" autocmd, so
+		-- the yaml syntax loads last and b:current_syntax stays "yaml" -- the
+		-- Go template groups never apply. Ask again once it has settled.
 		vim.api.nvim_create_autocmd("FileType", {
 			pattern = "helm",
 			callback = function(args)

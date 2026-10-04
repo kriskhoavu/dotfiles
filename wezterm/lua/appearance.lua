@@ -41,13 +41,11 @@ return function(config)
 
   -- Fully opaque body, plus a dark band along the bottom edge.
   --
-  -- The window is rarely an exact multiple of the cell size, and WezTerm fills
-  -- the leftover with the terminal background -- a light notch under and beside
-  -- tmux's dark bar. The centred strip does not reach the window's edges, so
-  -- each corner gets its own layer anchored to the edge it covers. 48 physical
-  -- pixels is one cell row plus the remainder below it; at 24 it covered two
-  -- thirds of the row. Stands in for window_content_alignment, which this build
-  -- does not have.
+  -- The window is rarely an exact multiple of the cell size, and the leftover
+  -- is filled with the terminal background: a light notch beside tmux's dark
+  -- bar. The centred strip misses the edges, so each corner gets its own layer.
+  -- 48 physical pixels is one cell row plus the remainder; 24 covered two
+  -- thirds. Stands in for window_content_alignment, absent in this build.
   local bottom_band = function(align)
     return {
       source = { Color = p.status_bar_bg },

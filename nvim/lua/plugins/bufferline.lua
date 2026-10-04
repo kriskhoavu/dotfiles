@@ -5,18 +5,15 @@ return {
     event = "VimEnter",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
-      -- High-contrast selected tab: dark-red surface with a bold white label.
-      -- The chip stays dark in both appearances -- it mirrors WezTerm's active
-      -- tab -- so only the unselected surfaces below change with the theme.
+      -- Dark-red surface, bold white label. Dark in both appearances, like
+      -- WezTerm's active tab, so only the unselected surfaces follow the theme.
       local mode = require("theme-mode")
       local c = mode.colors
       local selected_background = mode.selected_bg
 
-      -- ":bdelete" on a buffer that is on screen closes its window too. With
-      -- Neo-tree plus a single editing window that collapses the layout: the
-      -- tree is left as the only window (looking full screen) and any terminal
-      -- buffer survives with nowhere to show. So point every window at a
-      -- replacement buffer first, then delete.
+      -- :bdelete on a visible buffer closes its window too, which with
+      -- Neo-tree and one editing window leaves the tree alone on screen.
+      -- Point every window at a replacement first, then delete.
       local function close_buffer_keep_layout(bufnr)
         bufnr = bufnr or vim.api.nvim_get_current_buf()
         if not vim.api.nvim_buf_is_valid(bufnr) then return end
@@ -138,9 +135,8 @@ return {
       vim.keymap.set({ "n", "i", "t" }, "<A-h>", "<cmd>BufferLineCyclePrev<cr>", { desc = "Previous buffer" })
       vim.keymap.set({ "n", "i", "t" }, "<A-l>", "<cmd>BufferLineCycleNext<cr>", { desc = "Next buffer" })
 
-      -- No Alt+digit jumps here: tmux binds Alt+1..9 to select-window and, as
-      -- the outer layer, consumes them before the pane sees them. Cycling with
-      -- Alt+h / Alt+l above is the way to move between buffers.
+      -- No Alt+digit: tmux is the outer layer and eats Alt+1..9 first.
+      -- Alt+h / Alt+l above is the way between buffers.
       vim.keymap.set("n", "<leader>x", function()
         local current = vim.fn.bufnr('%')
         local buftype = vim.api.nvim_get_option_value("buftype", { buf = current })
@@ -195,11 +191,8 @@ return {
       end, { desc = "Close current buffer, switch to previous" })
       vim.keymap.set("n", "<leader>X", function()
         local current = vim.api.nvim_get_current_buf()
-        -- A restored session lists its buffers without loading them: Neovim
-        -- waits until you actually visit one before reading the file. So the
-        -- test here is "listed", not "loaded" -- gating on loaded made this do
-        -- nothing at all right after startup, until every buffer had been
-        -- visited once.
+        -- A restored session lists buffers without loading them, so the test
+        -- is "listed": on "loaded" this did nothing until each was visited.
         for _, buf in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
           local bufnr = buf.bufnr
           if bufnr ~= current and vim.bo[bufnr].buftype == "" then
