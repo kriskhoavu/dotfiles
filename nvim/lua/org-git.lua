@@ -19,6 +19,7 @@
 -- tabs and these tabs should never disagree.
 
 local lazygit = require("lazygit-cmd")
+local term_env = require("term-env")
 local chips = require("tmux-chips")
 local floats = require("floating-helpers")
 
@@ -555,7 +556,8 @@ local function repo_buf(repo)
 	vim.fn.jobstart(cmd, {
 		term = true,
 		cwd = repo.path,
-		env = { LAZYGIT_NVIM_OPEN = shim, LAZYGIT_NVIM_FN = "OrgGitOpenFile" },
+		env = vim.tbl_extend("error", term_env.job_env,
+			{ LAZYGIT_NVIM_OPEN = shim, LAZYGIT_NVIM_FN = "OrgGitOpenFile" }),
 		on_exit = function()
 			-- Wipe the dead terminal, else the next visit reuses it and shows
 			-- "[Process exited 0]" instead of starting lazygit.

@@ -79,7 +79,7 @@ local function toggle_lazygit()
 		-- spaces. The shim's own path travels in the environment so the overlay
 		-- YAML never has to name it.
 		vim.fn.termopen(cmd, {
-			env = { LAZYGIT_NVIM_OPEN = shim },
+			env = vim.tbl_extend("error", require("term-env").job_env, { LAZYGIT_NVIM_OPEN = shim }),
 			-- Reads the state, not a captured handle: the float is recreated on
 			-- every toggle, so a captured one goes stale.
 			on_exit = function()

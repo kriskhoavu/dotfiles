@@ -282,7 +282,9 @@ return {
           end
           if live then return end
 
-          vim.cmd("terminal")
+          require("term-env").without_tmux(function()
+            vim.cmd("terminal")
+          end)
         end),
       })
     end,

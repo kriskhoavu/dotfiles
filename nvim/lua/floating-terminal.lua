@@ -1,6 +1,7 @@
 local api = vim.api
 local fn = vim.fn
 local floats = require("floating-helpers")
+local term_env = require("term-env")
 local state = { buf = -1, win = -1 }
 
 local function create_floating_window()
@@ -28,7 +29,7 @@ local function toggle_term()
 		-- scratch buffer the float was opened with is thrown away here -- along
 		-- with anything attached to it. Re-read the real buffer and guard that
 		-- one, or Ctrl-hjkl walks out of the float.
-		vim.cmd.terminal()
+		term_env.without_tmux(vim.cmd.terminal)
 		state.buf = api.nvim_get_current_buf()
 		vim.bo[state.buf].buflisted = false -- prevent it from appearing in bufferline
 		floats.make_modal(state.buf, "the floating terminal")
@@ -87,6 +88,8 @@ vim.keymap.set("n", "<leader>tt", function()
 	end
 
 	vim.cmd("enew")
-	vim.cmd("terminal")
+	term_env.without_tmux(function()
+		vim.cmd("terminal")
+	end)
 	vim.cmd("startinsert")
 end, { desc = "Open terminal as tab" })

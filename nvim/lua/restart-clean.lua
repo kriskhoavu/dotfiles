@@ -15,6 +15,8 @@
 -- happens on the way out instead, leaving :restart nothing to restore, and the
 -- workspace is rebuilt on the way back in.
 
+local term_env = require("term-env")
+
 local api = vim.api
 
 local M = {}
@@ -33,7 +35,9 @@ end
 -- the terminal means the terminal is what has focus, as on a normal start.
 local function open_workspace()
     vim.cmd("silent! only")
-    vim.cmd("terminal")
+    term_env.without_tmux(function()
+        vim.cmd("terminal")
+    end)
     vim.cmd("stopinsert")
 
     -- "show" opens the tree without taking the focus off the terminal.

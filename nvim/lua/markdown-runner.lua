@@ -2,6 +2,7 @@
 -- Keybindings: <leader>mr (run), <leader>ml (list background tasks)
 
 local floats = require("floating-helpers")
+local term_env = require("term-env")
 local RUNNABLE = { sh = true, bash = true, shell = true }
 
 -- Tracks background tasks: { buf, job_id, label }
@@ -178,6 +179,7 @@ local function run_code_block()
 
 	local job_id = vim.fn.termopen("bash " .. tmpfile, {
 		cwd = cwd,
+		env = term_env.job_env,
 		on_exit = function(_, exit_code)
 			vim.fn.delete(tmpfile)
 			vim.schedule(function()

@@ -1,3 +1,15 @@
+# Neovim's :terminal is a terminal emulator in its own right, so a shell started
+# there is a child of Neovim, not of tmux -- but it inherits $TMUX all the same.
+# Anything that checks it then believes it talks straight to tmux and wraps
+# clipboard writes in tmux's DCS passthrough form, which Neovim cannot decode:
+# the wrapper is dropped and the payload lands on screen as raw base64. Claude
+# Code corrupts its own session the moment it copies. Dropping $TMUX here makes
+# every such program fall back to plain OSC 52, which Neovim does handle.
+# `tmux` still reaches its server over the default socket.
+if [[ -n "$NVIM" && -n "$TMUX" ]]; then
+  unset TMUX TMUX_PANE
+fi
+
 # Performance optimizations 
 ZSH_DISABLE_COMPFIX="true"
 DISABLE_AUTO_UPDATE="true"
