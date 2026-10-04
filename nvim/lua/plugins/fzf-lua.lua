@@ -189,6 +189,28 @@ return {
                     -- is bound on the preview buffer at the same time: over
                     -- there it would otherwise be vim-tmux-navigator's and
                     -- would throw focus out of the picker for good.
+                    -- Esc, answered by fzf itself.
+                    --
+                    -- fzf-lua binds esc inside fzf as an execute-silent that
+                    -- spawns a fresh nvim to call back into this one; when any
+                    -- link in that chain does not complete, the key does
+                    -- nothing at all and the picker cannot be closed -- found
+                    -- twice in one session, one of them alive for 2h18m. Ctrl-C
+                    -- is bound in fzf as print(ctrl-c)+accept, which fzf answers
+                    -- on its own, so this sends that byte straight down the
+                    -- terminal channel: no child process, nothing to hang.
+                    local function abort()
+                        local chan = vim.bo[buf].channel
+                        if chan and chan > 0 then
+                            vim.api.nvim_chan_send(chan, string.char(3))
+                        end
+                    end
+                    vim.keymap.set("t", "<Esc>", abort, {
+                        buffer = buf,
+                        silent = true,
+                        desc = "Close the picker",
+                    })
+
                     vim.keymap.set("t", "<C-l>", function()
                         local win = require("fzf-lua.win").__SELF()
                         if not win or not win.preview_winid or not vim.api.nvim_win_is_valid(win.preview_winid) then
@@ -212,10 +234,7 @@ return {
                                 return
                             end
                             vim.api.nvim_set_current_win(fzf_winid)
-                            local chan = vim.bo[vim.api.nvim_win_get_buf(fzf_winid)].channel
-                            if chan and chan > 0 then
-                                vim.api.nvim_chan_send(chan, "\27")
-                            end
+                            abort()
                         end, { buffer = preview_buf, silent = true, desc = "Close the picker" })
                         vim.api.nvim_set_current_win(win.preview_winid)
                     end, { buffer = buf, silent = true, desc = "Focus the preview" })
