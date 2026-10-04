@@ -259,6 +259,18 @@ return {
         "lewis6991/gitsigns.nvim",
         event = { "BufReadPre", "BufNewFile" },
         opts = {
+            -- Who last touched the line under the cursor, at the end of it.
+            -- Virtual text, so it never shifts the buffer's own columns.
+            current_line_blame = true,
+            current_line_blame_opts = {
+                virt_text = true,
+                virt_text_pos = "eol",
+                -- Long enough that it does not flicker while j/k is held.
+                delay = 300,
+                ignore_whitespace = false,
+            },
+            current_line_blame_formatter = "  <author>, <author_time:%R> - <summary>",
+
             on_attach = function(bufnr)
                 local gs = package.loaded.gitsigns
                 local function map(mode, l, r, desc)
