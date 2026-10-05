@@ -153,15 +153,15 @@ return {
                 width = 0.90,
                 height = 0.85,
                 preview = { layout = "horizontal" },
-                -- Keep focus in the picker. fzf-lua builds its own window, so
-                -- it never got the modal guard, and vim-tmux-navigator's
-                -- Ctrl-hjkl threw focus behind the popup.
-                --
-                -- The four then go back to fzf, where Ctrl-j/k are its list
-                -- movement: make_modal sends them to tmux, right for a float
-                -- you read and wrong for one you type into.
                 on_create = function(e)
-                    local buf = e and e.bufnr or vim.api.nvim_get_current_buf()
+                    -- Never fall back to the current buffer. fzf-lua calls this
+                    -- from two places and fzf_bufnr is nil on one of them, so a
+                    -- fallback brands whatever file is open with the picker's
+                    -- buffer-local keys -- permanently, long after it closes.
+                    local buf = e and e.bufnr
+                    if not buf or not vim.api.nvim_buf_is_valid(buf) then
+                        return
+                    end
                     require("floating-helpers").make_modal(buf, "the fzf picker")
                     -- Ctrl-j and Ctrl-k are fzf's own list movement, and Ctrl-h
                     -- has nothing to do here, so all three go to fzf.
@@ -194,29 +194,98 @@ return {
                         desc = "Close the picker",
                     })
 
-                    vim.keymap.set("t", "<C-l>", function()
-                        local win = require("fzf-lua.win").__SELF()
-                        if not win or not win.preview_winid or not vim.api.nvim_win_is_valid(win.preview_winid) then
-                            return
+                    -- Ctrl-hjkl and Esc belong to the picker while one is open.
+                    --
+                    -- Installed once, globally, and never taken back: fzf-lua
+                    -- rebuilds the buffer and the window behind the preview as
+                    -- the selection moves, so a mapping that chases those always
+                    -- loses an entry somewhere and the key is vim-tmux-
+                    -- navigator's again -- focus leaves for the buffer beneath.
+                    --
+                    -- Borrowing and restoring them per picker was worse: maparg
+                    -- answers with the buffer-local mapping when there is one,
+                    -- so what came back was the picker's own Tmux keys, re-bound
+                    -- onto whatever file happened to be current at close.
+                    --
+                    -- With no picker open each key falls through to whatever it
+                    -- meant before, captured here at install time.
+                    if not _G.__fzf_modal_keys then
+                        _G.__fzf_modal_keys = true
+
+                        local function live()
+                            local ok, win = pcall(function()
+                                return require("fzf-lua.win").__SELF()
+                            end)
+                            return ok and win or nil
                         end
-                        local fzf_winid = win.fzf_winid
-                        local preview_buf = vim.api.nvim_win_get_buf(win.preview_winid)
-                        vim.keymap.set("n", "<C-h>", function()
-                            if vim.api.nvim_win_is_valid(fzf_winid) then
-                                vim.api.nvim_set_current_win(fzf_winid)
+
+                        -- Resolved per call, not captured: these outlive every
+                        -- individual picker.
+                        local function to_fzf(byte)
+                            local win = live()
+                            local chan = win and win.fzf_bufnr and vim.bo[win.fzf_bufnr].channel
+                            if chan and chan > 0 then
+                                vim.api.nvim_chan_send(chan, string.char(byte))
+                            end
+                        end
+
+                        local function focus_list()
+                            local win = live()
+                            if win and win.fzf_winid and vim.api.nvim_win_is_valid(win.fzf_winid) then
+                                vim.api.nvim_set_current_win(win.fzf_winid)
                                 vim.cmd.startinsert()
                             end
-                        end, { buffer = preview_buf, silent = true, desc = "Back to the fzf list" })
-                        -- Esc from here too, as fzf's own abort: closing the
-                        -- window behind a running fzf leaves the process.
-                        vim.keymap.set("n", "<Esc>", function()
-                            if not vim.api.nvim_win_is_valid(fzf_winid) then
-                                return
+                        end
+
+                        -- 0x0e and 0x10 are Ctrl-n and Ctrl-p, fzf's own down
+                        -- and up, so the list can be stepped from the preview.
+                        local inside = {
+                            ["<C-h>"] = focus_list,
+                            ["<C-j>"] = function() to_fzf(0x0e) end,
+                            ["<C-k>"] = function() to_fzf(0x10) end,
+                            ["<C-l>"] = function() end,
+                            ["<Esc>"] = function()
+                                focus_list()
+                                to_fzf(0x03)
+                            end,
+                        }
+
+                        -- The global table, not maparg: maparg would answer with
+                        -- the picker's buffer-local mapping.
+                        local function previous(lhs)
+                            local want = vim.api.nvim_replace_termcodes(lhs, true, true, true)
+                            for _, m in ipairs(vim.api.nvim_get_keymap("n")) do
+                                if vim.api.nvim_replace_termcodes(m.lhs, true, true, true) == want then
+                                    return m
+                                end
                             end
-                            vim.api.nvim_set_current_win(fzf_winid)
-                            abort()
-                        end, { buffer = preview_buf, silent = true, desc = "Close the picker" })
-                        vim.api.nvim_set_current_win(win.preview_winid)
+                        end
+
+                        for key, fn in pairs(inside) do
+                            local prev = previous(key)
+                            vim.keymap.set("n", key, function()
+                                if live() then
+                                    fn()
+                                elseif prev and prev.callback then
+                                    prev.callback()
+                                elseif prev and prev.rhs then
+                                    vim.api.nvim_feedkeys(
+                                        vim.api.nvim_replace_termcodes(prev.rhs, true, true, true),
+                                        prev.noremap == 1 and "n" or "m",
+                                        false
+                                    )
+                                end
+                            end, { silent = true, desc = "Stay inside the fzf picker" })
+                        end
+                    end
+
+                    vim.keymap.set("t", "<C-l>", function()
+                        local ok, win = pcall(function()
+                            return require("fzf-lua.win").__SELF()
+                        end)
+                        if ok and win and win.preview_winid and vim.api.nvim_win_is_valid(win.preview_winid) then
+                            vim.api.nvim_set_current_win(win.preview_winid)
+                        end
                     end, { buffer = buf, silent = true, desc = "Focus the preview" })
                 end,
             },
