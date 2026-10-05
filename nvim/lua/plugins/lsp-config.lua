@@ -67,12 +67,28 @@ return {
 			-- Enable LSP servers
 			vim.lsp.enable({ "lua_ls", "ts_ls", "eslint", "yamlls", "bashls", "helm_ls" }, true)
 
+			-- The pickers that can return many results go through fzf-lua, which
+			-- shows each hit in its file beside the list -- reading a reference
+			-- no longer means opening it and coming back. Falls back to the
+			-- builtin, which fills the quickfix list, if fzf-lua is missing.
+			-- jump1 skips the picker when there is only one hit.
+			local function lsp_list(picker, builtin)
+				return function()
+					local ok, fzf = pcall(require, "fzf-lua")
+					if ok then
+						fzf[picker]({ jump1 = true, ignore_current_line = true })
+					else
+						builtin()
+					end
+				end
+			end
+
 			-- LSP Keymaps
 			vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-			vim.keymap.set("n", "gi", vim.lsp.buf.implementation, {})
+			vim.keymap.set("n", "gi", lsp_list("lsp_implementations", vim.lsp.buf.implementation), {})
 			vim.keymap.set("n", "gd", vim.lsp.buf.definition, {})
 			vim.keymap.set("n", "gD", vim.lsp.buf.declaration, {})
-			vim.keymap.set("n", "gr", vim.lsp.buf.references, {})
+			vim.keymap.set("n", "gr", lsp_list("lsp_references", vim.lsp.buf.references), {})
 			vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
 			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, {})
 			vim.keymap.set("n", "gs", vim.lsp.buf.signature_help, {})
