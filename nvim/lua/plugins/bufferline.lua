@@ -156,14 +156,7 @@ return {
         end
 
         -- Count real editing windows (exclude NeoTree, floating, nofile)
-        local editing_wins = {}
-        for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-          local cfg = vim.api.nvim_win_get_config(w)
-          local wbuf = vim.api.nvim_win_get_buf(w)
-          if cfg.relative == "" and vim.bo[wbuf].filetype ~= "neo-tree" then
-            table.insert(editing_wins, w)
-          end
-        end
+        local editing_wins = require("edit-windows").list()
 
         if #editing_wins > 1 then
           -- Multiple splits open: close this window, delete buffer if no longer visible

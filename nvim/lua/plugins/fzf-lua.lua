@@ -84,17 +84,8 @@ end
 local function focus_edit_window()
     if vim.bo.filetype ~= "neo-tree" then return end
 
-    local cur_win = vim.api.nvim_get_current_win()
-    for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-        if w ~= cur_win then
-            local cfg = vim.api.nvim_win_get_config(w)
-            local buf = vim.api.nvim_win_get_buf(w)
-            if cfg.relative == "" and vim.bo[buf].filetype ~= "neo-tree" then
-                vim.api.nvim_set_current_win(w)
-                return
-            end
-        end
-    end
+    local w = require("edit-windows").list()[1]
+    if w then vim.api.nvim_set_current_win(w) end
 end
 
 return {

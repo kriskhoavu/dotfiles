@@ -100,11 +100,8 @@ local function focus_edit_window()
         return
     end
 
-    for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
-        local cfg = api.nvim_win_get_config(win)
-        local wbuf = api.nvim_win_get_buf(win)
-        if cfg.relative == "" and vim.bo[wbuf].filetype ~= "neo-tree"
-            and vim.bo[wbuf].buftype == "" then
+    for _, win in ipairs(require("edit-windows").list()) do
+        if vim.bo[api.nvim_win_get_buf(win)].buftype == "" then
             api.nvim_set_current_win(win)
             return
         end

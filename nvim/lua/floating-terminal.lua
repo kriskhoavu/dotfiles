@@ -54,13 +54,8 @@ api.nvim_create_user_command("FloatingTerminal", toggle_term, {})
 -- <leader>9: Toggle Terminal (floating)
 vim.keymap.set({ "n", "t" }, "<leader>9", toggle_term, { desc = "Toggle floating terminal" })
 
--- A window a terminal may take over: not floating, not the Neo-tree sidebar.
-local function is_editing_window(win)
-	if api.nvim_win_get_config(win).relative ~= "" then
-		return false
-	end
-	return vim.bo[api.nvim_win_get_buf(win)].filetype ~= "neo-tree"
-end
+-- A window a terminal may take over.
+local is_editing_window = require("edit-windows").is_editing
 
 -- <leader>tt: Open a real terminal as a bufferline tab
 vim.keymap.set("n", "<leader>tt", function()

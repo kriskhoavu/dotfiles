@@ -190,14 +190,9 @@ end, { desc = "Toggle resize mode (hjkl to resize)" })
 -- Focus the leftmost editing window in current tab (ignores Neo-tree and floating windows)
 local function focus_leftmost_edit_window()
     local candidates = {}
-
-    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-        local cfg = vim.api.nvim_win_get_config(win)
-        local buf = vim.api.nvim_win_get_buf(win)
-        if cfg.relative == "" and vim.bo[buf].filetype ~= "neo-tree" then
-            local pos = vim.api.nvim_win_get_position(win)
-            table.insert(candidates, { win = win, row = pos[1], col = pos[2] })
-        end
+    for _, win in ipairs(require("edit-windows").list()) do
+        local pos = vim.api.nvim_win_get_position(win)
+        table.insert(candidates, { win = win, row = pos[1], col = pos[2] })
     end
 
     if #candidates == 0 then
@@ -232,15 +227,8 @@ vim.keymap.set("i", "<leader>`", focus_leftmost_edit_window_from_insert, { desc 
 vim.keymap.set("n", "<leader>sd", function()
     if vim.bo.filetype == "neo-tree" then return end
     local current_buf = vim.api.nvim_get_current_buf()
-    -- Find editing windows (exclude neo-tree, floating)
-    local edit_wins = {}
-    for _, w in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-      local cfg = vim.api.nvim_win_get_config(w)
-      local wbuf = vim.api.nvim_win_get_buf(w)
-      if cfg.relative == "" and vim.bo[wbuf].filetype ~= "neo-tree" then
-        table.insert(edit_wins, w)
-      end
-    end
+    local edit_windows = require("edit-windows")
+    local edit_wins = edit_windows.list()
     local current_win = vim.api.nvim_get_current_win()
     if #edit_wins <= 1 then
       -- Only one split: place the current buffer on the right and keep the
@@ -259,17 +247,13 @@ vim.keymap.set("n", "<leader>sd", function()
 
       vim.cmd("vsplit")
       local left_win, right_win
-      for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-        local cfg = vim.api.nvim_win_get_config(win)
-        local buf = vim.api.nvim_win_get_buf(win)
-        if cfg.relative == "" and vim.bo[buf].filetype ~= "neo-tree" then
-          local col = vim.api.nvim_win_get_position(win)[2]
-          if not left_win or col < left_win.col then
-            left_win = { id = win, col = col }
-          end
-          if not right_win or col > right_win.col then
-            right_win = { id = win, col = col }
-          end
+      for _, win in ipairs(edit_windows.list()) do
+        local col = vim.api.nvim_win_get_position(win)[2]
+        if not left_win or col < left_win.col then
+          left_win = { id = win, col = col }
+        end
+        if not right_win or col > right_win.col then
+          right_win = { id = win, col = col }
         end
       end
 
