@@ -24,12 +24,7 @@ function _G.LazygitOpenFile(path, line)
 			lg_state.win = -1
 		end
 
-		vim.cmd.edit(vim.fn.fnameescape(path))
-
-		line = tonumber(line) or 0
-		if line > 0 then
-			pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
-		end
+		require("lazygit-cmd").edit(path, line)
 	end)
 
 	-- --remote-expr prints whatever this returns; keep lazygit's pane clean.
@@ -83,19 +78,7 @@ local function toggle_lazygit()
 			end,
 		})
 		vim.bo[buf].buflisted = false
-
-		-- Esc is lazygit's back key; the global map would steal it for normal mode.
-		vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf, desc = "Send Esc to lazygit" })
-
-		-- Every way back in must land in terminal mode, or keys go to Vim.
-		vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
-			buffer = buf,
-			callback = function()
-				if vim.api.nvim_get_current_buf() == buf and vim.bo[buf].buftype == "terminal" then
-					vim.cmd.startinsert()
-				end
-			end,
-		})
+		require("lazygit-cmd").attach(buf)
 	end
 
 	vim.cmd.startinsert()

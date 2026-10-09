@@ -436,30 +436,9 @@ function _G.OrgGitOpenFile(path, line)
 	-- window juggling out of that context and lets the shim return at once.
 	vim.schedule(function()
 		hide()
-		vim.cmd.edit(vim.fn.fnameescape(path))
-		line = tonumber(line) or 0
-		if line > 0 then
-			pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
-		end
+		lazygit.edit(path, line)
 	end)
 	return ""
-end
-
--- Only the terminal tabs need buffer-local keys: tab navigation lives in
--- floating-helpers. The Ctrl-g prefix that predated Ctrl-Alt-<digit> is gone --
--- a two-key mapping does not fire in terminal mode, so it silently did nothing
--- inside the repo tab you were looking at.
-local function attach_keys(buf, terminal)
-	if not terminal then
-		return
-	end
-
-	-- Esc is lazygit's back key; a global normal-mode map would steal it.
-	vim.keymap.set("t", "<Esc>", "<Esc>", {
-		buffer = buf,
-		silent = true,
-		desc = "Send Esc to lazygit",
-	})
 end
 
 local function overview_buf()
@@ -496,8 +475,6 @@ local function overview_buf()
 			M.show(i)
 		end, { buffer = buf, silent = true, desc = "Org git: tab " .. i })
 	end
-	attach_keys(buf, false)
-
 	return buf
 end
 
@@ -539,20 +516,9 @@ local function repo_buf(repo)
 		end,
 	})
 	vim.bo[buf].buflisted = false
-	attach_keys(buf, true)
-
-	-- Every way back in must land in terminal mode, or keys go to Vim instead
-	-- of lazygit. After vim-options.lua's autocmd, so the winbar it clears is
+	-- Registered after vim-options.lua's autocmd, so the winbar it clears is
 	-- restored in the same tick.
-	vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
-		buffer = buf,
-		callback = function()
-			if vim.api.nvim_get_current_buf() == buf and vim.bo[buf].buftype == "terminal" then
-				vim.cmd.startinsert()
-				settle_terminal_view()
-			end
-		end,
-	})
+	lazygit.attach(buf, settle_terminal_view)
 
 	return buf
 end

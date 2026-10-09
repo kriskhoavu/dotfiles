@@ -35,4 +35,29 @@ function M.build()
 		vim.fs.joinpath(config_dir, "scripts", "lazygit-open.sh")
 end
 
+-- Opens lazygit's `e` target: the RPC handlers' shared tail.
+function M.edit(path, line)
+	vim.cmd.edit(vim.fn.fnameescape(path))
+	line = tonumber(line) or 0
+	if line > 0 then
+		pcall(vim.api.nvim_win_set_cursor, 0, { line, 0 })
+	end
+end
+
+-- Keys every lazygit terminal needs: Esc reaches lazygit (its back key, which
+-- the global map would steal), and every way back in lands in terminal mode,
+-- or keys go to Vim. on_enter runs after that.
+function M.attach(buf, on_enter)
+	vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf, silent = true, desc = "Send Esc to lazygit" })
+	vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+		buffer = buf,
+		callback = function()
+			if vim.api.nvim_get_current_buf() == buf and vim.bo[buf].buftype == "terminal" then
+				vim.cmd.startinsert()
+				if on_enter then on_enter() end
+			end
+		end,
+	})
+end
+
 return M
