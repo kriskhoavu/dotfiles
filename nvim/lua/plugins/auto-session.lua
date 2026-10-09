@@ -13,7 +13,7 @@ return {
     pre_save_cmds = {
       function()
         -- Close Neo-tree so it doesn't interfere with restore
-        pcall(vim.cmd, "Neotree close")
+        if package.loaded["neo-tree"] then pcall(vim.cmd, "Neotree close") end
       end,
     },
     -- Re-edit the active buffer after restore so BufRead fires and LSP attaches

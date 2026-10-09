@@ -7,7 +7,21 @@ return {
       "nvim-lua/plenary.nvim",
       "nvim-tree/nvim-web-devicons",
     },
-    lazy = false,
+    cmd = "Neotree",
+    keys = {
+      { "<leader>1", "<cmd>Neotree toggle left<cr>", silent = true, desc = "Toggle Explorer" },
+      { "<leader>f.", "<cmd>Neotree filesystem reveal left<cr>", silent = true, desc = "Select in Project View" },
+      -- "<" / ">" cycle sources from here
+      { "<leader>gs", "<cmd>Neotree toggle git_status left<cr>", silent = true, desc = "Toggle Git status tree" },
+    },
+    -- Loaded up front only when it opens at start: no file arguments, or a
+    -- directory to hijack. `nvim file` skips its ~60ms.
+    init = function()
+      local arg = vim.fn.argv(0)
+      if vim.fn.argc() == 0 or vim.fn.isdirectory(arg) == 1 then
+        require("lazy").load({ plugins = { "neo-tree.nvim" } })
+      end
+    end,
     config = function()
       local fs_commands = require("neo-tree.sources.filesystem.commands")
       local fs = require("neo-tree.sources.filesystem")
@@ -167,13 +181,6 @@ return {
           },
         },
       })
-
-      -- VSCode/IntelliJ-like keybindings
-      -- <leader>1: Toggle Explorer (Neo-tree)
-      vim.keymap.set("n", "<leader>1", "<cmd>Neotree toggle left<cr>", { silent = true, desc = "Toggle Explorer" })
-      vim.keymap.set("n", "<leader>f.", "<cmd>Neotree filesystem reveal left<cr>", { silent = true, desc = "Select in Project View" })
-      -- <leader>gs: jump straight to the git status source ("<" / ">" cycle sources)
-      vim.keymap.set("n", "<leader>gs", "<cmd>Neotree toggle git_status left<cr>", { silent = true, desc = "Toggle Git status tree" })
 
       -- Keep NeoTree pinned to the left: lock its width and redirect files opened inside it
       local neotree_win_id = nil

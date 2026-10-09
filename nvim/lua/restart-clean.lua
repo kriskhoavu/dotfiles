@@ -40,7 +40,7 @@ end
 
 -- Runs in the instance being replaced, before :restart writes its session.
 function M.restart()
-    pcall(vim.cmd, "Neotree close")
+    if package.loaded["neo-tree"] then pcall(vim.cmd, "Neotree close") end
     wipe_all_buffers()
 
     vim.cmd("restart")
