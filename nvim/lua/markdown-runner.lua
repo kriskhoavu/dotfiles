@@ -44,6 +44,21 @@ end
 -- Q hides the window in either normal or terminal mode and leaves the job
 -- running; \ml brings it back. Not q or Esc: in terminal mode both belong to
 -- whatever is running, and a runner is often a pager or a prompt that wants them.
+local function is_running(job_id)
+	return job_id ~= nil and vim.fn.jobwait({ job_id }, 0)[1] == -1
+end
+
+-- Hides a runner window; its job keeps going, with a note if still running.
+local function hide_runner(win, job_id)
+	if not vim.api.nvim_win_is_valid(win) then
+		return
+	end
+	if is_running(job_id) then
+		vim.notify("Process running in background…", vim.log.levels.INFO)
+	end
+	vim.api.nvim_win_close(win, true)
+end
+
 local function set_close_keys(buf, close_runner)
 	vim.keymap.set({ "n", "t" }, "Q", close_runner, { buffer = buf, silent = true, desc = "Hide runner, keep it running" })
 end
@@ -55,20 +70,14 @@ local function open_buf_in_float(buf, label)
 	-- than vanish silently.
 	local close_runner
 	close_runner = function()
-		if vim.api.nvim_win_is_valid(win) then
-			local task
-			for _, t in ipairs(bg_tasks) do
-				if t.buf == buf then
-					task = t
-					break
-				end
+		local job_id
+		for _, t in ipairs(bg_tasks) do
+			if t.buf == buf then
+				job_id = t.job_id
+				break
 			end
-			local still_running = task and vim.fn.jobwait({ task.job_id }, 0)[1] == -1
-			if still_running then
-				vim.notify("Process running in background…", vim.log.levels.INFO)
-			end
-			vim.api.nvim_win_close(win, true)
 		end
+		hide_runner(win, job_id)
 	end
 
 	local _
@@ -100,7 +109,7 @@ local function list_bg_tasks()
 
 	local items = {}
 	for _, t in ipairs(bg_tasks) do
-		local running = vim.fn.jobwait({ t.job_id }, 0)[1] == -1
+		local running = is_running(t.job_id)
 		table.insert(items, { task = t, running = running })
 	end
 
@@ -212,13 +221,7 @@ local function run_code_block()
 
 	-- Q closes the window in either normal or terminal mode; the process keeps running.
 	close_runner = function()
-		if vim.api.nvim_win_is_valid(win) then
-			local still_running = job_id and vim.fn.jobwait({ job_id }, 0)[1] == -1
-			if still_running then
-				vim.notify("Process running in background…", vim.log.levels.INFO)
-			end
-			vim.api.nvim_win_close(win, true)
-		end
+		hide_runner(win, job_id)
 	end
 	set_close_keys(buf, close_runner)
 end
