@@ -2,6 +2,7 @@ return {
   "rmagatti/auto-session",
   lazy = false,
   opts = {
+    session_lens = { load_on_setup = false }, -- no telescope here
     suppressed_dirs = { "~/", "~/Downloads", "/tmp" },
     -- Auto save/restore sessions per cwd
     auto_save = true,

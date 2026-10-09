@@ -38,7 +38,7 @@ function M.make_modal(buf, label, nav)
 	for key, dir in pairs({ h = "L", j = "D", k = "U", l = "R" }) do
 		vim.keymap.set({ "n", "t" }, "<C-" .. key .. ">", function()
 			if vim.env.TMUX then
-				vim.fn.system({ "tmux", "select-pane", "-" .. dir })
+				vim.system({ "tmux", "select-pane", "-" .. dir })
 			end
 		end, {
 			buffer = buf,

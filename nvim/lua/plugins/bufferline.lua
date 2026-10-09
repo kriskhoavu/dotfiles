@@ -2,7 +2,7 @@ return {
   {
     "akinsho/bufferline.nvim",
     version = "*",
-    event = "VimEnter",
+    event = "VeryLazy",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       -- Dark-red surface, bold white label. Dark in both appearances, like

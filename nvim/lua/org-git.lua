@@ -34,6 +34,8 @@ local ns = vim.api.nvim_create_namespace("OrgGit")
 -- Forward declared: the winbar's close button and the Alt-h/Alt-l tab step close
 -- over these, and both run before the window section defines them.
 local hide
+local settle_terminal_view
+local row_to_repo, repo_to_row = {}, {}
 
 -- Alt-h / Alt-l step through the tabs, wrapping through the overview. The float
 -- passes these to floating-helpers, which would otherwise kill those keys.
@@ -561,7 +563,7 @@ end
 -- Also puts the tabline back: vim-options.lua clears 'winbar' for terminal
 -- buffers, which would wipe it on re-entry. Re-rendering here keeps the
 -- terminal-chrome rule in one place.
-function settle_terminal_view()
+settle_terminal_view = function()
 	if not vim.api.nvim_win_is_valid(state.win) then
 		return
 	end

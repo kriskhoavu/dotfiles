@@ -49,7 +49,7 @@ return {
             tip = { raw = "[!TIP]", rendered = "💡 Tip", highlight = "RenderMarkdownSuccess" },
             important = { raw = "[!IMPORTANT]", rendered = "❗ Important", highlight = "RenderMarkdownHint" },
             warning = { raw = "[!WARNING]", rendered = "⚠️ Warning", highlight = "RenderMarkdownWarn" },
-            caution = { raw = "[!CAUTION]", rendered = "�� Caution", highlight = "RenderMarkdownError" },
+            caution = { raw = "[!CAUTION]", rendered = "🛑 Caution", highlight = "RenderMarkdownError" },
         },
 
         latex = { enabled = false },

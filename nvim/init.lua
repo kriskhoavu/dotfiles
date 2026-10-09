@@ -29,16 +29,22 @@ require("org-git")
 require("lazy").setup({
     { import = "plugins" },
     { import = "themes" },
+}, {
+    rocks = { enabled = false },
+    performance = {
+        rtp = { disabled_plugins = { "gzip", "tarPlugin", "zipPlugin", "tutor", "netrwPlugin" } },
+    },
 })
 
 -- Set Theme
 vim.cmd.colorscheme("onedark")
 
--- Auto-reload files changed outside of Neovim
-vim.opt.autoread = true
-vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "BufWinEnter", "BufFilePost" ,"CursorHold", "CursorHoldI" }, {
-  pattern = "*",
-  command = "checktime",
+-- Auto-reload files changed outside of Neovim (autoread is on by default).
+-- checktime raises E11 in the command-line window.
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+  callback = function()
+    if vim.fn.getcmdwintype() == "" then vim.cmd.checktime() end
+  end,
 })
 
 -- Auto-save when leaving buffer or losing focus

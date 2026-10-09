@@ -5,7 +5,6 @@ local gmatch = string.gmatch
 local unpack = table.unpack or unpack
 
 vim.opt.title = true
-vim.opt.titlestring = "%t - nvim"
 vim.opt.fillchars:append({ vert = "|" })
 
 local function current_buffer_title()
@@ -17,34 +16,28 @@ local function current_buffer_title()
 end
 
 local last_tmux_title = nil
+local has_tmux = vim.env.TMUX and vim.env.TMUX_PANE and fn.executable("tmux") == 1
+local rename_seq = 0
 
--- Hand-named windows carry @manual_name, set by prefix+C and prefix+, in
--- tmux/.tmux.conf. Renaming those would throw the chosen label away on every
--- buffer switch. An empty name in tmux clears the mark and hands it back.
-local function tmux_window_is_manually_named()
-    local pane = vim.env.TMUX_PANE
-    if not pane then
-        return false
-    end
-
-    local marker = fn.system({ "tmux", "display-message", "-p", "-t", pane, "#{@manual_name}" })
-    if vim.v.shell_error ~= 0 then
-        return false
-    end
-
-    return vim.trim(marker) == "1"
+-- Renames this pane's tmux window after the buffer, off the main loop: two
+-- blocking tmux calls cost ~30ms per buffer switch. Windows named by hand
+-- carry @manual_name (prefix+C / prefix+, in tmux/.tmux.conf) and are left
+-- alone. The sequence number drops a rename overtaken by a newer switch.
+local function rename_tmux_window(title)
+    rename_seq = rename_seq + 1
+    local seq, pane = rename_seq, vim.env.TMUX_PANE
+    vim.system({ "tmux", "display-message", "-p", "-t", pane, "#{@manual_name}" }, { text = true }, function(r)
+        if seq ~= rename_seq or r.code ~= 0 or vim.trim(r.stdout) == "1" then return end
+        vim.system({ "tmux", "rename-window", "-t", pane, title })
+    end)
 end
 
 local function sync_terminal_title()
     local title = current_buffer_title()
     vim.opt.titlestring = title
 
-    if vim.env.TMUX and fn.executable("tmux") == 1 and title ~= last_tmux_title then
-        if not tmux_window_is_manually_named() then
-            -- Target this pane explicitly: without -t tmux renames whatever
-            -- window the attached client is looking at, not necessarily ours.
-            fn.system({ "tmux", "rename-window", "-t", vim.env.TMUX_PANE or "", title })
-        end
+    if has_tmux and title ~= last_tmux_title then
+        rename_tmux_window(title)
         last_tmux_title = title
     end
 end

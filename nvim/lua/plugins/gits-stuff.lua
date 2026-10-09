@@ -278,8 +278,8 @@ return {
                 end
 
                 -- navigation
-                map("n", "]h", gs.next_hunk, "Next hunk")
-                map("n", "[h", gs.prev_hunk, "Prev hunk")
+                map("n", "]h", function() gs.nav_hunk("next") end, "Next hunk")
+                map("n", "[h", function() gs.nav_hunk("prev") end, "Prev hunk")
 
                 -- Actions (hunk)
                 map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")

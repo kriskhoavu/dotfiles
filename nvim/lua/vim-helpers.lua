@@ -198,6 +198,7 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 	-- in immediately; the placeholder is deleted below, or it would survive every
 	-- close and grow the buffer list by one per open.
 	local placeholder = vim.api.nvim_create_buf(false, true)
+	local _
 	_, help.win = floats.open({
 		buf = placeholder,
 		width = 0.78,
@@ -284,4 +285,3 @@ vim.api.nvim_create_user_command("Theme", function(opts)
     end
 end, { nargs = "?", complete = function() return themes end, desc = "Set theme" })
 
-vim.keymap.set("n", "<leader>tt", ":ThemeToggle<CR>", { desc = "Toggle theme" })
