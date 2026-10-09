@@ -1,21 +1,14 @@
 #!/bin/bash
 # Flip this config between light and dark.
 #
-# The theme is our own state, in ~/.config/kris-theme. None of the three tools
-# can follow macOS alone: tmux answers OSC 11 from a cached value, nothing can
-# tell a running nvim, and WezTerm re-reads only on a file change. A script has
-# to exist either way, so it owns the state.
+# State is ~/.config/kris-theme (anything but "light" is dark). Not macOS: tmux
+# answers OSC 11 from a cache, a running nvim cannot be told, and WezTerm only
+# re-reads on a file change. Each tool is then told its own way:
+#   WezTerm  touch its config; it re-reads the state on reload
+#   tmux     source the theme file
+#   Neovim   :restart, the only way to pick up a new background
 #
-# Anything but "light" in that file is dark, so a missing file is dark.
-#
-# Each tool is then told in the way it accepts:
-#   WezTerm  touch its config -- it watches for that and re-reads the state
-#   tmux     re-source, which re-runs the if-shell in .tmux.conf
-#   Neovim   restart, the only way an editor picks up a new background
-#
-# Usage: toggle-theme.sh [light|dark] [-n]
-#        no argument flips to the opposite of the current theme
-#        -n  shows what would happen and changes nothing
+# Usage: toggle-theme.sh [light|dark] [-n]   (no arg flips; -n is a dry run)
 
 set -uo pipefail
 
@@ -45,8 +38,6 @@ fi
 
 echo "── WezTerm ──"
 if [[ -e $WEZTERM_CONFIG ]]; then
-    # WezTerm reloads when a config file changes, and re-reads the state file on
-    # the way through. Nothing else here can reach a running GUI.
     echo "  touching $WEZTERM_CONFIG"
     (( DRY )) || touch "$WEZTERM_CONFIG"
 else
@@ -55,17 +46,15 @@ fi
 
 echo "── tmux ──"
 if tmux info &>/dev/null; then
-    # The theme file only, not ~/.tmux.conf: sourcing the whole config re-runs
-    # tpm and every plugin, ~1.4s. The theme file is self-contained, and the
-    # status bar is identical in both themes.
+    # The theme file only: ~/.tmux.conf re-runs tpm and every plugin (~1.4s).
     echo "  sourcing themes/$TARGET.conf"
     (( DRY )) || tmux source-file "$HOME/.config/tmux/themes/$TARGET.conf"
 else
     echo "  (no tmux server running)"
 fi
 
-# The socket is named for the `nvim --embed` pid behind the TUI. --remote-expr
-# blocks forever on a busy instance, so cap every call.
+# Socket is named for the `nvim --embed` pid. --remote-expr blocks forever on a
+# busy instance, so cap every call.
 nvim_expr() {
     perl -e 'alarm 4; exec @ARGV' nvim --server "$1" --remote-expr "$2" 2>/dev/null
 }
@@ -79,8 +68,7 @@ socks=("${TMPDIR:-/tmp/}nvim.${USER}"/*/nvim.*.0)
 for sock in "${socks[@]}"; do
     pid=${sock##*/nvim.}; pid=${pid%.0}
     ps -p "$pid" &>/dev/null || continue   # stale socket
-    # A busy or prompt-blocked instance answers nothing, and there is no point
-    # restarting one that cannot hear the request anyway.
+    # A busy or prompt-blocked instance answers nothing and could not restart anyway.
     if [[ -z $(nvim_expr "$sock" '1') ]]; then
         printf '  skip    nvim %-8s busy or blocked -- :restart it by hand\n' "$pid"
         ((skipped++))
@@ -88,11 +76,8 @@ for sock in "${socks[@]}"; do
     fi
     printf '  restart nvim %-8s\n' "$pid"
     ((restarted++))
-    # `wall` first: :restart quits with :qall, which refuses a modified
-    # buffer. Matches what BufLeave and FocusLost already do.
-    #
-    # The restart tears down this very socket, so the call is expected to return
-    # nothing -- that is success, not the timeout above.
+    # `wall` first: :restart's :qall refuses modified buffers. The restart kills
+    # this socket, so empty output here is success, not the timeout.
     (( DRY )) || nvim_expr "$sock" "execute('silent! wall | restart')" >/dev/null
 done
 

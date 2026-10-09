@@ -1,11 +1,8 @@
--- Chips for floating windows, shaped like the tmux window tabs: number block,
--- name block, rounded caps, same widths. Shared by org-git.lua and
--- vim-helpers.lua, so the two cannot drift.
+-- Float chips shaped like the tmux window tabs (number block, name block,
+-- rounded caps), shared by org-git.lua and vim-helpers.lua.
 --
--- Colours follow the editor, not the running tmux. They used to be read from
--- tmux, which stopped working once the bar went dark in both themes: that gave
--- dark-on-dark at 1.4:1, and the same editor looked different inside tmux.
--- A float sits on the editor, so it takes the editor's side.
+-- Colours follow the editor, not tmux: the tmux bar is dark in both themes, so
+-- reading it gave dark-on-dark (1.4:1) in a light editor.
 
 local M = {}
 
@@ -21,8 +18,7 @@ local DARK = {
 	current_number_bg = 0x590000,  -- the active-window chip, matching WezTerm's tab
 	current_number_fg = 0xffffff,  -- and the light digit that sits on it
 	red = 0xf38ba8,
-	-- Accents for whatever is drawn on a chip or on the float, tuned against
-	-- both grounds: 5:1 or better on the name block, more on the float.
+	-- Accents for chips and floats: 5:1+ on the name block, more on the float.
 	gold = 0xd8a657,
 	green = 0x7bbf6a,
 	teal = 0x6fc3bd,
@@ -50,14 +46,13 @@ local LIGHT = {
 
 local PALETTE = require("theme-mode").is_light and LIGHT or DARK
 
--- Nerd Font half-circles as escapes: written literally they are private-use
--- codepoints any tool may drop. Exported so the close chip shares the shape.
+-- Nerd Font half-circles as escapes: literal private-use codepoints get dropped
+-- by tools. Exported for the close chip.
 M.CAP_LEFT = "\u{e0b6}"
 M.CAP_RIGHT = "\u{e0b4}"
 local CAP_LEFT, CAP_RIGHT = M.CAP_LEFT, M.CAP_RIGHT
 
--- The palette every caller styles against. Built once: the appearance is fixed
--- for the life of the process, so there is nothing to invalidate.
+-- Built once: the appearance is fixed for the life of the process.
 local cached = nil
 
 function M.colors()
@@ -70,9 +65,8 @@ function M.colors()
 	return cached
 end
 
--- Chips and their ground. This palette's own base, not NormalFloat: against
--- the editor's float background the name blocks were invisible (#31353f vs
--- #313244) -- they only read as blocks on a darker ground.
+-- Chips and their ground. Own base, not NormalFloat: on that the name blocks
+-- vanish (#31353f vs #313244).
 function M.highlights()
 	local c = M.colors()
 	local hls = {
@@ -81,8 +75,7 @@ function M.highlights()
 		TmuxChip = { fg = c.text, bg = c.name_bg },
 		TmuxChipCap = { fg = c.name_bg, bg = c.bg },
 
-		-- The active chip can be dark enough that crust is unreadable on it, so
-		-- its digit has its own colour rather than sharing the other chips'.
+		-- The active chip can be too dark for crust, so its digit has its own colour.
 		TmuxChipCurrentKey = { fg = c.current_number_fg, bg = c.current_number_bg },
 		TmuxChipCurrentKeyCap = { fg = c.current_number_bg, bg = c.bg },
 		TmuxChipCurrent = { fg = c.text, bg = c.current_name_bg },
@@ -91,8 +84,7 @@ function M.highlights()
 		TmuxChipFill = { fg = c.overlay_1, bg = c.bg },
 		TmuxChipNormal = { fg = c.text, bg = c.bg },
 		TmuxChipBorder = { fg = c.surface_1, bg = c.bg },
-		-- The cursor row takes the next surface up: the same step the tabs use
-		-- between their inactive and active blocks.
+		-- Cursor row: one surface up, the same step as inactive -> active tabs.
 		TmuxChipCursorLine = { bg = c.surface_0 },
 	}
 	for name, val in pairs(hls) do
@@ -102,19 +94,13 @@ end
 
 M.WINHIGHLIGHT = "NormalFloat:TmuxChipNormal,FloatBorder:TmuxChipBorder,CursorLine:TmuxChipCursorLine"
 
--- tabs: { { label = "overview", suffix = "%#Group#..." }, ... }, 1-based, as is
--- `current`. `first_index` is the digit on the first chip, for 0-keyed callers.
---
--- `on_click` names a global Lua function, called with the clicked chip's
--- number: click labels pass their minwid through.
---
--- Geometry copied from tmux's window-status-format: the cap is the number
--- block's left edge, so the digit carries only a trailing space.
+-- tabs: { { label = "overview", suffix = "%#Group#..." }, ... }; tabs and
+-- `current` are 1-based. `first_index` is the first chip's digit. `on_click`
+-- names a global Lua function, called with the clicked chip's number.
+-- Geometry matches tmux's window-status-format.
 function M.tabline(tabs, current, first_index, on_click)
-	-- One cell of ground before the first cap, matching the close chip's, or
-	-- the row is padded on the right only.
-	-- %< marks where the row is cut. Before the tabs, not after: truncation
-	-- eats what follows the marker, so after them it ate the close button.
+	-- One cell of ground before the first cap, matching the close chip.
+	-- %< (truncate here) goes before the tabs: placed after, it ate the close button.
 	local parts = { "%<%#TmuxChipFill# " }
 	local n = first_index or 1
 
@@ -126,8 +112,7 @@ function M.tabline(tabs, current, first_index, on_click)
 		local body = on and "TmuxChipCurrent" or "TmuxChip"
 		local cap = on and "TmuxChipCurrentCap" or "TmuxChipCap"
 
-		-- The whole chip is one click label, caps included, so the rounded ends
-		-- are not dead zones.
+		-- The whole chip, caps included, is one click label.
 		if on_click then
 			parts[#parts + 1] = "%" .. number .. "@v:lua." .. on_click .. "@"
 		end

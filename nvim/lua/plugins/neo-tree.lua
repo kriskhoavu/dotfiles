@@ -42,9 +42,8 @@ return {
           if not current then return end
 
           if not current:is_expanded() then
-            -- toggle_directory only renders on its unloaded branch; with
-            -- skip_redraw an already scanned node collapses but never
-            -- repaints. Drive that case here.
+            -- toggle_directory only renders on its unloaded branch; with skip_redraw a
+            -- scanned node collapses without repainting, so handle that here.
             if current.loaded == false then
               fs.toggle_directory(state, current, nil, true, false, function()
                 vim.schedule(function()
@@ -236,9 +235,8 @@ return {
             vim.api.nvim_win_set_buf(target, buf)
             vim.api.nvim_set_current_win(target)
           else
-            -- No editing window yet: split one off, move the file into it,
-            -- hand the tree window back. "wincmd l | edit #" threw E499 with
-            -- no alternate file -- exactly the state after closing the last.
+            -- No editing window yet: split one off for the file and give the tree its
+            -- window back. "wincmd l | edit #" threw E499 with no alternate file.
             vim.cmd("rightbelow vsplit")
             vim.api.nvim_win_set_buf(0, buf)
             if neotree_buf_id and vim.api.nvim_buf_is_valid(neotree_buf_id)

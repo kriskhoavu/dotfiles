@@ -1,28 +1,21 @@
--- The lazygit argv shared by every float in this config: the single-repo one in
--- plugins/gits-stuff.lua and the org-wide tabbed one in org-git.lua.
---
--- It lives in its own module because both callers must agree on the config merge
--- and on where the editor shim is. Two copies would drift the moment one of them
--- gained an option.
+-- The lazygit argv shared by gits-stuff.lua's float and org-git.lua's tabs, so
+-- both agree on the config merge and the editor shim.
 local M = {}
 
--- Returns the argv and the path of the shim lazygit's `e` should run.
---
--- The overlay lives beside this config, and stdpath resolves it wherever the
--- dotfiles are checked out -- the repo path itself contains spaces.
+-- Returns the argv and the shim lazygit's `e` runs. Paths come from stdpath:
+-- the repo path contains spaces.
 function M.build()
 	local config_dir = vim.fn.stdpath("config")
 	local configs = {}
 
-	-- The personal config is not managed by these dotfiles, so use it only if it
-	-- is actually there. `-ucf` merges left to right, overlay last.
+	-- The personal config is unmanaged, so only if present. `-ucf` merges left to
+	-- right, overlay last.
 	local user_config = vim.fs.joinpath(vim.env.XDG_CONFIG_HOME or vim.fn.expand("~/.config"), "lazygit", "config.yml")
 	if vim.uv.fs_stat(user_config) then
 		table.insert(configs, user_config)
 	end
-	-- The half matching the current appearance, same split and state file as
-	-- the wrapper in zsh/git-stuff.zsh. Without it the floats always get dark:
-	-- only ~/.config/lazygit/config.yml is read by default.
+	-- Theme half for the current appearance, as zsh/git-stuff.zsh does; lazygit
+	-- reads only config.yml by default, so floats would always be dark.
 	local theme = require("theme-mode").is_light and "theme-light.yml" or "theme-dark.yml"
 	local theme_config = vim.fs.joinpath(vim.env.XDG_CONFIG_HOME or vim.fn.expand("~/.config"), "lazygit", theme)
 	if vim.uv.fs_stat(theme_config) then
@@ -44,9 +37,8 @@ function M.edit(path, line)
 	end
 end
 
--- Keys every lazygit terminal needs: Esc reaches lazygit (its back key, which
--- the global map would steal), and every way back in lands in terminal mode,
--- or keys go to Vim. on_enter runs after that.
+-- Per-terminal keys: Esc goes to lazygit (the global map would steal it), and
+-- re-entry lands in terminal mode. on_enter runs after.
 function M.attach(buf, on_enter)
 	vim.keymap.set("t", "<Esc>", "<Esc>", { buffer = buf, silent = true, desc = "Send Esc to lazygit" })
 	vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {

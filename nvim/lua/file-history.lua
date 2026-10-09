@@ -1,11 +1,6 @@
--- Back / forward navigation across files, like IntelliJ's Cmd+[ and Cmd+].
---
--- The jumplist is per-window, records only jumps (a buffer switch leaves no
--- trace) and steps through positions, not files. This is one browser-style
--- history, one entry per file.
---
--- Stepping back re-:edits the recorded path, which is why a file that was
--- closed in the meantime comes back.
+-- Browser-style back / forward across files, like IntelliJ's Cmd+[ / Cmd+].
+-- The jumplist is per-window, ignores buffer switches and steps positions, not
+-- files. Back re-:edits the path, so closed files come back.
 
 local api = vim.api
 local fn = vim.fn
@@ -14,18 +9,14 @@ local M = {}
 
 local MAX_ENTRIES = 50
 
--- entries[1] is the oldest visit. `index` points at the entry the cursor is
--- currently sitting on, so back is index - 1 and forward is index + 1.
+-- entries[1] is the oldest; `index` is the current entry.
 local entries = {}
 local index = 0
 
--- Set while we are the ones moving the cursor, so the autocmds below don't
--- record our own jump as a fresh visit.
+-- Set while we move the cursor, so our own jump is not recorded.
 local navigating = false
 
--- Only real, on-disk file buffers take part. That leaves out terminals,
--- Neo-tree, and scheme-backed buffers such as gitsigns:// diffs, all of which
--- have nothing useful to come back to.
+-- Only on-disk file buffers: no terminals, Neo-tree or scheme:// buffers.
 local function trackable(buf)
     if not api.nvim_buf_is_valid(buf) then return false end
     if vim.bo[buf].buftype ~= "" then return false end
@@ -37,16 +28,14 @@ local function trackable(buf)
     return true
 end
 
--- Where the cursor is in the current window, guarded because the window can be
--- in an odd state while buffers are being torn down.
+-- Guarded: the window can be odd while buffers are torn down.
 local function cursor()
     local ok, pos = pcall(api.nvim_win_get_cursor, 0)
     if not ok then return 1, 0 end
     return pos[1], pos[2]
 end
 
--- Remember where we left the entry we are standing on, so coming back to it
--- lands on the same line rather than the top of the file.
+-- Remember the line, so coming back lands there, not at the top.
 local function save_position()
     local entry = entries[index]
     if not entry then return end
@@ -61,15 +50,12 @@ local function record(buf)
 
     local current = entries[index]
     if current and current.path == path then
-        -- Re-entering the file we are already on is a move within the same
-        -- entry, not a new one. Without this every window switch would pile up
-        -- duplicates and a single "back" would go nowhere.
+        -- Same file = a move within the entry, else window switches pile up duplicates.
         current.lnum, current.col = lnum, col
         return
     end
 
-    -- Visiting a new file after stepping back discards the forward entries,
-    -- the way a browser drops its forward history on a new navigation.
+    -- A new visit after stepping back drops forward history, as in a browser.
     for i = #entries, index + 1, -1 do
         entries[i] = nil
     end
@@ -83,8 +69,7 @@ local function record(buf)
     index = #entries
 end
 
--- An entry is worth jumping to if the file still exists, or if it is still
--- loaded in a buffer (a new file that has never been written, say).
+-- Jumpable if the file exists or is still loaded (e.g. never written).
 local function reachable(entry)
     if fn.filereadable(entry.path) == 1 then return true end
 
@@ -92,8 +77,7 @@ local function reachable(entry)
     return buf ~= -1 and api.nvim_buf_is_loaded(buf)
 end
 
--- Neo-tree and floating windows are no place to open a file. Move to a real
--- editing window first, mirroring what the fzf-lua config does.
+-- Move out of Neo-tree / floats to an editing window first, as fzf-lua does.
 local function focus_edit_window()
     local buf = api.nvim_get_current_buf()
     if vim.bo[buf].buftype == "" and vim.bo[buf].filetype ~= "neo-tree" then
@@ -117,8 +101,7 @@ local function jump(entry)
     pcall(api.nvim_win_set_cursor, 0, { math.min(entry.lnum, last), entry.col })
 end
 
--- step is -1 for back, 1 for forward. Entries whose file has since vanished
--- are skipped over rather than stopping the walk.
+-- step: -1 back, 1 forward. Vanished files are skipped.
 local function navigate(step, what)
     save_position()
 

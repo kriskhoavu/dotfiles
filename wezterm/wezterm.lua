@@ -1,13 +1,10 @@
 local wezterm = require 'wezterm'
 local config  = wezterm.config_builder()
 
--- Load event handlers (tab titles, right status)
 require 'lua.events'
 
--- Apply appearance (font, colors, window, tab bar)
 require('lua.appearance')(config)
 
--- Apply key bindings
 require('lua.keys')(config)
 
 -- ── Misc ──────────────────────────────────────────────────────────────────────
@@ -19,17 +16,15 @@ config.audible_bell              = "Disabled"
 config.visual_bell               = { fade_in_duration_ms = 0, fade_out_duration_ms = 0 }
 config.window_close_confirmation = "NeverPrompt"
 config.front_end                 = "WebGpu"
--- 60, not 120: a held key repeats every 30ms, so 60 is already double what any
--- of this can show.
+-- 60, not 120: key repeat is every 30ms, so 60 is already double that.
 config.max_fps                   = 60
--- Paces the cursor blink, which was repainting continuously: wezterm-gui sat at
--- 17-21% CPU idle, 2-6% after this and the Constant ease in appearance.lua.
+-- Paces the cursor blink, which repainted continuously: 17-21% CPU idle,
+-- 2-6% with this and the Constant ease in appearance.lua.
 config.animation_fps             = 1
--- IME off: with it on macOS buffers a held key as marked text and delivers the
--- lot on release -- j crawls to line 10, sticks, then jumps to the end. Nothing
--- below sees it, and a plain layout does not help. Costs Telex in the terminal.
+-- IME off: macOS otherwise buffers a held key as marked text and delivers it
+-- on release (j crawls, sticks, then jumps). Costs Telex in the terminal.
 config.use_ime                   = false
--- Kept Ctrl-/Alt- bindings away from the IME. Flips back with use_ime.
+-- Keeps Ctrl-/Alt- away from the IME; restore with use_ime.
 -- config.macos_forward_to_ime_modifier_mask = "SHIFT"
 
 return config

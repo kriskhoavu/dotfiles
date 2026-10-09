@@ -1,10 +1,6 @@
--- Directories the uppercase searches never walk.
---
--- \fF and \fT drop git's ignore rules, so a workspace that gitignores its own
--- sub-repos stops hiding them. That also lets the junk back in, so this list
--- goes over the top: in fen, 35252 files becomes 1864.
---
--- No slash means any depth. Add here and both searches follow.
+-- Directories the uppercase searches (\fF, \fT) never walk. Those drop git's
+-- ignore rules so gitignored sub-repos show, which lets the junk back in; this
+-- list takes it out again (fen: 35252 files -> 1864). No slash = any depth.
 local EXCLUDE = {
 	".git",
 	"node_modules",
@@ -79,8 +75,7 @@ local function with_neotree_directory(opts)
     return vim.tbl_extend("force", opts or {}, { cwd = directory })
 end
 
--- When launching fzf from NeoTree, switch to an editing window first
--- so the selected file opens in the right place
+-- From NeoTree, focus an editing window first so the pick opens there.
 local function focus_edit_window()
     if vim.bo.filetype ~= "neo-tree" then return end
 
@@ -91,13 +86,11 @@ end
 return {
     "ibhagwan/fzf-lua",
     keys = {
-        -- Dotfiles are already here: the files provider defaults to
-        -- hidden = true, unlike grep. What it misses is what .gitignore
-        -- hides -- that is \fF.
+        -- Hidden files are already in (files defaults to hidden = true); what
+        -- .gitignore hides is \fF.
         { "<leader>ff", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").files(opts) end, desc = "Find Files" },
         {
-            -- Everything on disk: ignore rules dropped, EXCLUDE put back.
-            -- Reaches .env files and gitignored sub-repos.
+            -- Ignore rules off, EXCLUDE back on: reaches .env and gitignored sub-repos.
             "<leader>fF",
             function()
                 local opts = with_neotree_directory({
@@ -112,8 +105,7 @@ return {
         { "<leader>ft", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").live_grep(opts) end, desc = "Live Grep" },
         { "<leader>fg", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").git_files(opts) end, desc = "Find Git Files" },
         {
-            -- The uppercase twin of \ft, not \fg -- it was \fG, which read
-            -- as "git files, but more". Same rules as \fF, for contents.
+            -- \fF's rules applied to contents: the uppercase twin of \ft.
             "<leader>fT",
             function()
                 local opts = with_neotree_directory({
@@ -145,17 +137,14 @@ return {
                 height = 0.85,
                 preview = { layout = "horizontal" },
                 on_create = function(e)
-                    -- Never fall back to the current buffer. fzf-lua calls this
-                    -- from two places and fzf_bufnr is nil on one of them, so a
-                    -- fallback brands whatever file is open with the picker's
-                    -- buffer-local keys -- permanently, long after it closes.
+                    -- Never fall back to the current buffer: fzf_bufnr is nil on one of two
+                    -- call paths, and the fallback would brand the open file with picker keys.
                     local buf = e and e.bufnr
                     if not buf or not vim.api.nvim_buf_is_valid(buf) then
                         return
                     end
                     require("floating-helpers").make_modal(buf, "the fzf picker")
-                    -- Ctrl-j and Ctrl-k are fzf's own list movement, and Ctrl-h
-                    -- has nothing to do here, so all three go to fzf.
+                    -- Ctrl-j/k are fzf's list movement; Ctrl-h has no use here. All go to fzf.
                     for _, key in ipairs({ "<C-h>", "<C-j>", "<C-k>" }) do
                         vim.keymap.set("t", key, key, {
                             buffer = buf,
@@ -163,16 +152,9 @@ return {
                             desc = "Send " .. key .. " to fzf",
                         })
                     end
-                    -- Ctrl-l steps into the preview, a real window. Ctrl-h
-                    -- steps back, bound on the preview buffer too, or it is
-                    -- vim-tmux-navigator's there and focus leaves for good.
-                    --
-                    -- Esc, answered by fzf itself. fzf-lua binds esc as an
-                    -- execute-silent that spawns a fresh nvim to call back
-                    -- here; when any link fails the key does nothing at all
-                    -- and the picker cannot be closed (seen twice in a
-                    -- session, one alive 2h18m). Ctrl-C is print+accept, which
-                    -- fzf answers alone -- so send that byte down the channel.
+                    -- Esc sends Ctrl-C, which fzf answers alone. fzf-lua's own esc spawns a
+                    -- fresh nvim to call back here, and when that fails the picker cannot be
+                    -- closed (seen twice, one stuck 2h18m).
                     local function abort()
                         local chan = vim.bo[buf].channel
                         if chan and chan > 0 then
@@ -185,21 +167,11 @@ return {
                         desc = "Close the picker",
                     })
 
-                    -- Ctrl-hjkl and Esc belong to the picker while one is open.
-                    --
-                    -- Installed once, globally, and never taken back: fzf-lua
-                    -- rebuilds the buffer and the window behind the preview as
-                    -- the selection moves, so a mapping that chases those always
-                    -- loses an entry somewhere and the key is vim-tmux-
-                    -- navigator's again -- focus leaves for the buffer beneath.
-                    --
-                    -- Borrowing and restoring them per picker was worse: maparg
-                    -- answers with the buffer-local mapping when there is one,
-                    -- so what came back was the picker's own Tmux keys, re-bound
-                    -- onto whatever file happened to be current at close.
-                    --
-                    -- With no picker open each key falls through to whatever it
-                    -- meant before, captured here at install time.
+                    -- Global Ctrl-hjkl/Esc while a picker is open, installed once and never
+                    -- removed. fzf-lua rebuilds the preview buffer and window as the selection
+                    -- moves, so buffer-local maps always miss one and vim-tmux-navigator steals
+                    -- focus. Per-picker save/restore failed too: maparg returns the buffer-local
+                    -- map. With no picker open, each key does what it did at install time.
                     if not _G.__fzf_modal_keys then
                         _G.__fzf_modal_keys = true
 
@@ -210,8 +182,7 @@ return {
                             return ok and win or nil
                         end
 
-                        -- Resolved per call, not captured: these outlive every
-                        -- individual picker.
+                        -- Resolved per call: these outlive every picker.
                         local function to_fzf(byte)
                             local win = live()
                             local chan = win and win.fzf_bufnr and vim.bo[win.fzf_bufnr].channel
@@ -228,8 +199,7 @@ return {
                             end
                         end
 
-                        -- 0x0e and 0x10 are Ctrl-n and Ctrl-p, fzf's own down
-                        -- and up, so the list can be stepped from the preview.
+                        -- 0x0e/0x10 = Ctrl-n/Ctrl-p, fzf's down/up, to step the list from the preview.
                         local inside = {
                             ["<C-h>"] = focus_list,
                             ["<C-j>"] = function() to_fzf(0x0e) end,
@@ -241,8 +211,7 @@ return {
                             end,
                         }
 
-                        -- The global table, not maparg: maparg would answer with
-                        -- the picker's buffer-local mapping.
+                        -- The global table, not maparg, which returns the buffer-local map.
                         local function previous(lhs)
                             local want = vim.api.nvim_replace_termcodes(lhs, true, true, true)
                             for _, m in ipairs(vim.api.nvim_get_keymap("n")) do
@@ -270,6 +239,7 @@ return {
                         end
                     end
 
+-- Ctrl-l steps into the preview; Ctrl-h there (above) steps back.
                     vim.keymap.set("t", "<C-l>", function()
                         local ok, win = pcall(function()
                             return require("fzf-lua.win").__SELF()
@@ -281,8 +251,7 @@ return {
                 end,
             },
             lsp = {
-                -- Open the picker at once and stream results in; a timeout
-                -- here would block the editor until every server answered.
+                -- Open at once and stream results; a timeout blocks until every server answers.
                 async_or_timeout = true,
             },
             fzf_colors = { true, bg = "-1", gutter = "-1" },

@@ -82,8 +82,7 @@ return {
           name_formatter = function(buf)
             -- buf has: name, path, bufnr
             if vim.bo[buf.bufnr].buftype == "terminal" then
-              -- Terminal paths look like "term:///path//PID:/bin/zsh"
-              -- buf.name is already fnamemodify(path, ":t") which gives "PID:/bin/zsh" or similar
+              -- Terminal paths look like "term:///path//PID:/bin/zsh"; buf.name is its tail
               local path = buf.path or ""
               local shell = path:match("/([^/]+)$") or "terminal"
               -- Assign left-to-right index among listed terminal buffers

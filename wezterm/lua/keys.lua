@@ -13,9 +13,8 @@ return function(config)
     { key = "RightArrow", mods = "OPT",       action = act.SendString("\x1bf") },    -- Option+Right → word fwd
     { key = "Enter",      mods = "OPT",       action = act.SendString("\x1b\r") },   -- Option+Enter → Alt+Enter
     { key = "d",          mods = "CTRL|CMD|SHIFT", action = act.SendString("\\sd") }, -- Ctrl+Cmd+Shift+D → nvim <leader>sd
-    -- Leader chords are prefixed with <C-\><C-n> rather than ESC so they work
-    -- from insert/terminal mode. A bare ESC also fires nvim's own <esc> maps:
-    -- in Diffview that closed the view, then the leader key reopened it.
+    -- Leader chords start with <C-\><C-n>, not ESC, to work from insert/terminal
+    -- mode; a bare ESC fires nvim's <esc> maps (closed Diffview, then reopened it).
     { key = "1",          mods = "CTRL",      action = act.SendString("\x1c\x0e\\1") }, -- Ctrl+1 → nvim <leader>1
     { key = "2",          mods = "CTRL",      action = act.SendString("\x1c\x0e\\2") }, -- Ctrl+2 → nvim <leader>2
     { key = "3",          mods = "CTRL",      action = act.SendString("\x1c\x0e\\3") }, -- Ctrl+3 → nvim <leader>3
@@ -56,15 +55,9 @@ return function(config)
     end) },
   }
 
-  -- Ctrl+Option+<digit>: jump straight to a tab in Neovim's floats (\4, \?).
-  --
-  -- As with Ctrl+<digit> above: no control code exists for these, so nothing
-  -- is transmitted. Written as CSI-u directly -- ESC [ <codepoint> ; 7 u,
-  -- where 7 is 1 + alt(2) + ctrl(4).
-  --
-  -- tmux parses that and re-encodes it for the pane (it needs extended-keys on,
-  -- which tmux/.tmux.conf sets), and Neovim decodes it as <C-M-digit>. Outside
-  -- tmux, Neovim reads the sequence directly.
+  -- Ctrl+Option+<digit> -> tab n in nvim's floats (\4, \?). No control code
+  -- exists, so send CSI-u: ESC [ <codepoint> ; 7 u (7 = 1 + alt 2 + ctrl 4).
+  -- tmux re-encodes it for the pane (needs extended-keys); nvim reads <C-M-digit>.
   for digit = 0, 9 do
     table.insert(config.keys, {
       key = tostring(digit),

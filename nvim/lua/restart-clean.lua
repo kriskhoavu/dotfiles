@@ -1,13 +1,9 @@
--- Make ":restart" mean "start over", not "restore what I had".
+-- Make ":restart" start clean instead of restoring the session.
 --
--- 0.12's :restart saves with mksession! and offers no pre-save hook, so
--- auto-session's pre_save_cmds never close Neo-tree. The session then restores
--- Neo-tree's window as an ordinary buffer under Neo-tree's own name, and
--- Neo-tree dies on "E95: Buffer with this name already exists".
---
--- Cleaning up afterwards cannot work: that buffer is created unnamed and named
--- later, while the session script still runs. So tidy on the way out, leaving
--- :restart nothing to restore, and rebuild on the way back in.
+-- 0.12's :restart uses mksession! with no pre-save hook, so auto-session never
+-- closes Neo-tree, and the restored Neo-tree buffer dies on "E95: Buffer with
+-- this name already exists". It is named mid-script, so post-cleanup cannot
+-- catch it: tidy on the way out, rebuild on the way in.
 
 local term_env = require("term-env")
 
@@ -25,8 +21,8 @@ local function wipe_all_buffers()
     end
 end
 
--- Wiping every buffer leaves Neovim to create an empty one; turning that into
--- the terminal means the terminal is what has focus, as on a normal start.
+-- Turn the empty buffer left after the wipe into a focused terminal, as on a
+-- normal start.
 local function open_workspace()
     vim.cmd("silent! only")
     term_env.without_tmux(function()
@@ -46,9 +42,8 @@ function M.restart()
     vim.cmd("restart")
 end
 
--- User commands must start with a capital, so a lowercase builtin cannot be
--- shadowed. A cmdline abbreviation is the way in, anchored so only a bare
--- ":restart" is diverted.
+-- A lowercase builtin cannot be shadowed by a user command, so use an
+-- abbreviation that only fires on a bare ":restart".
 vim.cmd([[
   cnoreabbrev <expr> restart
     \ (getcmdtype() ==# ':' && getcmdline() ==# 'restart')
@@ -56,12 +51,10 @@ vim.cmd([[
     \ : 'restart'
 ]])
 
--- The arriving half. auto-session still restores this directory's saved session
--- on VimEnter, so clear that too before laying out the workspace.
+-- Incoming side: auto-session still restores on VimEnter, so clear that too.
 if vim.v.startreason == "restart" then
-    -- :restart re-execs with the original argv, so a file named there reopens
-    -- while the outgoing process still holds its swapfile: a guaranteed false
-    -- alarm. Silence it for the handover only.
+    -- :restart re-execs the original argv, so a named file reopens while the old
+    -- process holds its swapfile. Silence that false alarm for the handover.
     local shortmess = vim.o.shortmess
     vim.opt.shortmess:append("A")
 

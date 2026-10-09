@@ -11,7 +11,7 @@ return function(config)
     { italic = true, font = wezterm.font("MesloLGS NF", { weight = "Regular", italic = false }) },
   }
 
-  -- ── Colors (follows the macOS light/dark appearance; see lua/palette.lua) ──
+  -- ── Colors (~/.config/kris-theme; see lua/palette.lua) ─────────────────────
   local p = palette.current()
 
   config.colors = {
@@ -39,13 +39,11 @@ return function(config)
   config.macos_window_background_blur = 0
   config.text_background_opacity      = 1.0
 
-  -- Fully opaque body, plus a dark band along the bottom edge.
-  --
-  -- The window is rarely an exact multiple of the cell size, and the leftover
-  -- is filled with the terminal background: a light notch beside tmux's dark
-  -- bar. The centred strip misses the edges, so each corner gets its own layer.
-  -- 48 physical pixels is one cell row plus the remainder; 24 covered two
-  -- thirds. Stands in for window_content_alignment, absent in this build.
+  -- Opaque body plus a dark band along the bottom: the window is rarely a whole
+  -- number of cells, and the remainder shows a light notch beside tmux's dark
+  -- bar. Corners get their own layers (the centred strip misses them). 48px =
+  -- one row + remainder (24 covered 2/3). Stands in for window_content_alignment,
+  -- absent in this build.
   local bottom_band = function(align)
     return {
       source = { Color = p.status_bar_bg },
@@ -69,22 +67,19 @@ return function(config)
     bottom_band("Right"),
   }
 
-  -- RESIZE alone drops the title bar and the traffic lights with it;
-  -- INTEGRATED_BUTTONS puts them in the tab bar.
+  -- RESIZE alone drops the traffic lights; INTEGRATED_BUTTONS puts them in the tab bar.
   config.window_decorations = "INTEGRATED_BUTTONS|RESIZE"
 
-  -- Native fullscreen for Ctrl-Cmd-F too: the green button always uses it, and
-  -- two fullscreen paths left a bare title bar with no tab bar behind it.
+  -- Native fullscreen for Ctrl-Cmd-F too: mixing it with the green button's left
+  -- a bare title bar.
   config.native_macos_fullscreen_mode = true
-  -- Padding only at the top: anywhere else it shows the terminal background
-  -- around content that reaches the edge.
+  -- Top padding only: elsewhere it shows the background around edge content.
   config.window_padding     = { left = 0, right = 0, top = 4, bottom = 0 }
 
   -- ── Cursor ────────────────────────────────────────────────────────────────
   config.default_cursor_style = "BlinkingUnderline"
   config.cursor_blink_rate    = 500
-  -- Blink on and off rather than fading: the eased default repaints every frame
-  -- for as long as the window is open. See animation_fps in wezterm.lua.
+  -- Constant blink: the eased default repaints every frame. See animation_fps.
   config.cursor_blink_ease_in  = "Constant"
   config.cursor_blink_ease_out = "Constant"
 
@@ -94,8 +89,7 @@ return function(config)
   config.tab_bar_at_bottom            = false
   config.tab_max_width                = 9999
 
-  -- The fancy tab bar has no height setting -- WezTerm derives it from the
-  -- font's cell metrics (14 -> 27pt bar, 16 -> 35pt).
+  -- Bar height derives from the font (14 -> 27pt, 16 -> 35pt); no setting.
   config.window_frame = {
     font                            = wezterm.font("MesloLGS NF", { weight = "Bold" }),
     font_size                       = 14.0,

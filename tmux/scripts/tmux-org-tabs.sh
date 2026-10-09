@@ -1,28 +1,18 @@
 #!/bin/bash
-# One tmux window per git repo under a root directory, each a plain shell already
-# cd'd into that repo, so a folder full of sibling repos (a GitHub org checked out
-# side by side) becomes tabs: M-1..M-9 to jump, M-h / M-l to cycle.
+# One tmux window per git repo under a root, each a plain shell cd'd into it:
+# a checked-out org as tabs (M-1..M-9 jump, M-h / M-l cycle). No git UI.
 #
-# The windows are workspaces, not a git UI -- nothing is launched in them. Reach
-# for git however you normally would once you are in the tab.
+# Session is named after the root's basename; root defaults to $PWD (run-shell's
+# cwd is the server's, hence the binding passes a path).
 #
-# The root is an argument: the session is named after its basename, so several
-# can be open at once. With none it uses $PWD -- hence the binding passing
-# #{pane_current_path}, since run-shell's cwd is the server's, not the pane's.
+# Repos: <root>/*/.git, tested with -e so worktrees and submodules (.git is a
+# file) count. Must match nvim/lua/org-git.lua.
 #
-# Repos are found one level deep as <root>/*/.git, tested with -e rather than -d so
-# worktrees and submodules -- where .git is a file holding a gitdir pointer -- are
-# picked up too.
+# Re-running syncs: windows are matched by NAME (automatic-rename uses the cwd
+# basename, so hand-opened shells match too), only missing ones are added,
+# nothing is closed.
 #
-# Re-running is a sync, not a reset: an existing session is reused and windows that
-# are already there are left alone, so whatever you have running in them survives.
-# Only repos with no window of that name get one. Nothing is ever closed.
-#
-# A window counts as "already there" by NAME, not by directory: automatic-rename
-# names windows after their cwd basename, so a shell sitting in a repo is matched
-# and skipped even though this script did not create it.
-#
-# Usage: tmux-org-tabs.sh [-n] [root]     -n lists what it would do and changes nothing
+# Usage: tmux-org-tabs.sh [-n] [root]     -n is a dry run
 
 set -uo pipefail
 
@@ -33,8 +23,7 @@ if [[ ${1:-} == "-n" ]]; then
 fi
 
 ROOT=${1:-$PWD}
-# The keybinding passes the prompt's text through single quotes, so a leading ~ is
-# still literal by the time it lands here.
+# The binding's single quotes leave a leading ~ literal.
 ROOT=${ROOT/#\~/$HOME}
 
 if [[ ! -d $ROOT ]]; then
@@ -42,10 +31,10 @@ if [[ ! -d $ROOT ]]; then
     exit 1
 fi
 
-# Resolve so the session name never comes out as "." or "" for a relative root.
+# Absolute, so the session name is never "." or "".
 ROOT=$(cd "$ROOT" && pwd)
 
-# tmux splits target names on ':' and '.', and treats a leading '-' as a flag.
+# tmux splits targets on ':' and '.', and a leading '-' reads as a flag.
 SESSION=$(basename "$ROOT" | tr ':.' '__')
 SESSION=${SESSION#-}
 
@@ -68,8 +57,7 @@ run() {
     fi
 }
 
-# base-index is 1, so window 1 is what M-1 selects: keep it at the root, for greps
-# and scripts that span every repo, and give the repos window 2 onward.
+# Window 1 (M-1) stays at the root for org-wide work; repos get 2 onward.
 if tmux has-session -t="$SESSION" 2>/dev/null; then
     echo "── session $SESSION exists, syncing ──"
     existing=$(tmux list-windows -t="$SESSION" -F '#W')
@@ -95,7 +83,7 @@ echo "── $added window(s) added ──"
 
 [[ $DRY -eq 1 ]] && exit 0
 
-# run-shell inherits TMUX, so this covers both the keybinding and a bare shell.
+# run-shell inherits TMUX, so this covers the binding and a bare shell.
 if [[ -n ${TMUX:-} ]]; then
     tmux switch-client -t "$SESSION:"
 else

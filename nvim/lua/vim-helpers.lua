@@ -1,5 +1,3 @@
--- all vim helper functions here
-
 local function find_shortcut_help()
 	local config_dir = vim.fn.resolve(vim.fn.stdpath("config"))
 	local candidates = {
@@ -15,11 +13,8 @@ local function find_shortcut_help()
 	end
 end
 
--- A tabbed float, one tab per "##" section of SHORTCUTS.md, sharing the chips
--- with the org git float. The file is 400+ lines, already grouped by purpose.
---
--- Tabs are derived from the file rather than listed here, so a new "##" section
--- becomes a new tab with no code change.
+-- <leader>?: SHORTCUTS.md in a tabbed float, one tab per "##" section (derived,
+-- so a new section is a new tab), with the org git float's chips.
 local chips = require("tmux-chips")
 local floats = require("floating-helpers")
 
@@ -31,8 +26,7 @@ local SHORT_LABEL = {
 	["IdeaVim And IntelliJ"] = "IdeaVim",
 }
 
--- Everything above the first "##" (the title and the leader-key note) belongs to
--- no section, so it is prepended to the first tab rather than being dropped.
+-- Text above the first "##" is kept as the first tab's intro, not dropped.
 local function parse_sections(path)
 	local sections, preamble = {}, {}
 
@@ -51,9 +45,8 @@ local function parse_sections(path)
 		end
 	end
 
-	-- Kept as an intro rather than pushed into the first section's body, where it
-	-- rendered underneath that section's heading and read as if the file's title
-	-- belonged to macOS window pairing.
+	-- An intro, not part of the first section's body, where it read as belonging
+	-- to that heading.
 	if sections[1] then
 		sections[1].intro = preamble
 	end
@@ -62,12 +55,10 @@ end
 
 local help = { win = -1, bufs = {}, current = 1, sections = nil }
 
--- Forward declared: the tab click handler and the Alt-h/Alt-l nav both close
--- over it, and both are built before it is defined.
+-- Forward declared: the tab click handler and nav use it first.
 local help_show
 
--- Alt-h / Alt-l step through the sections, the same gesture the org git float
--- uses. floating-helpers would otherwise kill these keys inside the float.
+-- Alt-h / Alt-l step sections, as in the org git float.
 local help_nav = {
 	prev = function()
 		help_show((help.current - 2) % #help.sections + 1)
@@ -80,8 +71,7 @@ local help_nav = {
 	end,
 }
 
--- Every section is its own buffer, so closing has to wipe them: otherwise each
--- open leaves up to nine unlisted buffers behind for good.
+-- One buffer per section, so closing wipes them or they pile up.
 local function help_close()
 	if vim.api.nvim_win_is_valid(help.win) then
 		vim.api.nvim_win_close(help.win, true)
@@ -107,8 +97,7 @@ local function help_render()
 	for _, section in ipairs(help.sections) do
 		tabs[#tabs + 1] = { label = section.label }
 	end
-	-- Registered once; the tabline is rebuilt on every tab switch and
-	-- re-registering would leak a closer per redraw.
+	-- Registered once: re-registering per redraw would leak a closer.
 	help.close_x = help.close_x
 		or floats.close_segment(function()
 			return help.win
@@ -133,8 +122,7 @@ function help_show(idx)
 		buf = vim.api.nvim_create_buf(false, true)
 		help.bufs[idx] = buf
 
-		-- The heading goes back: the markdown renderer needs it to anchor on.
-		-- The blank row keeps it from reading as part of the tabline.
+		-- Heading restored for the markdown renderer; blank row separates it from the tabline.
 		local lines = { "" }
 		if section.intro then
 			vim.list_extend(lines, section.intro)
@@ -156,16 +144,14 @@ function help_show(idx)
 				help_show(i)
 			end, { buffer = buf, silent = true, desc = "Shortcut help: section " .. i })
 		end
-		-- Tab and h/l for people who would rather not count: the section digits
-		-- go up to 9, and nothing here competes for them.
+		-- Tab / S-Tab as an alternative to the digits.
 		vim.keymap.set("n", "<Tab>", function()
 			help_show(help.current % #help.sections + 1)
 		end, { buffer = buf, silent = true, desc = "Shortcut help: next section" })
 		vim.keymap.set("n", "<S-Tab>", function()
 			help_show((help.current - 2) % #help.sections + 1)
 		end, { buffer = buf, silent = true, desc = "Shortcut help: previous section" })
-		-- h and l stay cursor motion: Alt-h / Alt-l now step sections, so taking
-		-- the plain keys as well would cost movement in a buffer people scroll.
+		-- h and l stay cursor motion; Alt-h / Alt-l step sections.
 	end
 
 	floats.attach(help.win, buf, { cursorline = true, label = "the shortcut help", nav = help_nav })
@@ -185,8 +171,7 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 		return
 	end
 
-	-- Re-read on every open: the file is edited in this very repo, and a stale
-	-- cache would show yesterday's shortcuts.
+	-- Re-read on every open: the file is edited in this repo.
 	help.sections = parse_sections(path)
 	help.bufs = {}
 	if #help.sections == 0 then
@@ -194,9 +179,8 @@ vim.api.nvim_create_user_command("ShortcutHelp", function()
 		return
 	end
 
-	-- nvim needs a buffer to open a window with, and help_show swaps the real one
-	-- in immediately; the placeholder is deleted below, or it would survive every
-	-- close and grow the buffer list by one per open.
+	-- nvim needs a buffer to open a window; help_show swaps in the real one, and
+	-- the placeholder is deleted below so it does not leak per open.
 	local placeholder = vim.api.nvim_create_buf(false, true)
 	local _
 	_, help.win = floats.open({
@@ -217,7 +201,6 @@ end, { desc = "Open shortcut help center" })
 
 vim.keymap.set("n", "<leader>?", "<cmd>ShortcutHelp<cr>", { desc = "Open shortcut help center" })
 
--- Copy diagnostic message to clipboard
 vim.keymap.set("n", "<leader>ce", function()
 	local diagnostics = vim.diagnostic.get(0, { lnum = vim.fn.line(".") - 1 })
 	if #diagnostics > 0 then
@@ -230,7 +213,7 @@ vim.keymap.set("n", "<leader>ce", function()
 end, { noremap = true, silent = true, desc = "Copy diagnostic to clipboard" })
 
 
--- Show folder/dir structure
+-- Directory tree in a float
 vim.api.nvim_create_user_command("ShowTree", function()
 	local buf, win = floats.open({
 		width = 0.6,
@@ -238,7 +221,7 @@ vim.api.nvim_create_user_command("ShowTree", function()
 		close = true,
 	})
 
-	-- Modal like the other floats, so it needs a way out that is not :q.
+	-- Modal, so it needs a way out besides :q.
 	for _, key in ipairs({ "q", "<Esc>" }) do
 		vim.keymap.set("n", key, function()
 			if vim.api.nvim_win_is_valid(win) then

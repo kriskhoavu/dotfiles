@@ -1,15 +1,9 @@
--- <leader>4: one tab per repo under a root, plus an overview tab.
+-- <leader>4: one lazygit tab per repo under a root, plus an overview tab (0).
+-- lazygit is one repo per process, so nvim draws the tabline and swaps one
+-- lazygit terminal per repo into a single float. Git actions are lazygit's.
 --
--- lazygit is one repo per process, so a folder of sibling repos needs the
--- tabline drawn by nvim and one lazygit terminal per repo swapped into a single
--- float. This module is tab bookkeeping and the overview; every git action is
--- lazygit's own.
---
--- Tab 0 lists every repo with branch, dirty count, ahead/behind and last commit.
---
--- Repos are found exactly as tmux/scripts/tmux-org-tabs.sh finds them: one level
--- down, <root>/*/.git tested for existence, so worktrees and submodules count.
--- The two must never disagree about what a repo is.
+-- Discovery must match tmux/scripts/tmux-org-tabs.sh: <root>/*/.git exists,
+-- one level down, so worktrees and submodules count.
 
 local lazygit = require("lazygit-cmd")
 local term_env = require("term-env")
@@ -31,14 +25,13 @@ local state = {
 
 local ns = vim.api.nvim_create_namespace("OrgGit")
 
--- Forward declared: the winbar's close button and the Alt-h/Alt-l tab step close
--- over these, and both run before the window section defines them.
+-- Forward declared: the winbar close button and tab nav use them first.
 local hide
 local settle_terminal_view
 local row_to_repo, repo_to_row = {}, {}
 
--- Alt-h / Alt-l step through the tabs, wrapping through the overview. The float
--- passes these to floating-helpers, which would otherwise kill those keys.
+-- Alt-h / Alt-l wrap through the overview. Passed to floating-helpers, which
+-- would otherwise kill those keys.
 local nav = {
 	prev = function()
 		M.show(state.current <= 0 and #state.repos or state.current - 1)
@@ -46,7 +39,7 @@ local nav = {
 	next = function()
 		M.show(state.current >= #state.repos and 0 or state.current + 1)
 	end,
-	-- The digit on the chip is the digit you press: 0 is the overview.
+	-- Chip digit = key digit; 0 is the overview.
 	jump = function(n)
 		M.show(n)
 	end,
@@ -54,13 +47,11 @@ local nav = {
 
 -- Highlights ------------------------------------------------------------------
 
--- Chips, ground and palette come from tmux-chips. Only this table's own colours
--- are defined here.
+-- Chip colours come from tmux-chips; only the table's own are here.
 local function set_highlights()
 	local c = chips.colors()
 	local hls = {
-		-- Gold, not red: dirty is the normal state of a repo you are working
-		-- in, not an error. Both read 5:1 or better on the name block.
+		-- Gold, not red: dirty is normal, not an error. Both 5:1+ on the name block.
 		OrgGitChipDirty = { fg = c.gold, bg = c.name_bg, bold = true },
 		OrgGitChipSync = { fg = c.teal, bg = c.name_bg, bold = true },
 
@@ -87,9 +78,8 @@ vim.api.nvim_create_autocmd("ColorScheme", { callback = set_highlights, desc = "
 
 -- Discovery ------------------------------------------------------------------
 
--- `include_root` adds the root itself when it is a repo, ahead of its children.
--- Off by default: resolve_root uses this to test whether a directory holds
--- repos, and a self-counting root would answer yes from inside any repo.
+-- include_root also lists the root when it is a repo. Off for resolve_root,
+-- which would otherwise say any repo holds repos.
 local function discover(root, include_root)
 	local repos = {}
 	for name, kind in vim.fs.dir(root) do
@@ -110,9 +100,8 @@ local function discover(root, include_root)
 	return repos
 end
 
--- The org root is the parent of the repo you are in. Unless the cwd already
--- holds repos, checked first: a root can be a repo itself, and walking up from
--- one gave the parent's unrelated checkouts instead of its own siblings.
+-- The org root is the current repo's parent, unless the cwd already holds
+-- repos: a root can be a repo, and walking up would find the wrong siblings.
 local function resolve_root()
 	local cwd = vim.uv.cwd()
 	if #discover(cwd) > 0 then
@@ -148,8 +137,7 @@ local function parse_status(out)
 	return info
 end
 
--- On open, tab switch and `r`. Not polled: the counts only matter when the
--- float is in front of you.
+-- On open, tab switch and `r`; not polled.
 local function refresh_status(done)
 	if #state.repos == 0 then
 		if done then
@@ -200,8 +188,7 @@ end
 
 -- Rendering ------------------------------------------------------------------
 
--- Drawn inside the chip's name block, so badge groups must carry that
--- background too, or they show up as dark rectangles inside the chip.
+-- Drawn inside the chip's name block, so badges need its background too.
 local function badge(info)
 	if not info then
 		return ""
@@ -234,33 +221,28 @@ local function render_winbar()
 		tabs[#tabs + 1] = { label = repo.name, suffix = badge(state.status[repo.path]) }
 	end
 
-	-- Registered once, appended to every render: the tabline redraws on each
-	-- tab switch and re-registering would leak a closer per redraw.
+	-- Registered once: re-registering per redraw would leak a closer.
 	state.close_x = state.close_x
 		or floats.close_segment(function()
 			return state.win
 		end, nil, {
-			-- Hide, not close: \4 is a toggle and every repo's lazygit is still
-			-- running behind it.
+			-- Hide, not close: every repo's lazygit keeps running.
 			on_close = function()
 				hide()
 			end,
 		})
 
-	-- first_index 0: the overview is Ctrl-Alt-0, so repo n is chip n, and the
-	-- click handler receives that same n.
+	-- first_index 0: overview is chip 0, repo n is chip n and click arg n.
 	vim.wo[state.win].winbar = chips.tabline(tabs, state.current + 1, 0, "OrgGitTabClick") .. state.close_x
 end
 
--- string.format's %-Ns pads by bytes, and the badge glyphs are three bytes wide
--- but one cell wide, so a repo with a badge would shove every column after it.
+-- %-Ns pads by bytes; badge glyphs are 3 bytes but 1 cell.
 local function pad(text, width)
 	local fill = width - vim.fn.strdisplaywidth(text)
 	return text .. string.rep(" ", math.max(0, fill))
 end
 
--- Cut to width with an ellipsis. pad() only ever adds, so an over-wide value
--- used to shove every later column along the row.
+-- Cut to width with an ellipsis; pad() only adds.
 local function fit(text, width)
 	if vim.fn.strdisplaywidth(text) <= width then
 		return text
@@ -279,8 +261,7 @@ local function render_overview()
 	end
 	width = math.max(width, 4) + 2
 
-	-- 14 to 32, as needed: feature/<ticket>-<slug> is the common case, and a
-	-- fixed column either wasted half the row or overflowed it.
+	-- 14 to 32 as needed: fits feature/<ticket>-<slug> without wasting the row.
 	local branch_w = 0
 	for _, repo in ipairs(state.repos) do
 		local info = state.status[repo.path] or {}
@@ -288,7 +269,7 @@ local function render_overview()
 	end
 	branch_w = math.min(math.max(branch_w + 2, 14), 32)
 
-	-- Org-wide totals: the one number no per-repo tool can show.
+	-- Org-wide totals: the one number no per-repo tool shows.
 	local total_dirty, total_ahead, repos_dirty = 0, 0, 0
 	for _, repo in ipairs(state.repos) do
 		local info = state.status[repo.path] or {}
@@ -320,8 +301,7 @@ local function render_overview()
 		.. "last commit"
 	local rule = "  " .. string.rep("\u{2500}", math.max(20, vim.fn.strdisplaywidth(columns) - 2))
 
-	-- A blank first line: the header was sitting directly under the tabline and
-	-- read as a second row of it rather than as the start of the table.
+	-- Leading blank line, or the header reads as a second tabline row.
 	local lines = { "", header .. summary, "", columns, rule }
 	local marks = {}
 	row_to_repo, repo_to_row = {}, {}
@@ -337,8 +317,7 @@ local function render_overview()
 
 	for i, repo in ipairs(state.repos) do
 		local info = state.status[repo.path] or {}
-		-- A space after the dot, as in the chips: the glyph and the count read
-		-- as one smudged token without it.
+		-- Space after the dot, as in the chips.
 		local dirty = (info.dirty or 0) > 0 and ("\u{25cf} " .. info.dirty) or "clean"
 		local sync = ""
 		if (info.ahead or 0) > 0 then
@@ -348,15 +327,14 @@ local function render_overview()
 			sync = sync .. (sync ~= "" and " " or "") .. "\u{2193} " .. info.behind
 		end
 
-		-- A repo whose branch has no commits yet has no subject to show; an em
-		-- dash says "nothing here" where a blank column just looks unfinished.
+		-- Em dash for a branch with no commits; a blank looks unfinished.
 		local subject = info.subject
 		if not subject or subject == "" then
 			subject = "—"
 		end
 
-		-- The overview inherits 'wrap', and a spilled subject desyncs the
-		-- cursor-to-repo mapping. Truncate instead.
+		-- Truncate: the overview inherits 'wrap', and a wrapped subject breaks the
+		-- cursor-to-repo mapping.
 		local used = 2 + 4 + width + branch_w + 9 + 7
 		local room = math.max(12, vim.api.nvim_win_get_width(state.win) - used - 2)
 		if vim.fn.strdisplaywidth(subject) > room then
@@ -378,8 +356,7 @@ local function render_overview()
 		row_to_repo[#lines] = i -- 1-based buffer row
 		repo_to_row[i] = #lines
 
-		-- Byte offsets accumulated from the cells themselves: the badges are
-		-- multi-byte, so counted display columns would land in the wrong place.
+		-- Byte offsets, not display columns: the badges are multi-byte.
 		local row = #lines - 1
 		local at = 0
 		local offsets = {}
@@ -432,8 +409,7 @@ end
 -- Called over RPC by scripts/lazygit-open.sh on lazygit's `e`. Hidden, not
 -- closed, so every repo's lazygit survives and \4 brings the set back.
 function _G.OrgGitOpenFile(path, line)
-	-- The RPC arrives mid-keystroke inside the terminal job; deferring keeps the
-	-- window juggling out of that context and lets the shim return at once.
+	-- Deferred: the RPC arrives mid-keystroke inside the terminal job.
 	vim.schedule(function()
 		hide()
 		lazygit.edit(path, line)
@@ -478,8 +454,7 @@ local function overview_buf()
 	return buf
 end
 
--- On first visit, not at open: idle lazygit processes for an org you glanced
--- at are a waste.
+-- Created on first visit, not at open: no idle lazygits for a glanced-at org.
 local function repo_buf(repo)
 	local buf = state.bufs[repo.path]
 	if buf and vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
@@ -491,8 +466,7 @@ local function repo_buf(repo)
 	floats.attach(state.win, buf, { label = "the org git float", nav = nav })
 
 	local cmd, shim = lazygit.build()
-	-- An argv list, not a shell string: the `-ucf` paths contain spaces. The
-	-- shim and handler travel in the environment, so the YAML needs neither.
+	-- argv list: the -ucf paths contain spaces. Shim and handler go via env.
 	vim.fn.jobstart(cmd, {
 		term = true,
 		cwd = repo.path,
@@ -507,8 +481,7 @@ local function repo_buf(repo)
 				if vim.api.nvim_buf_is_valid(dead) then
 					pcall(vim.api.nvim_buf_delete, dead, { force = true })
 				end
-				-- Quitting lazygit with `q` should land somewhere useful rather
-				-- than on a blank float.
+				-- lazygit quit with `q`: fall back to the overview.
 				if vim.api.nvim_win_is_valid(state.win) then
 					M.show(0)
 				end
@@ -516,19 +489,16 @@ local function repo_buf(repo)
 		end,
 	})
 	vim.bo[buf].buflisted = false
-	-- Registered after vim-options.lua's autocmd, so the winbar it clears is
-	-- restored in the same tick.
+	-- Registered after vim-options.lua's autocmd, so the winbar it clears comes
+	-- back in the same tick.
 	lazygit.attach(buf, settle_terminal_view)
 
 	return buf
 end
 
--- A lazygit frame fills the window exactly, so any scrolloff scrolls the view
--- off the frame. The window is reused across tabs, so reset as well as prevent.
---
--- Also puts the tabline back: vim-options.lua clears 'winbar' for terminal
--- buffers, which would wipe it on re-entry. Re-rendering here keeps the
--- terminal-chrome rule in one place.
+-- A lazygit frame fills the window, so any scrolloff shifts it; reset on each
+-- tab as the window is reused. Also restores the tabline, which vim-options.lua
+-- clears for terminal buffers.
 settle_terminal_view = function()
 	if not vim.api.nvim_win_is_valid(state.win) then
 		return
@@ -547,8 +517,7 @@ function M.show(idx)
 	if not vim.api.nvim_win_is_valid(state.win) then
 		return
 	end
-	-- Which repo the cursor should land on when going back to the overview: the
-	-- one you just came from, so Ctrl-Alt-0 then Enter is a round trip.
+	-- Back on the overview, land on the repo just left (Ctrl-Alt-0, Enter = round trip).
 	local previous = state.current
 	idx = math.max(0, math.min(idx or 0, #state.repos))
 	state.current = idx
@@ -558,8 +527,7 @@ function M.show(idx)
 		render_overview()
 		render_winbar()
 		vim.cmd.stopinsert()
-		-- The cursor is the row selector here, so it must start on a repo rather
-		-- than on the header; cursorline (set by floats.attach) marks the row.
+		-- The cursor selects rows, so start it on a repo, not the header.
 		local row = repo_to_row[math.max(previous, 1)] or repo_to_row[1]
 		if row then
 			pcall(vim.api.nvim_win_set_cursor, state.win, { row, 0 })
@@ -575,8 +543,7 @@ function M.show(idx)
 	vim.cmd.startinsert()
 	settle_terminal_view()
 
-	-- Counts on the tabline go stale the moment you stage something, so a switch
-	-- away from a repo is the natural moment to re-read them.
+	-- Counts go stale as you stage, so refresh on every switch.
 	refresh_status(function()
 		render_winbar()
 		if state.current == 0 then
@@ -591,8 +558,7 @@ function M.toggle(root)
 		return
 	end
 
-	-- Re-resolved per toggle, so the float follows the cwd; it used to keep the
-	-- first root it saw for the life of the process. A hand-picked root sticks.
+	-- Re-resolved per toggle to follow the cwd; a hand-picked root sticks.
 	local new_root = root and vim.fn.expand(root) or (state.pinned and state.root) or resolve_root()
 	state.pinned = state.pinned or root ~= nil
 	if new_root ~= state.root then
