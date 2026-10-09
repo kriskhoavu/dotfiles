@@ -219,6 +219,50 @@ install_wezterm() {
 }
 
 # ============================================
+# AI agent hooks (status for the WezTerm agents hub)
+# ============================================
+# ~/.claude/settings.json and ~/.codex/hooks.json hold the user's own hooks
+# too, so the fragments in agents/ are merged with jq, not symlinked: entries
+# mentioning ai-sessions.sh are dropped, then ours appended. Re-running is a
+# no-op and makes no backup.
+merge_hooks() {
+    local target="$1" fragment="$2" script="$HOME/.config/wezterm/scripts/ai-sessions.sh" tmp
+    mkdir -p "$(dirname "$target")"
+    [ -s "$target" ] || echo '{}' > "$target"
+    tmp=$(mktemp)
+    jq --arg sh "$script" --slurpfile frag "$fragment" '
+        def strip: with_entries(
+            .value |= map(select(((.hooks // []) | map(.command // "" | contains("ai-sessions.sh")) | any) | not))
+        ) | with_entries(select(.value | length > 0));
+        ($frag[0].hooks | walk(if type == "string" then gsub("AI_SESSIONS_SH"; $sh) else . end)) as $ours
+        | .hooks = reduce ($ours | to_entries[]) as $e (((.hooks // {}) | strip); .[$e.key] = ((.[$e.key] // []) + $e.value))
+    ' "$target" > "$tmp" || { rm -f "$tmp"; log_error "jq failed on $target"; return; }
+    if cmp -s "$tmp" "$target"; then
+        rm -f "$tmp"
+        log_info "  ✓ $target already up to date"
+        return
+    fi
+    cp "$target" "${target}.backup.$(date +%Y%m%d_%H%M%S)"
+    mv "$tmp" "$target"
+    log_info "  ✓ hooks merged into $target"
+}
+
+install_agents() {
+    if ! command -v jq >/dev/null; then
+        log_error "jq is required to merge hook configs (brew install jq)"
+        return
+    fi
+    log_info "Installing AI agent hooks..."
+    mkdir -p "$HOME/.cache/ai-sessions" "$HOME/.config/opencode/plugins"
+    ln -sf "$DOTFILES_DIR/agents/opencode/ai-sessions.js" "$HOME/.config/opencode/plugins/ai-sessions.js"
+    log_info "  ✓ OpenCode plugin linked"
+    merge_hooks "$HOME/.claude/settings.json" "$DOTFILES_DIR/agents/claude-hooks.json"
+    merge_hooks "$HOME/.codex/hooks.json" "$DOTFILES_DIR/agents/codex-hooks.json"
+    log_warn "Codex only runs hooks it trusts: open codex and run /hooks once to approve them."
+    log_warn "Needs the WezTerm config linked (--wezterm); the hooks call ~/.config/wezterm/scripts/ai-sessions.sh."
+}
+
+# ============================================
 # Hammerspoon
 # ============================================
 install_hammerspoon() {
@@ -299,6 +343,7 @@ show_help() {
     echo "  --intellij  Install IntelliJ keymap"
     echo "  --iterm2    Install iTerm2 config (macOS only)"
     echo "  --wezterm   Install WezTerm config"
+    echo "  --agents    Install claude/codex/opencode hooks for the agents hub"
     echo "  --hammerspoon Install Hammerspoon config (macOS only)"
     echo "  --help      Show this help message"
     echo ""
@@ -373,6 +418,12 @@ interactive_install() {
         install_wezterm
     fi
 
+    read -p "Install AI agent hooks (claude/codex/opencode)? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+        install_agents
+    fi
+
     if [[ "$OSTYPE" == "darwin"* ]]; then
         read -p "Install Hammerspoon config? [Y/n] " -n 1 -r
         echo
@@ -404,6 +455,7 @@ while [[ $# -gt 0 ]]; do
             install_intellij
             install_iterm2
             install_wezterm
+            install_agents
             install_hammerspoon
             shift
             ;;
@@ -445,6 +497,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --wezterm)
             install_wezterm
+            shift
+            ;;
+        --agents)
+            install_agents
             shift
             ;;
         --hammerspoon)

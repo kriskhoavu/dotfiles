@@ -33,6 +33,9 @@ return function(config)
     { key = "DownArrow",  mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Down", 5 } },
     { key = "r",          mods = "CTRL|CMD",   action = act.RotatePanes "Clockwise" },
     { key = "f",          mods = "CTRL|CMD",   action = act.ToggleFullScreen },          -- macOS-standard fullscreen
+    { key = "a",          mods = "CTRL|CMD",   action = require('lua.ai_sessions').toggle }, -- Ctrl+Cmd+A → AI agents hub
+    { key = "h",          mods = "CTRL",       action = require('lua.ai_sessions').nav("h") }, -- in the hub: list; elsewhere plain Ctrl+H
+    { key = "l",          mods = "CTRL",       action = require('lua.ai_sessions').nav("l") }, -- in the hub: view; elsewhere plain Ctrl+L
     { key = "1",          mods = "CMD",       action = act.ActivateTab(0) },            -- Cmd+1 → tab 1
     { key = "2",          mods = "CMD",       action = act.ActivateTab(1) },            -- Cmd+2 → tab 2
     { key = "3",          mods = "CMD",       action = act.ActivateTab(2) },            -- Cmd+3 → tab 3

@@ -7,10 +7,31 @@ local pane_cwd    = {}   -- pane_id → { path }
 local tmux_panes  = {}   -- pane_id → { is_tmux, time }
 local TMUX_CHECK_TTL = 5 -- seconds
 
+local AGENTS_TITLE = require('lua.ai_sessions').TITLE
+
+-- The agents hub tab (lua/ai_sessions.lua) is named for what it is, not for
+-- the cwd it inherited. Its list pane carries the marker title; the view
+-- pane next to it may be active, so every pane is checked.
+local function is_agents_tab(tab)
+  local mux_tab = wezterm.mux.get_tab(tab.tab_id)
+  if not mux_tab then return false end
+  for _, p in ipairs(mux_tab:panes()) do
+    if p:get_title() == AGENTS_TITLE then return true end
+  end
+  return false
+end
+
 -- Tab title: fixed 10px padding on each side.
 wezterm.on("format-tab-title", function(tab)
   local pane  = tab.active_pane
   local p     = palette.current()
+  if is_agents_tab(tab) then
+    local content = string.format("   %d  󰚩 AGENTS   ", tab.tab_index + 1)
+    if tab.is_active then
+      return { { Attribute = { Intensity = "Bold" } }, { Foreground = { Color = p.active_tab_fg } }, { Text = content } }
+    end
+    return { { Foreground = { Color = p.inactive_tab_fg } }, { Text = content } }
+  end
   -- Always prefer the pane's live cwd; fall back to cache only if unavailable
   local path
   if pane.current_working_dir then
