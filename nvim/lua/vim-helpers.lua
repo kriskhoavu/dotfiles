@@ -247,7 +247,7 @@ vim.api.nvim_create_user_command("ShowTree", function()
 		end, { buffer = buf, silent = true, desc = "Close the tree view" })
 	end
 
-	local job_id = vim.fn.jobstart("tree -L 4", {
+	vim.fn.jobstart("tree -L 4", {
 		stdout_buffered = true,
 		on_stdout = function(_, data)
 			if data then
@@ -256,11 +256,7 @@ vim.api.nvim_create_user_command("ShowTree", function()
 				end
 			end
 		end,
-		on_exit = function()
-			-- vim.api.nvim_win_close(win, true)
-		end,
 	})
-	print("Job ID: " .. job_id)
 end, {})
 
 vim.keymap.set("n", "<leader>vt", ":ShowTree<CR>", { desc = "Show directory tree in floating window" })

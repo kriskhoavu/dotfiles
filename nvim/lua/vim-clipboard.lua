@@ -19,7 +19,6 @@ vim.keymap.set({ "n", "v" }, "S", '"_S', { desc = "Substitute line (no clipboard
 vim.keymap.set("n", "<leader>cp", function()
   local filepath = vim.fn.expand("%:p")
   vim.fn.setreg("+", filepath)
-  vim.fn.system("echo '" .. filepath .. "' | pbcopy")
   print("Copied: " .. filepath)
 end, { desc = "Copy absolute path to clipboard" })
 
@@ -48,7 +47,8 @@ vim.api.nvim_create_user_command("PasteFile", function()
     end
   end
 
-  vim.fn.system("cp -r '" .. path .. "' '" .. dest_dir .. "/'")
+  -- A list, not a shell string: a quote in either path broke the command.
+  vim.fn.system({ "cp", "-R", path, dest_dir .. "/" })
   if vim.v.shell_error ~= 0 then
     vim.notify("Failed to paste: " .. path, vim.log.levels.ERROR)
     return

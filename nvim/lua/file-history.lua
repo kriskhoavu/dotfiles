@@ -153,15 +153,6 @@ function M.forward()
     navigate(1, "next")
 end
 
--- Exposed for the headless test; not meant for interactive use.
-function M._state()
-    return entries, index
-end
-
-function M._reset()
-    entries, index, navigating = {}, 0, false
-end
-
 local group = api.nvim_create_augroup("FileHistory", { clear = true })
 
 api.nvim_create_autocmd("BufEnter", {

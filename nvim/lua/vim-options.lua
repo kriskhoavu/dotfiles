@@ -14,7 +14,6 @@ vim.opt.shiftwidth = 4   -- Indent size for >>, <<, autoindent
 vim.opt.softtabstop = 4  -- <Tab>/<BS> in insert uses 4 spaces
 vim.opt.scrolloff = 5
 vim.opt.sidescrolloff = 5
--- vim.g.mapleader = " "  -- Leader key (uncomment if you want <Space> as leader)
 
 vim.opt.number = true         -- Show absolute line numbers
 vim.opt.cursorline = true     -- Highlight the current line
@@ -24,9 +23,6 @@ vim.opt.relativenumber = true -- Show relative line numbers (great for j/k motio
 -- width on every j, 2475 bytes per keystroke against 1653 here. "both" restores
 -- it.
 vim.opt.cursorlineopt = "number"
-
-vim.opt.hlsearch = true       -- Highlight search matches
-vim.opt.incsearch = true      -- Show matches while typing the search
 
 vim.opt.wrap = true           -- Wrap long lines
 vim.opt.linebreak = true      -- Wrap at word boundaries (nicer wrapping)

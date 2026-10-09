@@ -114,10 +114,6 @@ return {
           custom_filter = function(buf_number)
             local buf_name = vim.fn.bufname(buf_number)
             local buf_type = vim.bo[buf_number].buftype
-            -- Hide terminal buffers
-            -- if buf_type == "terminal" then
-            --   return false
-            -- end            
             -- Hide gitsigns diff buffers
             if buf_name:match("^gitsigns://") then
               return false
