@@ -93,17 +93,22 @@ M.light.status_bar_bg = "#151414"
 
 -- Which half is current, from ~/.config/kris-theme: this config's own state,
 -- since tmux and nvim cannot follow macOS anyway. Missing means dark. Re-read
--- every call, so handlers outliving a reload see a switch.
+-- at most once a second, so handlers outliving a reload see a switch: tab
+-- titles call this per tab on every redraw, on the GUI thread, and an open()
+-- each time froze the window.
 local STATE = os.getenv("HOME") .. "/.config/kris-theme"
+local TTL   = 1   -- seconds
+
+local cached, cached_at = nil, -1
 
 function M.current()
+  local now = os.time()
+  if cached and now - cached_at < TTL then return cached end
   local file = io.open(STATE, "r")
-  if not file then
-    return M.dark
-  end
-  local value = file:read("l")
-  file:close()
-  return value == "light" and M.light or M.dark
+  local value = file and file:read("l")
+  if file then file:close() end
+  cached, cached_at = (value == "light" and M.light or M.dark), now
+  return cached
 end
 
 return M
