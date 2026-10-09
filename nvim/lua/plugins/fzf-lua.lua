@@ -289,6 +289,11 @@ return {
                     end, { buffer = buf, silent = true, desc = "Focus the preview" })
                 end,
             },
+            lsp = {
+                -- Open the picker at once and stream results in; a timeout
+                -- here would block the editor until every server answered.
+                async_or_timeout = true,
+            },
             fzf_colors = { true, bg = "-1", gutter = "-1" },
             keymap = { fzf = { ["ctrl-q"] = "select-all+accept" } },
         })
