@@ -47,10 +47,11 @@ M.toggle = wezterm.action_callback(function(window, pane)
   end
 
   return_tab = here:tab_id()
-  window:mux_window():spawn_tab {
+  local tab = window:mux_window():spawn_tab {
     args = { M.SCRIPT, "hub" },
     set_environment_variables = { AI_SESSIONS_RETURN_TAB = tostring(return_tab) },
   }
+  tab:set_title(M.TITLE)   -- what format-tab-title checks
 end)
 
 -- Ctrl+H / Ctrl+L: hop between list and view inside the hub, plain keys elsewhere.

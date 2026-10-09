@@ -1,8 +1,4 @@
 -- The light and dark palettes.
---
--- `M.current()` re-reads the theme on every call, so the event handlers that
--- outlive a config reload -- tab titles, right status -- pick up a switch
--- rather than holding the palette they started with.
 
 local M = {}
 

@@ -25,7 +25,7 @@ end
 
 -- Cache git branch per directory with a TTL to avoid spawning on every status update
 local branch_cache = {}   -- path → { result, time }
-local BRANCH_TTL   = 1    -- seconds
+local BRANCH_TTL   = 5    -- seconds; os.time() is whole seconds, so 1 never hit
 
 function M.git_branch(path)
   local now   = os.time()
