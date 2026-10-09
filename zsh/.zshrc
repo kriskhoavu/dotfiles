@@ -134,3 +134,7 @@ _set_wezterm_tab_title  # Set on shell startup
 # Load machine-local credentials (not tracked in git)
 [[ -f "$HOME/.creds.zsh" ]] && source "$HOME/.creds.zsh"
 export PATH="$HOME/.local/bin:$PATH"
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="/Users/kdvu/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
