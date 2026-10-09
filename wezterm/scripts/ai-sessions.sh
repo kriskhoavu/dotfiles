@@ -99,10 +99,10 @@ hook_from_stdin() {
     local agent=$1 json ev note status cwd sid pid
     json=$(cat)
     pid=$(agent_pid_of_caller) || exit 0
-    ev=$(jq -r '.hook_event_name // empty' <<<"$json")
-    note=$(jq -r '.notification_type // .matcher // .message // empty' <<<"$json")
-    cwd=$(jq -r '.cwd // empty' <<<"$json")
-    sid=$(jq -r '.session_id // empty' <<<"$json")
+    # One jq per hook, not four: this runs on every tool call. \x1f, not a
+    # tab, so an empty field does not collapse into the next.
+    IFS=$'\x1f' read -r ev note cwd sid < <(jq -r '[.hook_event_name, (.notification_type // .matcher // .message), .cwd, .session_id]
+        | map(. // "" | tostring | gsub("[\u001f\n]"; " ")) | join("\u001f")' <<<"$json")
     case $ev in
         SessionEnd)                              rm -f "$STATE_DIR/$pid.json"; exit 0 ;;
         SessionStart|Stop|Interrupt)             status=idle ;;
@@ -272,11 +272,9 @@ list_agents() {
     fi
 
     # pid\tstatus\tcwd
-    local f
-    for f in "$STATE_DIR"/*.json; do
-        [[ -e $f ]] || continue
-        printf '%s\t%s\n' "$(basename "$f" .json)" "$(jq -r '[.status // "unknown", .cwd // ""] | @tsv' "$f")"
-    done > "$states"
+    # One jq for every state file, not one each.
+    jq -r '[(input_filename | sub(".*/"; "") | sub("\\.json$"; "")), .status // "unknown", .cwd // ""] | @tsv' \
+        "$STATE_DIR"/*.json 2>/dev/null > "$states"
 
     local kind id apid agent pids status cwd hcwd branch loc sortk win ti nw hit
     local -a rows=()
@@ -292,7 +290,8 @@ list_agents() {
             loc="tab $ti"; [[ ${nw:-1} -gt 1 ]] && loc="w$win $loc"
         fi
         [[ -n $hcwd ]] && cwd=$hcwd
-        branch=$(git -C "$cwd" branch --show-current 2>/dev/null)
+        branch=""   # the compact hub row has no branch column
+        [[ ${COMPACT:-0} == 1 ]] || branch=$(git -C "$cwd" branch --show-current 2>/dev/null)
         case $status in blocked) sortk=0 ;; working) sortk=1 ;; idle) sortk=2 ;; done) sortk=3 ;; *) sortk=4 ;; esac
         rows+=("$(printf '%s:%s:%s\t%s %s %s\t%s' "$kind" "$id" "$apid" "$sortk" "$agent" "$loc" \
             "$(format_row "$status" "$agent" "$(short_path "$cwd")" "$branch" "$loc")")")
@@ -343,9 +342,9 @@ client_session() {
 }
 
 # The right pane: attached to a grouped session until show() detaches it,
-# otherwise a read-only mirror redrawn twice a second.
+# otherwise a read-only mirror polled twice a second, repainted on change.
 view() {
-    local keyfile=$1 key kind id view lines
+    local keyfile=$1 key kind id view lines out frame prev=""
     printf '\e]2;ai-sessions-view\e\\'
     while :; do
         key=$(cat "$keyfile" 2>/dev/null)
@@ -353,11 +352,16 @@ view() {
         if [[ $kind == tmux ]]; then
             view=$(view_session "$id") && tmux attach-session -t "=$view"
             printf '\e[H\e[2J'
+            prev=""
         elif [[ $kind == wez ]]; then
             lines=$(tput lines 2>/dev/null || echo 40)
-            printf '\e[H\e[2m  read-only mirror · Enter in the list jumps to the real pane\e[0m\n\n'
-            "$WEZTERM" cli get-text --escapes --pane-id "$id" 2>/dev/null | tail -n $((lines - 2))
-            printf '\e[J'
+            out=$("$WEZTERM" cli get-text --escapes --pane-id "$id" 2>/dev/null | tail -n $((lines - 2)))
+            frame="$key $lines"$'\n'"$out"
+            if [[ $frame != "$prev" ]]; then
+                printf '\e[H\e[2m  read-only mirror · Enter in the list jumps to the real pane\e[0m\n\n'
+                printf '%s\n\e[J' "$out"
+                prev=$frame
+            fi
         fi
         sleep 0.5
     done
