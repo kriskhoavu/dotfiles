@@ -230,6 +230,8 @@ Prefix key: `Ctrl-a`.
 | `Ctrl-a m`          | Zoom/unzoom current pane.       | Toggle full-pane zoom.                      |
 | `Ctrl-a [` then `v` | Begin copy selection.           | Copy mode uses vi keys.                     |
 | `Ctrl-a [` then `y` | Copy selection.                 | Copies from tmux copy mode.                 |
+| drag the right-edge bar | Scroll a pane by mouse.     | Enters copy mode; `q` leaves. Hidden while Neovim runs in the pane. |
+| `Ctrl-a T`          | Flip light/dark everywhere.     | Neovim picks it up after a restart.         |
 | `Ctrl-a L`          | Clear screen and scrollback.    | In nested tmux, use `Ctrl-a Ctrl-a L`.      |
 | `Ctrl-a Left/Right` | Previous / next tmux window.    | Also works with `Ctrl-a Ctrl-Left/Right`.   |
 | `⌥1`-`⌥8`           | Jump to tmux window 1-8.        | No prefix. tmux takes these before nvim.    |
