@@ -423,9 +423,15 @@ hub() {
     "$WEZTERM" cli activate-pane --pane-id "$WEZTERM_PANE"
     trap hub_cleanup EXIT HUP
 
+    # fzf's own scheme is dark: its grey cursor row swallowed the dim status
+    # text on the light ground. Light: ink on WezTerm's selection colour.
+    local colors='header:dim'
+    [[ $(cat "$HOME/.config/kris-theme" 2>/dev/null) == light ]] &&
+        colors='light,bg+:#d3a184,fg+:#111110,hl:#5d2713,hl+:#5d2713,gutter:-1,pointer:#7a2318,prompt:#5d2713,header:#3d3d3c,info:#3d3d3c,separator:#bbb0a1'
+
     # --track: a refresh may reorder rows; the cursor stays on its agent
     printf '%s\n' "$rows" | fzf --ansi --delimiter $'\t' --with-nth 3.. --no-sort --track --layout reverse --info hidden \
-        --prompt '› ' --header 'enter → agent · esc close' --listen 0 --color 'header:dim' \
+        --prompt '› ' --header 'enter → agent · esc close' --listen 0 --color "$colors" \
         --bind "start:execute-silent(nohup $SELF ticker \$FZF_PORT >/dev/null 2>&1 &)+pos(1)" \
         --bind "focus:execute-silent($SELF show {1})" \
         --bind "enter:execute-silent($SELF enter {1})" \
