@@ -39,8 +39,6 @@ vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selected lines down"
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<cr><Esc>", { silent = true, desc = "Clear search highlight" })
 vim.keymap.set("s", "<Esc>", "<Esc><Esc>", { silent = true, desc = "Exit select mode" })
 vim.keymap.set({ "x", "s" }, "<C-c>", "<Esc>", { silent = true, desc = "Exit visual/select mode" })
-vim.keymap.set({ "x", "s" }, "i", "<Esc>i", { silent = true, desc = "Insert from visual/select mode" })
-vim.keymap.set({ "x", "s" }, "a", "<Esc>a", { silent = true, desc = "Append from visual/select mode" })
 
 local function leader_passthrough(keys, desc)
     local seq = "<leader>" .. keys

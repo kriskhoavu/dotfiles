@@ -57,7 +57,8 @@ return {
     config = function(_, opts)
         require("render-markdown").setup(opts)
 
-        vim.keymap.set("n", "<leader>mr", "<cmd>RenderMarkdown toggle<cr>", {
+        -- \mt, not \mr: markdown-runner owns \mr in markdown buffers.
+        vim.keymap.set("n", "<leader>mt", "<cmd>RenderMarkdown toggle<cr>", {
             desc = "Toggle Render Markdown",
         })
     end,

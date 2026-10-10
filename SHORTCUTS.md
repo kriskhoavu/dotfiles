@@ -82,7 +82,7 @@ They are also centred at a ratio of the editor rather than a fixed size, share t
 | `Q` or `✕` | Normal, runner window | Close the runner float.                  | Works directly in terminal mode; the process keeps running in the background, and either way you are told when it is still going. |
 | `\ml`    | Normal, Markdown      | List markdown runner background tasks.     | Reopen running or finished task output.                                       |
 | `\mp`    | Normal, Markdown      | Toggle Markdown Preview.                   | Opens/stops browser preview.                                                  |
-| `\mr`    | Normal, global        | Toggle Render Markdown.                    | In Markdown buffers, the runner mapping is buffer-local and takes priority.   |
+| `\mt`    | Normal, global        | Toggle Render Markdown.                    | Not `\mr`: the runner owns that in Markdown buffers.                          |
 
 ### Files, Search, Buffers
 
