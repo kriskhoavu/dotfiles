@@ -6,24 +6,28 @@
 # selection matches tmux's copy-mode highlight, and the rest are the terminal
 # palette's own inks, which are tuned against that warm background.
 gui:
+  # lazygit hashes each author to a colour meant for a dark ground (pale lime
+  # here, 1.6:1); one dark ink for all of them instead.
+  authorColors:
+    "*": "#253b0a"
   theme:
     selectedLineBgColor:
       - "#d3a184"
     selectedRangeBgColor:
       - "#d3a184"
     cherryPickedCommitFgColor:
-      - "#3d5f11"
+      - "#253b0a"
     cherryPickedCommitBgColor:
-      - "#ddd2c3"
+      - "#d4cabb"
     # lazygit's defaults here are tuned for a dark ground too: the active border
     # is green and the inactive one near-white, both faint on this ground.
     activeBorderColor:
       - "#c2552f"
       - bold
     inactiveBorderColor:
-      - "#a09a8b"
+      - "#111110"
     optionsTextColor:
-      - "#1f4e79"
+      - "#13304b"
 
 # Overrides config.yml's entry wholesale -- lists are replaced, not merged --
 # purely to swap --dark for --light. Without it delta renders for a dark ground:

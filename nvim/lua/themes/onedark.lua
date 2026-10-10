@@ -17,6 +17,22 @@ return {
             NeoTreeTabInactive = { fg = c.muted, bg = c.ramp_2 },
             NeoTreeTabSeparatorActive = { fg = c.ramp_0, bg = c.ramp_0 },
             NeoTreeTabSeparatorInactive = { fg = c.ramp_2, bg = c.ramp_2 },
+
+            -- Markdown in delta's light pastels, as lazygit shows diffs: pink and
+            -- green from delta, the other levels in the same family.
+            RenderMarkdownH1Bg = { bg = "#ffc0c0" },
+            RenderMarkdownH2Bg = { bg = "#d0ffd0" },
+            RenderMarkdownH3Bg = { bg = "#fff0b0" },
+            RenderMarkdownH4Bg = { bg = "#d0e4ff" },
+            RenderMarkdownH5Bg = { bg = "#ead4ff" },
+            RenderMarkdownH6Bg = { bg = "#c8f0ec" },
+            RenderMarkdownCode = { bg = "#d3c5b4" },
+            RenderMarkdownCodeInline = { bg = "#ffe0e0" },
+            -- onedark draws search and the selected menu item in the ground
+            -- colour (1.1:1 on bg_yellow); ink on WezTerm's selection instead.
+            Search = { fg = c.ink, bg = "#d3b375" },
+            Visual = { bg = "#d3a184" },
+            PmenuSel = { fg = c.ink, bg = "#d3a184", bold = true },
         } or {}
         require("onedark").setup({
             style = mode.is_light and "light" or "dark", -- dark, darker, cool, deep, warm, warmer, light
@@ -44,7 +60,13 @@ return {
                 grey = c.muted,
                 light_grey = c.muted_ui,
                 -- Claude's orange, deep enough to be text rather than a wash.
-                bright_orange = "#a6432a",
+                bright_orange = "#66291a",
+                -- One Light's hues are 2.2-2.9:1 here; WezTerm's inks are 5:1+.
+                red = c.ansi[2], green = c.ansi[3], yellow = c.ansi[4], blue = c.ansi[5],
+                purple = c.ansi[6], cyan = c.ansi[7], orange = c.brights[4],
+                -- Diffs as delta draws them in lazygit (--light defaults).
+                diff_add = "#d0ffd0", diff_delete = "#ffe0e0",
+                diff_change = "#fff0b0", diff_text = "#ffd88a",
             } or {
                 -- Tweak to better match One Dark Islands
                 bright_orange = "#d19a66",
@@ -84,5 +106,19 @@ return {
                 ["@lsp.type.parameter.java"] = { fg = c.syn_parameter, italic = true },
             }, neotree_chrome),
         })
+
+        -- :terminal (lazygit, shells) gets WezTerm's light palette, so a TUI
+        -- looks the same inside nvim as outside. After onedark sets its own.
+        if mode.is_light then
+            vim.api.nvim_create_autocmd("ColorScheme", {
+                pattern = "onedark",
+                callback = function()
+                    for i = 1, 8 do
+                        vim.g["terminal_color_" .. (i - 1)] = c.ansi[i]
+                        vim.g["terminal_color_" .. (i + 7)] = c.brights[i]
+                    end
+                end,
+            })
+        end
     end,
 }

@@ -26,22 +26,25 @@ local DARK = {
 	mauve = 0xcba6f7,
 }
 
+-- Floats sit lighter than the editor (#e4d6c9) behind a black border, so they
+-- read as lifted; on a step-darker ground they blended in (1.1:1).
 local LIGHT = {
-	crust = 0x141413,
-	bg = 0xe2d6c6,
-	text = 0x141413,
-	surface_0 = 0xddd2c3,
-	surface_1 = 0xd0c5b5,
-	overlay_1 = 0x42413c,
-	overlay_2 = 0xc3b8a7,
+	crust = 0x111110,
+	bg = 0xeee7df,
+	border = 0x111110,
+	text = 0x111110,
+	surface_0 = 0xd4cabb,
+	surface_1 = 0xc8bdad,
+	overlay_1 = 0x292825,
+	overlay_2 = 0xbbb0a1,
 	current_number_bg = 0x7a2318,  -- the active-window chip, matching WezTerm's tab
 	current_number_fg = 0xfaf9f5,  -- and the light digit that sits on it
 	red = 0xd97757,
-	gold = 0x7a5000,
-	green = 0x3d5f11,
-	teal = 0x155e5a,
-	blue = 0x1f4e79,
-	mauve = 0x7a2e6b,
+	gold = 0x4b3100,
+	green = 0x253b0a,
+	teal = 0x0d3a37,
+	blue = 0x13304b,
+	mauve = 0x4b1c41,
 }
 
 local PALETTE = require("theme-mode").is_light and LIGHT or DARK
@@ -83,7 +86,7 @@ function M.highlights()
 
 		TmuxChipFill = { fg = c.overlay_1, bg = c.bg },
 		TmuxChipNormal = { fg = c.text, bg = c.bg },
-		TmuxChipBorder = { fg = c.surface_1, bg = c.bg },
+		TmuxChipBorder = { fg = c.border or c.surface_1, bg = c.bg },
 		-- Cursor row: one surface up, the same step as inactive -> active tabs.
 		TmuxChipCursorLine = { bg = c.surface_0 },
 	}

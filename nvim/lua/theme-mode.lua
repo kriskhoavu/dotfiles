@@ -56,37 +56,43 @@ local dark = {
 }
 
 local light = {
-	fill_bg      = "#E2D6C6",
-	tab_bg       = "#E8DBCA",
-	tab_fg       = "#565653",
-	visible_bg   = "#DDD2C3",
-	visible_fg   = "#3D3D3A",
-	separator    = "#C3B8A7",
+	fill_bg      = "#D9CDBE",
+	tab_bg       = "#DED2C2",
+	tab_fg       = "#353533",
+	visible_bg   = "#D4CABB",
+	visible_fg   = "#252524",
+	separator    = "#BBB0A1",
 
-	active_bg        = "#EEDFD1",
-	inactive_bg      = "#E2D6C6",
+	active_bg        = "#E4D6C9",
+	inactive_bg      = "#D9CDBE",
 	active_border    = "#D97757",
-	inactive_border  = "#C3B8A7",
-	active_linenr    = "#42413C",
-	inactive_linenr  = "#75736C",
+	inactive_border  = "#BBB0A1",
+	active_linenr    = "#292825",
+	inactive_linenr  = "#474742",
 
-	linenr_below = "#A6432A",
+	linenr_below = "#66291A",
 
 	-- Claude's neutrals, 5% accent orange, 8% darker: WezTerm's six-step ramp.
 	-- ramp_0 must equal WezTerm's background: Normal is transparent.
-	ramp_0 = "#eedfd1",
-	ramp_1 = "#e8dbca",
-	ramp_2 = "#e2d6c6",
-	ramp_3 = "#ddd2c3",
-	ramp_4 = "#d0c5b5",
-	ink = "#141413",
-	muted = "#565653",
-	muted_ui = "#42413c",
+	ramp_0 = "#e4d6c9",
+	ramp_1 = "#ded2c2",
+	ramp_2 = "#d9cdbe",
+	ramp_3 = "#d4cabb",
+	ramp_4 = "#c8bdad",
+	ink = "#111110",
+	muted = "#353533",
+	muted_ui = "#292825",
 
 	-- One Light hues darkened to 5:1+ on this ground (One Light's sit at 2-3).
-	syn_keyword   = "#8f3c7e",
-	syn_type      = "#774d00",
-	syn_parameter = "#97401f",
+	syn_keyword   = "#58254d",
+	syn_type      = "#492f00",
+	syn_parameter = "#5d2713",
+
+	-- WezTerm's light ANSI palette (wezterm/lua/palette.lua), 4.6:1+ here. One
+	-- Light's hues sit at 2.2-2.9:1 and reached every :terminal, lazygit and
+	-- Neo-tree through onedark.
+	ansi    = { "#252524", "#601b0f", "#253b0a", "#492f00", "#13304b", "#4b1c41", "#0d3a37", "#33332e" },
+	brights = { "#3d3d3c", "#6b2616", "#2a4411", "#543700", "#1a3b58", "#58254d", "#114442", "#3f3d38" },
 }
 
 M.colors = M.is_light and light or dark
