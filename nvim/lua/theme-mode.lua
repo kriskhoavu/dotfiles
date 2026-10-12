@@ -37,11 +37,13 @@ local dark = {
 	visible_fg   = "#aab7cf",
 	separator    = "#344055",
 
-	-- vim-window: the focused window is lifted, the rest recede
+	-- vim-window: the focused window is lifted and boxed in muted gold, the rest recede
 	active_bg        = "#1e1e2e",
 	inactive_bg      = "#080a0f",
-	active_border    = "#ffcc00",
+	active_border    = "#6a5324",
+	active_border_fg = "#f0e6d0",
 	inactive_border  = "#3a3f4b",
+	active_cursorlinenr = "#ffcc00",
 	active_linenr    = "#8fa1bd",
 	inactive_linenr  = "#4b5160",
 
@@ -65,8 +67,10 @@ local light = {
 
 	active_bg        = "#E4D6C9",
 	inactive_bg      = "#D9CDBE",
-	active_border    = "#D97757",
+	active_border    = "#8a5a00",
+	active_border_fg = "#ffffff",
 	inactive_border  = "#BBB0A1",
+	active_cursorlinenr = "#D97757",
 	active_linenr    = "#292825",
 	inactive_linenr  = "#474742",
 

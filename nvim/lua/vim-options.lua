@@ -79,12 +79,15 @@ vim.keymap.set("t", "<C-]>", function()
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 end, { desc = "Send Esc to terminal app" })
 
--- Hide statusline for terminal buffers
+-- Hide statusline for terminal buffers; split windows keep the winbar, which
+-- vim-window.lua draws as the top border.
 vim.api.nvim_create_autocmd({ "TermOpen", "BufEnter", "WinEnter" }, {
   callback = function()
     if vim.bo.buftype == "terminal" then
       vim.wo.statusline = " "
-      vim.wo.winbar = ""
+      if vim.api.nvim_win_get_config(0).relative ~= "" then
+        vim.wo.winbar = ""
+      end
     end
   end,
 })
@@ -95,7 +98,9 @@ vim.api.nvim_create_autocmd("VimEnter", {
         local buf = vim.api.nvim_win_get_buf(win)
         if vim.bo[buf].buftype == "terminal" then
           vim.wo[win].statusline = " "
-          vim.wo[win].winbar = ""
+          if vim.api.nvim_win_get_config(win).relative ~= "" then
+            vim.wo[win].winbar = ""
+          end
         end
       end
     end, 10)

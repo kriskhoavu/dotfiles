@@ -185,17 +185,32 @@ return {
       local neotree_win_id = nil
       local neotree_buf_id = nil
 
-      -- Hide statusline for Neo-tree windows
+      -- Statusline for Neo-tree windows: the tree's root on the left, the
+      -- selected entry on the right.
+      _G.NeoTreeStatusline = function()
+        local ok, state = pcall(function()
+          return require("neo-tree.sources.manager").get_state(vim.b.neo_tree_source or "filesystem")
+        end)
+        local root = ok and state.path or vim.fn.getcwd()
+        local node = ok and state.tree and state.tree:get_node()
+        local selected = node and node.name or ""
+        local function esc(text)
+          return (text:gsub("%%", "%%%%"))
+        end
+        return " " .. esc(vim.fn.fnamemodify(root, ":t")) .. "%=" .. esc(selected) .. " "
+      end
+      local neotree_statusline = "%{%v:lua.NeoTreeStatusline()%}"
+
       vim.api.nvim_create_autocmd("FileType", {
         pattern = "neo-tree",
         callback = function()
-          vim.wo.statusline = " "
+          vim.wo.statusline = neotree_statusline
         end,
       })
       vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
         callback = function()
           if vim.bo.filetype == "neo-tree" then
-            vim.wo.statusline = " "
+            vim.wo.statusline = neotree_statusline
           end
         end,
       })

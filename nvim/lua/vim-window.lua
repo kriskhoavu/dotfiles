@@ -50,6 +50,10 @@ api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "WinEnter", "BufFilePost" }
 local managed_hl_keys = {
     WinSeparator = true,
     VertSplit = true,
+    WinBar = true,
+    WinBarNC = true,
+    StatusLine = true,
+    StatusLineNC = true,
     Normal = true,
     NormalNC = true,
     EndOfBuffer = true,
@@ -73,6 +77,24 @@ local function split_keep_unmanaged_winhighlight(existing)
     return parts
 end
 
+-- The winbar is the window's top border: an empty bar padded with "─".
+local TOP_BORDER = "%="
+
+local function set_top_border(win)
+    local winbar = vim.wo[win].winbar
+    -- Leave a winbar some other feature drew.
+    if winbar ~= "" and winbar ~= TOP_BORDER then
+        return
+    end
+    if winbar ~= TOP_BORDER then
+        vim.wo[win].winbar = TOP_BORDER
+    end
+    local fillchars = api.nvim_get_option_value("fillchars", { scope = "global" }) .. ",wbr:─"
+    if api.nvim_get_option_value("fillchars", { win = win }) ~= fillchars then
+        api.nvim_set_option_value("fillchars", fillchars, { scope = "local", win = win })
+    end
+end
+
 local function is_trackable_window(win)
     if not api.nvim_win_is_valid(win) then
         return false
@@ -90,6 +112,15 @@ local function apply_window_winhighlight(win, border_hl, is_active)
     local is_neotree = vim.bo[api.nvim_win_get_buf(win)].filetype == "neo-tree"
     parts[#parts + 1] = "WinSeparator:" .. border_hl
     parts[#parts + 1] = "VertSplit:" .. border_hl
+
+    -- Top (winbar) and bottom (statusline) edges.
+    local edge_hl = is_active and "ActiveWindowBorder" or "InactiveWindowBorder"
+    parts[#parts + 1] = "WinBar:" .. edge_hl
+    parts[#parts + 1] = "WinBarNC:" .. edge_hl
+    if is_active then
+        parts[#parts + 1] = "StatusLine:ActiveWindowStatusLine"
+        parts[#parts + 1] = "StatusLineNC:ActiveWindowStatusLine"
+    end
 
     if is_active then
         parts[#parts + 1] = "Normal:ActiveWindowNormal"
@@ -142,10 +173,11 @@ local function refresh_window_borders()
                 local row, col = unpack(api.nvim_win_get_position(win))
                 local width = api.nvim_win_get_width(win)
                 local height = api.nvim_win_get_height(win)
-                local right_edge = col + width
+                -- The separator column sits between the two windows.
+                local separator_col = col + width
                 local overlaps_vertically = row < (crow + cheight) and crow < (row + height)
 
-                if right_edge == ccol and overlaps_vertically then
+                if separator_col + 1 == ccol and overlaps_vertically then
                     active_border_wins[win] = true
                 end
             end
@@ -156,6 +188,7 @@ local function refresh_window_borders()
         if is_trackable_window(win) then
             local border_hl = active_border_wins[win] and "ActiveWindowBorder" or "InactiveWindowBorder"
             apply_window_winhighlight(win, border_hl, win == current)
+            set_top_border(win)
         else
             clear_managed_winhighlight(win)
         end
@@ -177,7 +210,14 @@ local function set_window_border_highlights()
 
     api.nvim_set_hl(0, "ActiveWindowBorder", {
         fg = c.active_border,
-        ctermfg = 220,
+        ctermfg = 179,
+        bold = true,
+    })
+    api.nvim_set_hl(0, "ActiveWindowStatusLine", {
+        fg = c.active_border_fg,
+        bg = c.active_border,
+        ctermfg = 235,
+        ctermbg = 179,
         bold = true,
     })
     api.nvim_set_hl(0, "InactiveWindowBorder", {
@@ -192,7 +232,7 @@ local function set_window_border_highlights()
         bg = active_background,
     })
     api.nvim_set_hl(0, "ActiveWindowCursorLineNr", {
-        fg = c.active_border,
+        fg = c.active_cursorlinenr,
         bg = active_background,
         bold = true,
     })
@@ -224,6 +264,14 @@ api.nvim_create_autocmd({ "ColorScheme" }, {
 api.nvim_create_autocmd({ "VimEnter", "BufWinEnter", "WinEnter", "WinLeave", "TabEnter" }, {
     group = border_group,
     callback = refresh_window_borders,
+})
+
+-- Neo-tree rewrites its window's 'winhighlight' on BufEnter; reapply after it.
+api.nvim_create_autocmd("BufEnter", {
+    group = border_group,
+    callback = function()
+        vim.schedule(refresh_window_borders)
+    end,
 })
 
 api.nvim_create_autocmd("FileType", {
