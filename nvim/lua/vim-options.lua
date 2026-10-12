@@ -270,3 +270,14 @@ vim.keymap.set("n", "<leader>sd", function()
       vim.api.nvim_set_current_win(right_win)
     end
 end, { desc = "Move buffer to right split" })
+
+-- The reverse of \sd: close this split and land on the leftmost one, which
+-- keeps showing its own file. The closed split's buffer stays listed.
+vim.keymap.set("n", "<leader>sa", function()
+    local edit_wins = require("edit-windows").list()
+    local left_win = edit_wins[1]
+    local current_win = vim.api.nvim_get_current_win()
+    if #edit_wins <= 1 or current_win == left_win then return end
+    vim.api.nvim_win_close(current_win, false)
+    vim.api.nvim_set_current_win(left_win)
+end, { desc = "Close split, keep its buffer, focus left" })
