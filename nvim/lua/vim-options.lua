@@ -117,6 +117,19 @@ local function current_path_from_buffer_or_neotree()
         return nil
     end
 
+    -- A terminal's name is term://..., not a path: use its shell's directory.
+    if vim.bo.buftype == "terminal" then
+        local ok, pid = pcall(vim.fn.jobpid, vim.b.terminal_job_id)
+        if ok then
+            local out = vim.fn.system({ "lsof", "-a", "-p", tostring(pid), "-d", "cwd", "-Fn" })
+            local cwd = out:match("\nn([^\n]+)")
+            if cwd then
+                return cwd
+            end
+        end
+        return vim.fn.getcwd()
+    end
+
     local file_path = vim.fn.expand("%:p")
     if file_path == "" then
         return nil
@@ -146,11 +159,14 @@ vim.keymap.set("n", "<leader>of", function()
     end
 
     if vim.fn.has("mac") == 1 then
-        if vim.fn.isdirectory(file_path) == 1 then
-            os.execute("open " .. vim.fn.shellescape(file_path) .. " &")
-        else
-            os.execute("open -R " .. vim.fn.shellescape(file_path) .. " &")
-        end
+        local cmd = vim.fn.isdirectory(file_path) == 1 and { "open", file_path } or { "open", "-R", file_path }
+        vim.system(cmd, { text = true }, function(r)
+            if r.code ~= 0 then
+                vim.schedule(function()
+                    vim.notify("Open in Finder failed: " .. vim.trim(r.stderr or ""), vim.log.levels.ERROR)
+                end)
+            end
+        end)
     end
 end, { desc = "Open current file in Finder (supports NeoTree)" })
 
