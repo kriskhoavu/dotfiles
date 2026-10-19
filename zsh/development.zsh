@@ -1,7 +1,9 @@
 # Development tools and work-specific configuration
 # Sourced from .zshrc - keep heavy items lazy-loaded where possible
 
-export CC="$HOME/Documents/0. CC"
+# Work projects root. Not CC, and not exported: make, cc and node-gyp read CC
+# as the C compiler. Set CC_ROOT in ~/.local.zsh where the folder lives elsewhere.
+CC_ROOT="${CC_ROOT:-$HOME/Documents/0. CC}"
 
 # Kubernetes & Docker
 function k() {

@@ -93,13 +93,13 @@ HISTORY_SUBSTRING_SEARCH_FUZZY=1
 # No hist_*_dups option is on, so dedupe matches here.
 HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=1
 
+# Machine-local settings (not tracked), like ~/.creds.zsh: PATH entries and
+# paths that differ per computer (Homebrew node, JAVA_HOME, Rancher, CC_ROOT).
+[[ -f "$HOME/.local.zsh" ]] && source "$HOME/.local.zsh"
+
 # PATH Configuration
 export DEFAULT_USER="$USER"
 export DOCKER_MIN_API_VERSION=1.24
-export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
-export JAVA_HOME=/Users/kdvu/Library/Java/JavaVirtualMachines/temurin-21.0.4/Contents/Home
-export PATH="$JAVA_HOME/bin:$PATH"
-export PDF_GENERATOR_EXECUTABLE="/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome"
 
 # Source Development Configuration (lazy-loaded where possible)
 ZSHRC_DIR="${${(%):-%x}:A:h}"
@@ -134,7 +134,3 @@ _set_wezterm_tab_title  # Set on shell startup
 # Load machine-local credentials (not tracked in git)
 [[ -f "$HOME/.creds.zsh" ]] && source "$HOME/.creds.zsh"
 export PATH="$HOME/.local/bin:$PATH"
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/kdvu/.rd/bin:$PATH"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)

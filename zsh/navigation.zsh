@@ -13,13 +13,14 @@ chrome() {
 }
 
 # Project groups: "name=path" format (order preserved)
+# Paths missing on this machine are left out of op's list.
 KODE_STREAM_PATH="$HOME/Personal/01. happy-learning/Kris/kompas/kode-stream"
 
 PROJECT_GROUPS=(
-    "discovery=$CC/1. Discovery"
-    "discoverysap=$CC/4. CCSAP"
-    "enterpricesap=$CC/2. EPSAP"
-    "dotfiles=$HOME/Personal/01. happy-learning/Kris/dotfiles"
+    "discovery=$CC_ROOT/1. Discovery"
+    "discoverysap=$CC_ROOT/4. CCSAP"
+    "enterpricesap=$CC_ROOT/2. EPSAP"
+    "dotfiles=${ZSHRC_DIR:h}"
     "kode-stream=$KODE_STREAM_PATH"
     "prepration=$HOME/Personal/01. happy-learning/Kris/preparation"
 )
@@ -112,11 +113,14 @@ function op() {
     local base choice selection
     local -a roots options
 
-    # Build list: @group names + default roots
+    # Build list: @group names + default roots, only those present here
     for entry in "${PROJECT_GROUPS[@]}"; do
-        options+=("@${entry%%=*}")
+        [[ -d "${entry#*=}" ]] && options+=("@${entry%%=*}")
     done
-    options+=("${DEFAULT_ROOTS[@]}" "${OP_SAVED_ROOTS[@]}")
+    for entry in "${DEFAULT_ROOTS[@]}"; do
+        [[ -d "$entry" ]] && options+=("$entry")
+    done
+    options+=("${OP_SAVED_ROOTS[@]}")
 
     # Select from list
     selection=$(printf "%s\n" "${options[@]}" | fzf --prompt="Root/Group > " --reverse) || return
