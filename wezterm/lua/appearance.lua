@@ -35,9 +35,13 @@ return function(config)
   }
 
   -- ── Window ────────────────────────────────────────────────────────────────
-  config.window_background_opacity    = 1.0
-  config.macos_window_background_blur = 0
-  config.text_background_opacity      = 1.0
+  -- A light see-through with blur. The background layers below carry the
+  -- window's opacity (window_background_opacity is ignored once they exist);
+  -- text_background_opacity covers cells an app paints, as nvim does.
+  local OPACITY = 0.92
+  config.window_background_opacity    = OPACITY
+  config.macos_window_background_blur = 20
+  config.text_background_opacity      = OPACITY
 
   -- Opaque body plus a dark band along the bottom: the window is rarely a whole
   -- number of cells, and the remainder shows a light notch beside tmux's dark
@@ -47,7 +51,7 @@ return function(config)
   local bottom_band = function(align)
     return {
       source = { Color = p.status_bar_bg },
-      opacity = 1.0,
+      opacity = OPACITY,
       width = align == "Center" and 6000 or 48,
       horizontal_align = align,
       height = 48,
@@ -58,7 +62,7 @@ return function(config)
   config.background = {
     {
       source = { Color = p.background },
-      opacity = 1.0,
+      opacity = OPACITY,
       width = "100%",
       height = "100%",
     },
