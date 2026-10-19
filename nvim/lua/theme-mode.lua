@@ -36,6 +36,7 @@ local dark = {
 	visible_bg   = "#1f2633",
 	visible_fg   = "#aab7cf",
 	separator    = "#344055",
+	close_fg     = "#7f8ea3",
 
 	-- vim-window: the focused window is lifted and boxed in muted gold, the rest recede
 	active_bg        = "#1e1e2e",
@@ -58,12 +59,14 @@ local dark = {
 }
 
 local light = {
-	fill_bg      = "#D9CDBE",
-	tab_bg       = "#DED2C2",
-	tab_fg       = "#353533",
-	visible_bg   = "#D4CABB",
-	visible_fg   = "#252524",
-	separator    = "#BBB0A1",
+	-- Chips lighter than a darker strip, ink text: one step apart they blurred.
+	fill_bg      = "#A99E8F",
+	tab_bg       = "#CFC5B7",
+	tab_fg       = "#111110",
+	visible_bg   = "#E4D6C9",
+	visible_fg   = "#111110",
+	separator    = "#8C8173",
+	close_fg     = "#4f483f",
 
 	active_bg        = "#E4D6C9",
 	inactive_bg      = "#D9CDBE",

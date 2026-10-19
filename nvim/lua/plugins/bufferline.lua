@@ -69,6 +69,12 @@ return {
           duplicate_visible = { fg = c.visible_fg, bg = c.visible_bg, italic = false },
           duplicate_selected = { fg = "#ffffff", bg = selected_background, bold = true, italic = false },
 
+          -- Unset, these fall back to the colorscheme's grey box around the X.
+          close_button = { fg = c.close_fg, bg = c.tab_bg },
+          close_button_visible = { fg = c.close_fg, bg = c.visible_bg },
+          modified = { fg = c.tab_fg, bg = c.tab_bg },
+          modified_visible = { fg = c.visible_fg, bg = c.visible_bg },
+
           separator = { fg = c.separator, bg = c.tab_bg },
           separator_visible = { fg = c.separator, bg = c.visible_bg },
           separator_selected = { fg = "#ffffff", bg = selected_background },
