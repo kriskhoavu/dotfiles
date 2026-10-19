@@ -33,6 +33,9 @@ return {
             Search = { fg = c.ink, bg = "#d3b375" },
             Visual = { bg = "#d3a184" },
             PmenuSel = { fg = c.ink, bg = "#d3a184", bold = true },
+            -- Normal is transparent, so the command line showed the terminal's
+            -- own ground. Inside tmux that can be dark, under ink text.
+            MsgArea = { fg = c.ink, bg = c.ramp_0 },
         } or {}
         require("onedark").setup({
             style = mode.is_light and "light" or "dark", -- dark, darker, cool, deep, warm, warmer, light
