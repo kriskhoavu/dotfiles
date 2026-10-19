@@ -175,11 +175,15 @@ return {
                     if not _G.__fzf_modal_keys then
                         _G.__fzf_modal_keys = true
 
+                        -- Opening a pick hides the picker for resume, and __SELF keeps
+                        -- returning it: only a picker still on screen counts as open.
                         local function live()
                             local ok, win = pcall(function()
                                 return require("fzf-lua.win").__SELF()
                             end)
-                            return ok and win or nil
+                            if ok and win and win.fzf_winid and vim.api.nvim_win_is_valid(win.fzf_winid) then
+                                return win
+                            end
                         end
 
                         -- Resolved per call: these outlive every picker.
