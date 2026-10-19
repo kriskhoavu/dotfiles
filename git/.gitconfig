@@ -1,6 +1,6 @@
-[includeIf "gitdir:/Users/kdvu/Documents/"]
+[includeIf "gitdir:~/Documents/"]
     path = ~/.gitconfig-company
-[includeIf "gitdir:/Users/kdvu/Personal/"]
+[includeIf "gitdir:~/Personal/"]
     path = ~/.gitconfig-personal
 
 [alias]
