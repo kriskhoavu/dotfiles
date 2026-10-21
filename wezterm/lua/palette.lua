@@ -35,6 +35,8 @@ M.dark = {
   -- Right-status (git branch), both themes: a step lighter than Claude's
   -- #D97757, which faded into the bar at 5.6:1.
   accent = "#E59578",
+  -- Unpushed / unpulled counts beside the branch: yellow, apart from the accent.
+  sync = "#E5C07B",
 }
 
 -- "Claude light": Claude's four neutrals with 5% accent orange and 8% less
@@ -72,6 +74,7 @@ M.light = {
   button_hover_bg      = "#3A3A37",
 
   accent = "#E59578",  -- the same orange as the dark theme; see the note there
+  sync = "#E5C07B",    -- likewise
 }
 
 -- tmux's bar colour in both appearances (@kris_bar_bg); appearance.lua's

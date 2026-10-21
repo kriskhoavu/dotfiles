@@ -66,13 +66,25 @@ wezterm.on("update-right-status", function(window, pane)
   path = path or pane_cwd[pid]
   if not path then window:set_right_status(""); return end
 
-  local status = h.git_branch(path)
-  if status ~= "" then
-    window:set_right_status(wezterm.format {
-      { Foreground = { Color = palette.current().accent } },
-      { Text = "  " .. status .. "  " },
-    })
+  local branch = h.git_branch(path)
+  if not branch then window:set_right_status(""); return end
+
+  local p = palette.current()
+  local cells = { { Text = "  " } }
+  -- ↑ commits not pushed, ↓ commits not pulled; "↑ new" for a branch never
+  -- pushed. Left of the branch, so the branch name stays in one place.
+  local sync = {}
+  if not branch.upstream then
+    sync[#sync + 1] = "↑ new"
   else
-    window:set_right_status("")
+    if branch.ahead > 0 then sync[#sync + 1] = "↑" .. branch.ahead end
+    if branch.behind > 0 then sync[#sync + 1] = "↓" .. branch.behind end
   end
+  if #sync > 0 then
+    cells[#cells + 1] = { Foreground = { Color = p.sync } }
+    cells[#cells + 1] = { Text = table.concat(sync, " ") .. " " }
+  end
+  cells[#cells + 1] = { Foreground = { Color = p.accent } }
+  cells[#cells + 1] = { Text = " " .. branch.name .. "  " }
+  window:set_right_status(wezterm.format(cells))
 end)

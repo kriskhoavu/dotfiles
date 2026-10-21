@@ -27,6 +27,8 @@ end
 local branch_cache = {}   -- path → { result, time }
 local BRANCH_TTL   = 5    -- seconds; os.time() is whole seconds, so 1 never hit
 
+-- { name, ahead, behind, upstream } for the branch at path, or nil outside a
+-- branch. ahead/behind compare with the upstream as of the last fetch.
 function M.git_branch(path)
   local now   = os.time()
   local entry = branch_cache[path]
@@ -35,9 +37,18 @@ function M.git_branch(path)
   end
 
   local ok, branch = wezterm.run_child_process { M.GIT, "-C", path, "branch", "--show-current" }
-  local result = ""
+  local result = nil
   if ok and branch and branch:match("%S") then
-    result = " " .. branch:gsub("%s+$", "")
+    result = { name = branch:gsub("%s+$", ""), ahead = 0, behind = 0, upstream = false }
+    -- Fails when the branch has no upstream: it was never pushed.
+    local counted, counts = wezterm.run_child_process {
+      M.GIT, "-C", path, "rev-list", "--left-right", "--count", "HEAD...@{upstream}",
+    }
+    local ahead, behind = (counted and counts or ""):match("(%d+)%s+(%d+)")
+    if ahead then
+      result.upstream = true
+      result.ahead, result.behind = tonumber(ahead), tonumber(behind)
+    end
   end
 
   branch_cache[path] = { result = result, time = now }
