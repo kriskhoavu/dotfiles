@@ -40,6 +40,33 @@ vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<cr><Esc>", { silent = true, desc =
 vim.keymap.set("s", "<Esc>", "<Esc><Esc>", { silent = true, desc = "Exit select mode" })
 vim.keymap.set({ "x", "s" }, "<C-c>", "<Esc>", { silent = true, desc = "Exit visual/select mode" })
 
+-- Full-screen apps that read Esc and \ themselves. While one runs in the
+-- foreground of a :terminal (vim in \9's float), those keys go to it, not to
+-- this nvim: Esc here dropped to this nvim's normal mode, and the next
+-- a / i / :qa landed in it.
+local TERM_APPS = {
+    vi = true, vim = true, nvim = true, view = true, less = true, man = true,
+    lazygit = true, fzf = true, htop = true, btop = true, top = true, k9s = true,
+    claude = true, codex = true, copilot = true,
+}
+
+-- The channel of the current terminal buffer when a TERM_APPS app is in its
+-- foreground process group ("+" in ps's stat), else nil.
+local function term_app_channel()
+    if vim.bo.buftype ~= "terminal" then return nil end
+    local chan = vim.bo.channel
+    local info = chan and chan > 0 and vim.api.nvim_get_chan_info(chan)
+    local pty = info and info.pty
+    if not pty or pty == "" then return nil end
+    local ps = vim.system({ "ps", "-o", "stat=,comm=", "-t", (pty:gsub("^/dev/", "")) }, { text = true }):wait()
+    for line in (ps.stdout or ""):gmatch("[^\n]+") do
+        local stat, comm = line:match("^%s*(%S+)%s+(.+)$")
+        if stat and stat:find("+", 1, true) and TERM_APPS[vim.fs.basename(comm)] then
+            return chan
+        end
+    end
+end
+
 local function leader_passthrough(keys, desc)
     local seq = "<leader>" .. keys
 
@@ -52,6 +79,12 @@ local function leader_passthrough(keys, desc)
     end, { silent = true, desc = desc })
 
     vim.keymap.set("t", seq, function()
+        -- \9 stays here: it hides the float an app may be running in.
+        local chan = keys ~= "9" and term_app_channel()
+        if chan then
+            vim.api.nvim_chan_send(chan, vim.keycode(seq))
+            return
+        end
         vim.api.nvim_feedkeys(vim.keycode("<C-\\><C-n>" .. seq), "m", false)
     end, { silent = true, desc = desc })
 end
@@ -73,8 +106,16 @@ leader_passthrough("wr", "Resize mode passthrough")
 leader_passthrough("[", "Back to previous file passthrough")
 leader_passthrough("]", "Forward to next file passthrough")
 
--- Terminal mode: single Esc exits to normal mode, Ctrl-] sends Esc to the terminal app
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
+-- Terminal mode: Esc exits to normal mode, or reaches a TERM_APPS app running
+-- there. Ctrl-] always sends Esc to the app; Ctrl-\ Ctrl-n always exits.
+vim.keymap.set("t", "<Esc>", function()
+    local chan = term_app_channel()
+    if chan then
+        vim.api.nvim_chan_send(chan, "\27")
+    else
+        vim.api.nvim_feedkeys(vim.keycode("<C-\\><C-n>"), "n", false)
+    end
+end, { desc = "Exit terminal mode, or Esc to a full-screen app" })
 vim.keymap.set("t", "<C-]>", function()
   vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 end, { desc = "Send Esc to terminal app" })

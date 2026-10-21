@@ -66,8 +66,9 @@ They are also centred at a ratio of the editor rather than a fixed size, share t
 |----------|------------------|---------------------------------------------|-------------------------------------------------------------------|
 | `\9`     | Normal, Terminal | Toggle the floating terminal.               | Opens or hides the reusable floating terminal. Clicking the `✕` in its top-right hides it too — same as `\9`, so the shell keeps its history, cwd and whatever is running. |
 | `\tt`    | Normal           | Open a real terminal buffer tab.            | Creates a new terminal buffer and enters insert mode.             |
-| `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`; inside lazygit it goes to lazygit instead. |
-| `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Useful inside CLI apps such as Codex, Claude, or other agent UIs. |
+| `Esc`    | Terminal         | Leave terminal insert mode.                 | Use before normal-mode commands like `q`. If vim, nvim, less, lazygit, Claude, Codex or another full-screen app runs in the terminal, `Esc` and the `\` shortcuts (except `\9`) go to that app instead. |
+| `Ctrl-]` | Terminal         | Send a real Escape key to the terminal app. | Works for any program, also one `Esc` does not reach.            |
+| `Ctrl-\ Ctrl-n` | Terminal  | Leave terminal insert mode, always.         | Use when a full-screen app runs and `Esc` goes to it.            |
 | `\3`     | Normal, Terminal | Toggle lazygit in a floating terminal.      | Press again to hide, click the `✕` at its top right, or quit lazygit with `q`; `Esc` stays inside lazygit, and `Ctrl-h/j/k/l` / `Alt-h/l` cannot move focus out of the float. |
 | `e`      | Terminal         | Open the selected file in nvim.             | Inside lazygit only: hides the float and edits the file in the nvim hosting it; `\3` or `\4` returns to the same session. `o` still opens in the default app. |
 | `\4`     | Normal, Terminal | Toggle the org git float: one tab per repo. | For a folder of sibling repos. Same float as `\3`, but tabbed across every repo in the org. See [Org Git](#org-git-many-repos-at-once). |
