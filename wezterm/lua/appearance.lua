@@ -35,12 +35,13 @@ return function(config)
   }
 
   -- ── Window ────────────────────────────────────────────────────────────────
-  -- A light see-through with blur. The background layers below carry the
-  -- window's opacity (window_background_opacity is ignored once they exist);
+  -- A light see-through, no blur: it was decoration, and it costs a
+  -- compositor pass on every redraw. The background layers below carry the window's opacity
+  -- (window_background_opacity is ignored once they exist);
   -- text_background_opacity covers cells an app paints, as nvim does.
   local OPACITY = 0.92
   config.window_background_opacity    = OPACITY
-  config.macos_window_background_blur = 20
+  config.macos_window_background_blur = 0
   config.text_background_opacity      = OPACITY
 
   -- Opaque body plus a dark band along the bottom: the window is rarely a whole
