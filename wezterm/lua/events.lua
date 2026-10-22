@@ -6,8 +6,8 @@ local pane_cwd   = {}   -- pane_id → path
 local tmux_panes = {}   -- pane_id → { is_tmux, path, time }
 local TMUX_CHECK_TTL = 5 -- seconds
 
--- The agents hub tab (lua/ai_sessions.lua) is titled when spawned.
-local AGENTS_TITLE = require('lua.ai_sessions').TITLE
+-- Hub tabs (lua/hubs.lua) are titled when spawned.
+local hubs = require('lua.hubs')
 
 local function styled(tab, text)
   local p = palette.current()
@@ -20,8 +20,11 @@ end
 -- Tab title: fixed 10px padding on each side.
 wezterm.on("format-tab-title", function(tab)
   local pane = tab.active_pane
-  if tab.tab_title == AGENTS_TITLE then
+  if tab.tab_title == hubs.AGENTS_TITLE then
     return styled(tab, string.format("   %d  󰚩 AGENTS   ", tab.tab_index + 1))
+  end
+  if tab.tab_title == hubs.OVERMIND_TITLE then
+    return styled(tab, string.format("   %d  󰒋 OVERMIND   ", tab.tab_index + 1))
   end
   -- Always prefer the pane's live cwd; fall back to cache only if unavailable
   local path

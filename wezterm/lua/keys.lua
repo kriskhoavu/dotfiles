@@ -1,7 +1,7 @@
 local wezterm = require 'wezterm'
 local act     = wezterm.action
 local h       = require 'lua.helpers'
-local ai      = require 'lua.ai_sessions'
+local hubs    = require 'lua.hubs'
 
 return function(config)
   -- Option treated as Alt (matching iTerm2 "Treat Option as Alt")
@@ -33,9 +33,10 @@ return function(config)
     { key = "DownArrow",  mods = "CTRL|CMD|SHIFT", action = act.AdjustPaneSize { "Down", 5 } },
     { key = "r",          mods = "CTRL|CMD",   action = act.RotatePanes "Clockwise" },
     { key = "f",          mods = "CTRL|CMD",   action = act.ToggleFullScreen },          -- macOS-standard fullscreen
-    { key = "a",          mods = "CTRL|CMD",   action = ai.toggle }, -- Ctrl+Cmd+A → AI agents hub
-    { key = "h",          mods = "CTRL",       action = ai.nav("h") }, -- in the hub: list; elsewhere plain Ctrl+H
-    { key = "l",          mods = "CTRL",       action = ai.nav("l") }, -- in the hub: view; elsewhere plain Ctrl+L
+    { key = "a",          mods = "CTRL|CMD",   action = hubs.agents },   -- Ctrl+Cmd+A → AI agents hub
+    { key = "o",          mods = "CTRL|CMD",   action = hubs.overmind }, -- Ctrl+Cmd+O → overmind hub
+    { key = "h",          mods = "CTRL",       action = hubs.nav("h") }, -- in a hub: list; elsewhere plain Ctrl+H
+    { key = "l",          mods = "CTRL",       action = hubs.nav("l") }, -- in a hub: view; elsewhere plain Ctrl+L
     { key = "1",          mods = "CMD",       action = act.ActivateTab(0) },            -- Cmd+1 → tab 1
     { key = "2",          mods = "CMD",       action = act.ActivateTab(1) },            -- Cmd+2 → tab 2
     { key = "3",          mods = "CMD",       action = act.ActivateTab(2) },            -- Cmd+3 → tab 3

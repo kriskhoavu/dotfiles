@@ -1,5 +1,5 @@
 #!/bin/bash
-# Agents hub for Ctrl+Cmd+A (lua/ai_sessions.lua): a tab listing every running
+# Agents hub for Ctrl+Cmd+A (lua/hubs.lua): a tab listing every running
 # claude/opencode/codex session on the left, with a live view of the one under
 # the cursor on the right. The view is a tmux client on a grouped session
 # (_av_<session>): same windows, own current window, so the real client never
@@ -398,7 +398,7 @@ hub_cleanup() {
     kill_views
 }
 
-# The list pane. AI_SESSIONS_RETURN_TAB (from Lua) is activated before this
+# The list pane. HUB_RETURN_TAB (from Lua) is activated before this
 # tab closes: closing the active tab makes WezTerm pick a neighbour.
 hub() {
     printf '\e]2;ai-sessions\e\\'      # pane title; the Lua toggle looks for it
@@ -410,7 +410,7 @@ hub() {
     if [[ -z $rows ]]; then
         printf '\n  no AI agent is running in any pane\n\n  press any key\n'
         read -r -n1 -s
-        [[ -n ${AI_SESSIONS_RETURN_TAB:-} ]] && "$WEZTERM" cli activate-tab --tab-id "$AI_SESSIONS_RETURN_TAB"
+        [[ -n ${HUB_RETURN_TAB:-} ]] && "$WEZTERM" cli activate-tab --tab-id "$HUB_RETURN_TAB"
         return
     fi
 
@@ -437,7 +437,7 @@ hub() {
         --bind "enter:execute-silent($SELF enter {1})" \
         --bind "ctrl-r:reload($SELF list compact)" >/dev/null
 
-    [[ -n ${AI_SESSIONS_RETURN_TAB:-} ]] && "$WEZTERM" cli activate-tab --tab-id "$AI_SESSIONS_RETURN_TAB"
+    [[ -n ${HUB_RETURN_TAB:-} ]] && "$WEZTERM" cli activate-tab --tab-id "$HUB_RETURN_TAB"
 }
 
 # ── jump ─────────────────────────────────────────────────────────────────────
