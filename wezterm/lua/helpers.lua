@@ -29,6 +29,8 @@ local BRANCH_TTL   = 5    -- seconds; os.time() is whole seconds, so 1 never hit
 
 -- { name, ahead, behind, upstream } for the branch at path, or nil outside a
 -- branch. ahead/behind compare with the upstream as of the last fetch.
+-- One git process: this runs on WezTerm's UI thread, and a slow spawn (Sophos
+-- scans each one) freezes the window for as long as it takes.
 function M.git_branch(path)
   local now   = os.time()
   local entry = branch_cache[path]
@@ -36,18 +38,26 @@ function M.git_branch(path)
     return entry.result
   end
 
-  local ok, branch = wezterm.run_child_process { M.GIT, "-C", path, "branch", "--show-current" }
+  -- --points-at HEAD keeps the list (and its ahead/behind counting) to the
+  -- branches at this commit; "*" marks the checked-out one.
+  -- pcall: the spawn raises when path no longer exists, which aborted the
+  -- whole status update.
+  local called, ok, out = pcall(wezterm.run_child_process, {
+    M.GIT, "-C", path, "for-each-ref", "--points-at", "HEAD",
+    "--format=%(HEAD)|%(refname:short)|%(upstream)|%(upstream:track,nobracket)", "refs/heads/",
+  })
   local result = nil
-  if ok and branch and branch:match("%S") then
-    result = { name = branch:gsub("%s+$", ""), ahead = 0, behind = 0, upstream = false }
-    -- Fails when the branch has no upstream: it was never pushed.
-    local counted, counts = wezterm.run_child_process {
-      M.GIT, "-C", path, "rev-list", "--left-right", "--count", "HEAD...@{upstream}",
-    }
-    local ahead, behind = (counted and counts or ""):match("(%d+)%s+(%d+)")
-    if ahead then
-      result.upstream = true
-      result.ahead, result.behind = tonumber(ahead), tonumber(behind)
+  for line in ((called and ok and out) or ""):gmatch("[^\n]+") do
+    local head, name, upstream, track = line:match("^(.)|([^|]*)|([^|]*)|(.*)$")
+    if head == "*" then
+      result = {
+        name = name,
+        -- "gone": the upstream was deleted, so treat the branch as never pushed.
+        upstream = upstream ~= "" and track ~= "gone",
+        ahead = tonumber(track:match("ahead (%d+)")) or 0,
+        behind = tonumber(track:match("behind (%d+)")) or 0,
+      }
+      break
     end
   end
 
