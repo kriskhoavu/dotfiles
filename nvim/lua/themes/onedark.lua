@@ -33,6 +33,11 @@ return {
             Search = { fg = c.ink, bg = "#d3b375" },
             Visual = { bg = "#d3a184" },
             PmenuSel = { fg = c.ink, bg = "#d3a184", bold = true },
+            -- fzf-lua on the floats' ground and black border, like \9 and \3
+            -- (lua/tmux-chips.lua); it linked to Normal, the editor's darker one.
+            FzfLuaNormal = { fg = c.ink, bg = "#eee7df" },
+            FzfLuaBorder = { fg = "#111110", bg = "#eee7df" },
+            FzfLuaCursorLine = { fg = c.ink, bg = "#d3a184" },
             -- Normal is transparent, so the command line showed the terminal's
             -- own ground. Inside tmux that can be dark, under ink text.
             MsgArea = { fg = c.ink, bg = c.ramp_0 },
