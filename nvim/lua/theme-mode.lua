@@ -70,7 +70,7 @@ local light = {
 	close_fg     = "#2c2824",
 
 	active_bg        = "#D8CCBF",
-	inactive_bg      = "#D4C8B9",
+	inactive_bg      = "#CABFB1",  -- 1.15:1 under the active window
 	active_border    = "#8a5a00",
 	active_border_fg = "#ffffff",
 	inactive_border  = "#B6AC9D",
