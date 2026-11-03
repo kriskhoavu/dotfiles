@@ -8,6 +8,10 @@ return {
         local mode = require("theme-mode")
         local c = mode.colors
 
+        -- Light mode draws keywords, types and parameters bold: on the pale
+        -- ground their hues read thinner than in dark mode.
+        local bold = mode.is_light and "bold" or "none"
+
         -- Neo-tree chrome the palette cannot reach: the title bar sets only a
         -- background, and the tab chips carry near-black literals from the
         -- plugin. Light only; dark already reads correctly.
@@ -84,37 +88,37 @@ return {
             },
             highlights = vim.tbl_extend("force", {
                 -- Java annotations in orange/yellow like IntelliJ
-                ["@attribute"] = { fg = c.syn_type },
-                ["@attribute.java"] = { fg = c.syn_type },
+                ["@attribute"] = { fg = c.syn_type, fmt = bold },
+                ["@attribute.java"] = { fg = c.syn_type, fmt = bold },
 
                 -- Keywords: `public`, `class`, `implements` in purple
-                ["@keyword"] = { fg = c.syn_keyword },
-                ["@keyword.java"] = { fg = c.syn_keyword },
-                ["@keyword.modifier"] = { fg = c.syn_keyword },
-                ["@keyword.modifier.java"] = { fg = c.syn_keyword },
-                ["@keyword.type"] = { fg = c.syn_keyword },
-                ["@keyword.type.java"] = { fg = c.syn_keyword },
-                ["@lsp.type.keyword"] = { fg = c.syn_keyword },
-                ["@lsp.type.keyword.java"] = { fg = c.syn_keyword },
-                ["@lsp.type.modifier"] = { fg = c.syn_keyword },
-                ["@lsp.type.modifier.java"] = { fg = c.syn_keyword },
-                ["Keyword"] = { fg = c.syn_keyword },
-                ["Statement"] = { fg = c.syn_keyword },
-                ["StorageClass"] = { fg = c.syn_keyword },
+                ["@keyword"] = { fg = c.syn_keyword, fmt = bold },
+                ["@keyword.java"] = { fg = c.syn_keyword, fmt = bold },
+                ["@keyword.modifier"] = { fg = c.syn_keyword, fmt = bold },
+                ["@keyword.modifier.java"] = { fg = c.syn_keyword, fmt = bold },
+                ["@keyword.type"] = { fg = c.syn_keyword, fmt = bold },
+                ["@keyword.type.java"] = { fg = c.syn_keyword, fmt = bold },
+                ["@lsp.type.keyword"] = { fg = c.syn_keyword, fmt = bold },
+                ["@lsp.type.keyword.java"] = { fg = c.syn_keyword, fmt = bold },
+                ["@lsp.type.modifier"] = { fg = c.syn_keyword, fmt = bold },
+                ["@lsp.type.modifier.java"] = { fg = c.syn_keyword, fmt = bold },
+                ["Keyword"] = { fg = c.syn_keyword, fmt = bold },
+                ["Statement"] = { fg = c.syn_keyword, fmt = bold },
+                ["StorageClass"] = { fg = c.syn_keyword, fmt = bold },
 
                 -- Class/type names in a different color from keywords
-                ["@type"] = { fg = c.syn_type },
-                ["@type.java"] = { fg = c.syn_type },
-                ["@lsp.type.class"] = { fg = c.syn_type },
-                ["@lsp.type.class.java"] = { fg = c.syn_type },
-                ["@lsp.type.interface"] = { fg = c.syn_type },
-                ["@lsp.type.interface.java"] = { fg = c.syn_type },
+                ["@type"] = { fg = c.syn_type, fmt = bold },
+                ["@type.java"] = { fg = c.syn_type, fmt = bold },
+                ["@lsp.type.class"] = { fg = c.syn_type, fmt = bold },
+                ["@lsp.type.class.java"] = { fg = c.syn_type, fmt = bold },
+                ["@lsp.type.interface"] = { fg = c.syn_type, fmt = bold },
+                ["@lsp.type.interface.java"] = { fg = c.syn_type, fmt = bold },
 
                 -- Parameters in warm brown (slightly lighter)
-                ["@parameter"] = { fg = c.syn_parameter, italic = true },
-                ["@lsp.type.parameter"] = { fg = c.syn_parameter, italic = true },
-                ["@variable.parameter"] = { fg = c.syn_parameter, italic = true },
-                ["@lsp.type.parameter.java"] = { fg = c.syn_parameter, italic = true },
+                ["@parameter"] = { fg = c.syn_parameter, fmt = mode.is_light and "bold,italic" or "italic" },
+                ["@lsp.type.parameter"] = { fg = c.syn_parameter, fmt = mode.is_light and "bold,italic" or "italic" },
+                ["@variable.parameter"] = { fg = c.syn_parameter, fmt = mode.is_light and "bold,italic" or "italic" },
+                ["@lsp.type.parameter.java"] = { fg = c.syn_parameter, fmt = mode.is_light and "bold,italic" or "italic" },
             }, neotree_chrome),
         })
 
