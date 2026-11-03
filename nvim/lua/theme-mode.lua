@@ -98,11 +98,11 @@ local light = {
 	syn_type      = "#6c4600",
 	syn_parameter = "#8a3d12",
 
-	-- WezTerm's light ANSI palette (wezterm/lua/palette.lua), 4.6:1+ here. One
+	-- WezTerm's light ANSI palette (wezterm/lua/palette.lua), 4:1+ here. One
 	-- Light's hues sit at 2.2-2.9:1 and reached every :terminal, lazygit and
 	-- Neo-tree through onedark.
-	ansi    = { "#252524", "#601b0f", "#253b0a", "#492f00", "#13304b", "#4b1c41", "#0d3a37", "#33332e" },
-	brights = { "#3d3d3c", "#6b2616", "#2a4411", "#543700", "#1a3b58", "#58254d", "#114442", "#3f3d38" },
+	ansi    = { "#252524", "#962318", "#285c08", "#6c4600", "#184c9c", "#702a92", "#065a5a", "#33332e" },
+	brights = { "#3d3d3c", "#b02a1c", "#2f6a0a", "#845600", "#1e5cb8", "#8634ae", "#076868", "#3f3d38" },
 }
 
 M.colors = M.is_light and light or dark
