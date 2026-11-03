@@ -258,7 +258,11 @@ local function set_window_border_highlights()
         fg = c.inactive_linenr,
         bg = inactive_background,
     })
-    copy_highlight_with_background("StatusLineNC", "InactiveWindowStatusLine", inactive_background)
+    -- Set, not copied from StatusLineNC: the copy picked up the active bar's white.
+    api.nvim_set_hl(0, "InactiveWindowStatusLine", {
+        fg = require("theme-mode").is_light and c.ink or c.active_linenr,
+        bg = inactive_background,
+    })
     copy_highlight_with_background("ActiveWindowBorder", "ActiveWindowWinBar", active_background)
     copy_highlight_with_background("InactiveWindowBorder", "InactiveWindowWinBar", inactive_background)
     -- A step under the inactive ground: the row stays findable without glowing.
