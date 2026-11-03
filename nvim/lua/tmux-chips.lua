@@ -26,7 +26,7 @@ local DARK = {
 	mauve = 0xcba6f7,
 }
 
--- Floats sit lighter than the editor (#e4d6c9) behind a black border, so they
+-- Floats sit lighter than the editor (#ded1c4) behind a black border, so they
 -- read as lifted; on a step-darker ground they blended in (1.1:1).
 local LIGHT = {
 	crust = 0x111110,

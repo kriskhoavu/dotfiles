@@ -63,12 +63,12 @@ local light = {
 	fill_bg      = "#A99E8F",
 	tab_bg       = "#CFC5B7",
 	tab_fg       = "#111110",
-	visible_bg   = "#E4D6C9",
+	visible_bg   = "#DED1C4",
 	visible_fg   = "#111110",
 	separator    = "#8C8173",
 	close_fg     = "#4f483f",
 
-	active_bg        = "#DED1C4",  -- 2.5% under the canvas: the full canvas glared
+	active_bg        = "#DED1C4",
 	inactive_bg      = "#D9CDBE",
 	active_border    = "#8a5a00",
 	active_border_fg = "#ffffff",
@@ -81,7 +81,7 @@ local light = {
 
 	-- Claude's neutrals, 5% accent orange, 8% darker: WezTerm's six-step ramp.
 	-- ramp_0 must equal WezTerm's background: Normal is transparent.
-	ramp_0 = "#e4d6c9",
+	ramp_0 = "#ded1c4",
 	ramp_1 = "#ded2c2",
 	ramp_2 = "#d9cdbe",
 	ramp_3 = "#d4cabb",
