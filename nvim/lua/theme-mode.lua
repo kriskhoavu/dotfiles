@@ -60,13 +60,14 @@ local dark = {
 
 local light = {
 	-- Chips lighter than a darker strip, ink text: one step apart they blurred.
-	fill_bg      = "#A99E8F",
-	tab_bg       = "#CFC5B7",
+	-- Both deep (chip 1.9:1 off the editor), so unselected tabs read as tabs.
+	fill_bg      = "#837867",
+	tab_bg       = "#A39684",
 	tab_fg       = "#111110",
 	visible_bg   = "#DED1C4",
 	visible_fg   = "#111110",
-	separator    = "#8C8173",
-	close_fg     = "#4f483f",
+	separator    = "#4F483F",
+	close_fg     = "#2c2824",
 
 	active_bg        = "#DED1C4",
 	inactive_bg      = "#D9CDBE",
