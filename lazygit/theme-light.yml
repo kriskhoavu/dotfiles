@@ -6,10 +6,6 @@
 # selection matches tmux's copy-mode highlight, and the rest are the terminal
 # palette's own inks, which are tuned against that warm background.
 gui:
-  # lazygit hashes each author to a colour meant for a dark ground (pale lime
-  # here, 1.6:1); one dark ink for all of them instead.
-  authorColors:
-    "*": "#253b0a"
   theme:
     selectedLineBgColor:
       - "#d3a184"
@@ -28,7 +24,10 @@ gui:
       - "#111110"
     optionsTextColor:
       - "#13304b"
-
+    # lazygit hashes each author to a colour meant for a dark ground (pale lime
+    # here, 1.6:1); one dark ink for all of them instead.
+    authorColors:
+      "*": "#253b0a"
 # Overrides config.yml's entry wholesale -- lists are replaced, not merged --
 # purely to swap --dark for --light. Without it delta renders for a dark ground:
 # washed-out backgrounds that vanish into the light ground.
