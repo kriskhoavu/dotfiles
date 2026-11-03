@@ -68,7 +68,7 @@ local light = {
 	separator    = "#8C8173",
 	close_fg     = "#4f483f",
 
-	active_bg        = "#E4D6C9",
+	active_bg        = "#DED1C4",  -- 2.5% under the canvas: the full canvas glared
 	inactive_bg      = "#D9CDBE",
 	active_border    = "#8a5a00",
 	active_border_fg = "#ffffff",
