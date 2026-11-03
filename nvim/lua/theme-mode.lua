@@ -94,9 +94,9 @@ local light = {
 	muted_ui = "#292825",
 
 	-- One Light hues darkened to 5:1+ on this ground (One Light's sit at 2-3).
-	syn_keyword   = "#58254d",
-	syn_type      = "#492f00",
-	syn_parameter = "#5d2713",
+	syn_keyword   = "#702a92",
+	syn_type      = "#6c4600",
+	syn_parameter = "#8a3d12",
 
 	-- WezTerm's light ANSI palette (wezterm/lua/palette.lua), 4.6:1+ here. One
 	-- Light's hues sit at 2.2-2.9:1 and reached every :terminal, lazygit and

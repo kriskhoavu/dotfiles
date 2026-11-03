@@ -71,9 +71,10 @@ return {
                 light_grey = c.muted_ui,
                 -- Claude's orange, deep enough to be text rather than a wash.
                 bright_orange = "#66291a",
-                -- One Light's hues are 2.2-2.9:1 here; WezTerm's inks are 5:1+.
-                red = c.ansi[2], green = c.ansi[3], yellow = c.ansi[4], blue = c.ansi[5],
-                purple = c.ansi[6], cyan = c.ansi[7], orange = c.brights[4],
+                -- Code hues, apart from the terminal's near-black inks: those made
+                -- keywords, types and strings one colour. Saturated, 5-5.5:1.
+                red = "#962318", green = "#285c08", yellow = "#6c4600", blue = "#184c9c",
+                purple = "#702a92", cyan = "#065a5a", orange = "#883a00",
                 -- Diffs as delta draws them in lazygit (--light defaults).
                 diff_add = "#d0ffd0", diff_delete = "#ffe0e0",
                 diff_change = "#fff0b0", diff_text = "#ffd88a",
