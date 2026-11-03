@@ -41,6 +41,7 @@ local dark = {
 	-- vim-window: the focused window is lifted and boxed in muted gold, the rest recede
 	active_bg        = "#1e1e2e",
 	inactive_bg      = "#080a0f",
+	inactive_cursorline = "#11141b",
 	active_border    = "#6a5324",
 	active_border_fg = "#f0e6d0",
 	inactive_border  = "#3a3f4b",
@@ -71,6 +72,7 @@ local light = {
 
 	active_bg        = "#D8CCBF",
 	inactive_bg      = "#CABFB1",  -- 1.15:1 under the active window
+	inactive_cursorline = "#C0B5A7",
 	active_border    = "#8a5a00",
 	active_border_fg = "#ffffff",
 	inactive_border  = "#B6AC9D",

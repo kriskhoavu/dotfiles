@@ -60,6 +60,7 @@ local managed_hl_keys = {
     SignColumn = true,
     LineNr = true,
     CursorLineNr = true,
+    CursorLine = true,
     NeoTreeNormal = true,
     NeoTreeNormalNC = true,
     NeoTreeEndOfBuffer = true,
@@ -113,8 +114,8 @@ local function apply_window_winhighlight(win, border_hl, is_active)
     parts[#parts + 1] = "WinSeparator:" .. border_hl
     parts[#parts + 1] = "VertSplit:" .. border_hl
 
-    -- Top (winbar) and bottom (statusline) edges.
-    local edge_hl = is_active and "ActiveWindowBorder" or "InactiveWindowBorder"
+    -- Top (winbar) and bottom (statusline) edges, on the window's own ground.
+    local edge_hl = is_active and "ActiveWindowWinBar" or "InactiveWindowWinBar"
     parts[#parts + 1] = "WinBar:" .. edge_hl
     parts[#parts + 1] = "WinBarNC:" .. edge_hl
     if is_active then
@@ -130,7 +131,8 @@ local function apply_window_winhighlight(win, border_hl, is_active)
         parts[#parts + 1] = "LineNr:ActiveWindowLineNr"
         parts[#parts + 1] = "CursorLineNr:ActiveWindowCursorLineNr"
     else
-        -- The statusline too, or an inactive window's footer stays lighter.
+        -- The statusline and cursor row too, or they stay lighter than the rest.
+        parts[#parts + 1] = "CursorLine:InactiveWindowCursorLine"
         parts[#parts + 1] = "StatusLine:InactiveWindowStatusLine"
         parts[#parts + 1] = "StatusLineNC:InactiveWindowStatusLine"
         parts[#parts + 1] = "Normal:InactiveWindowNormal"
@@ -141,6 +143,9 @@ local function apply_window_winhighlight(win, border_hl, is_active)
         parts[#parts + 1] = "CursorLineNr:InactiveWindowLineNr"
     end
 
+    if is_neotree and is_active then
+        parts[#parts + 1] = "CursorLine:NeoTreeCursorLine" -- managed, so restore Neo-tree's own
+    end
     if is_neotree then
         local prefix = is_active and "Active" or "Inactive"
         parts[#parts + 1] = "NeoTreeNormal:" .. prefix .. "NeoTreeNormal"
@@ -254,6 +259,10 @@ local function set_window_border_highlights()
         bg = inactive_background,
     })
     copy_highlight_with_background("StatusLineNC", "InactiveWindowStatusLine", inactive_background)
+    copy_highlight_with_background("ActiveWindowBorder", "ActiveWindowWinBar", active_background)
+    copy_highlight_with_background("InactiveWindowBorder", "InactiveWindowWinBar", inactive_background)
+    -- A step under the inactive ground: the row stays findable without glowing.
+    api.nvim_set_hl(0, "InactiveWindowCursorLine", { bg = c.inactive_cursorline or inactive_background })
     copy_highlight_with_background("Directory", "ActiveNeoTreeHeader", active_background)
     copy_highlight_with_background("Directory", "InactiveNeoTreeHeader", inactive_background)
     copy_highlight_with_background("NeoTreeNormal", "ActiveNeoTreeNormal", active_background)
