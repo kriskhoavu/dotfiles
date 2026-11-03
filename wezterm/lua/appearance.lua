@@ -3,12 +3,12 @@ local palette = require 'lua.palette'
 
 return function(config)
   -- ── Font ──────────────────────────────────────────────────────────────────
-  config.font      = wezterm.font("MesloLGS NF", { weight = "Regular" })
+  config.font      = wezterm.font("JetBrainsMono Nerd Font", { weight = "Regular" })
   config.font_size = 14.3
   config.use_cap_height_to_scale_fallback_fonts = true
   config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
   config.font_rules = {
-    { italic = true, font = wezterm.font("MesloLGS NF", { weight = "Regular", italic = false }) },
+    { italic = true, font = wezterm.font("JetBrainsMono Nerd Font", { weight = "Regular", italic = false }) },
   }
 
   -- ── Colors (~/.config/kris-theme; see lua/palette.lua) ─────────────────────
@@ -97,7 +97,7 @@ return function(config)
 
   -- Bar height derives from the font (14 -> 27pt, 16 -> 35pt); no setting.
   config.window_frame = {
-    font                            = wezterm.font("MesloLGS NF", { weight = "Bold" }),
+    font                            = wezterm.font("JetBrainsMono Nerd Font", { weight = "Bold" }),
     font_size                       = 14.0,
     active_titlebar_bg              = p.titlebar_bg,
     inactive_titlebar_bg            = p.titlebar_bg_inactive,
