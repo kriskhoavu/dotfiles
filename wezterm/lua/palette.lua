@@ -40,13 +40,13 @@ M.dark = {
 }
 
 -- "Claude light": Claude's four neutrals with 5% accent orange and 8% less
--- lightness -> #DED1C4 canvas, #DED2C2, #D9CDBE, #D4CABB, #C8BDAD, #BBB0A1
+-- lightness -> #D8CCBF canvas, #D8CDBD, #D4C8B9, #CFC5B6, #C3B8A9, #B6AC9D
 -- (nvim's theme-mode uses the same steps). Text 14.1:1; ANSI normals 5:1+,
 -- brights 4:1+; slots 7 and 15 are warm greys, since "white" must be dark here.
 -- Chrome stays dark in both themes; the active tab keeps its dark red.
 M.light = {
   foreground    = "#111110",
-  background    = "#DED1C4",
+  background    = "#D8CCBF",
   cursor_bg     = "#C2552F",
   cursor_border = "#C2552F",
   cursor_fg     = "#FAF9F5",

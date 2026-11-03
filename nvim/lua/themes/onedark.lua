@@ -26,7 +26,7 @@ return {
             RenderMarkdownH4Bg = { bg = "#d0e4ff" },
             RenderMarkdownH5Bg = { bg = "#ead4ff" },
             RenderMarkdownH6Bg = { bg = "#c8f0ec" },
-            RenderMarkdownCode = { bg = "#d3c5b4" },
+            RenderMarkdownCode = { bg = "#cec0b0" },
             RenderMarkdownCodeInline = { bg = "#ffe0e0" },
             -- onedark draws search and the selected menu item in the ground
             -- colour (1.1:1 on bg_yellow); ink on WezTerm's selection instead.

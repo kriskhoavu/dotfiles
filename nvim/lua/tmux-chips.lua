@@ -26,17 +26,17 @@ local DARK = {
 	mauve = 0xcba6f7,
 }
 
--- Floats sit lighter than the editor (#ded1c4) behind a black border, so they
+-- Floats sit lighter than the editor (#d8ccbf) behind a black border, so they
 -- read as lifted; on a step-darker ground they blended in (1.1:1).
 local LIGHT = {
 	crust = 0x111110,
 	bg = 0xeee7df,
 	border = 0x111110,
 	text = 0x111110,
-	surface_0 = 0xd4cabb,
-	surface_1 = 0xc8bdad,
+	surface_0 = 0xcfc5b6,
+	surface_1 = 0xc3b8a9,
 	overlay_1 = 0x292825,
-	overlay_2 = 0xbbb0a1,
+	overlay_2 = 0xb6ac9d,
 	current_number_bg = 0x7a2318,  -- the active-window chip, matching WezTerm's tab
 	current_number_fg = 0xfaf9f5,  -- and the light digit that sits on it
 	red = 0xd97757,
