@@ -130,6 +130,9 @@ local function apply_window_winhighlight(win, border_hl, is_active)
         parts[#parts + 1] = "LineNr:ActiveWindowLineNr"
         parts[#parts + 1] = "CursorLineNr:ActiveWindowCursorLineNr"
     else
+        -- The statusline too, or an inactive window's footer stays lighter.
+        parts[#parts + 1] = "StatusLine:InactiveWindowStatusLine"
+        parts[#parts + 1] = "StatusLineNC:InactiveWindowStatusLine"
         parts[#parts + 1] = "Normal:InactiveWindowNormal"
         parts[#parts + 1] = "NormalNC:InactiveWindowNormal"
         parts[#parts + 1] = "EndOfBuffer:InactiveWindowNormal"
@@ -182,6 +185,13 @@ local function refresh_window_borders()
                 end
             end
         end
+    end
+
+    -- bufferline's "File Explorer" header sits outside every window; follow the tree.
+    local tree_hl = vim.bo[api.nvim_win_get_buf(current)].filetype == "neo-tree"
+        and "ActiveNeoTreeHeader" or "InactiveNeoTreeHeader"
+    if api.nvim_get_hl(0, { name = "NeoTreeHeader" }).link ~= tree_hl then
+        api.nvim_set_hl(0, "NeoTreeHeader", { link = tree_hl })
     end
 
     for _, win in ipairs(wins) do
@@ -243,6 +253,9 @@ local function set_window_border_highlights()
         fg = c.inactive_linenr,
         bg = inactive_background,
     })
+    copy_highlight_with_background("StatusLineNC", "InactiveWindowStatusLine", inactive_background)
+    copy_highlight_with_background("Directory", "ActiveNeoTreeHeader", active_background)
+    copy_highlight_with_background("Directory", "InactiveNeoTreeHeader", inactive_background)
     copy_highlight_with_background("NeoTreeNormal", "ActiveNeoTreeNormal", active_background)
     copy_highlight_with_background("NeoTreeNormal", "InactiveNeoTreeNormal", inactive_background)
     copy_highlight_with_background("NeoTreeEndOfBuffer", "ActiveNeoTreeEndOfBuffer", active_background)

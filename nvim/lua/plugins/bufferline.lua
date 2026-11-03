@@ -108,7 +108,7 @@ return {
             {
               filetype = "neo-tree",
               text = "File Explorer",
-              highlight = "Directory",
+              highlight = "NeoTreeHeader", -- follows the tree's focus (vim-window.lua)
               separator = true,
             },
           },
