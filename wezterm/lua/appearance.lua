@@ -7,9 +7,6 @@ return function(config)
   config.font_size = 14.3
   config.use_cap_height_to_scale_fallback_fonts = true
   config.harfbuzz_features = { "calt=0", "clig=0", "liga=0" }
-  config.font_rules = {
-    { italic = true, font = wezterm.font("JetBrainsMono Nerd Font", { weight = "Regular", italic = false }) },
-  }
 
   -- ── Colors (~/.config/kris-theme; see lua/palette.lua) ─────────────────────
   local p = palette.current()
