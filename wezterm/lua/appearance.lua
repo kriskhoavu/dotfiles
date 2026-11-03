@@ -39,7 +39,8 @@ return function(config)
   -- compositor pass on every redraw. The background layers below carry the window's opacity
   -- (window_background_opacity is ignored once they exist);
   -- text_background_opacity covers cells an app paints, as nvim does.
-  local OPACITY = 0.92
+  -- Light is opaque: the desktop showing through washed out the light ground.
+  local OPACITY = p == palette.light and 1.0 or 0.92
   config.window_background_opacity    = OPACITY
   config.macos_window_background_blur = 0
   config.text_background_opacity      = OPACITY

@@ -39,7 +39,9 @@ return {
         } or {}
         require("onedark").setup({
             style = mode.is_light and "light" or "dark", -- dark, darker, cool, deep, warm, warmer, light
-            transparent = true,
+            -- Light paints its own ground (bg0 = ramp_0, WezTerm's canvas): see-through
+            -- light washed out. Dark stays transparent over WezTerm.
+            transparent = not mode.is_light,
             code_style = {
                 comments = "italic",
                 keywords = "none",
