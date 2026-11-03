@@ -41,9 +41,10 @@ M.dark = {
 
 -- "Claude light": Claude's four neutrals with 5% accent orange and 8% less
 -- lightness -> #D8CCBF canvas, #D8CDBD, #D4C8B9, #CFC5B6, #C3B8A9, #B6AC9D
--- (nvim's theme-mode uses the same steps). Text 14.1:1. ANSI hues are nvim's
--- code hues, normals 5:1+ and brights 4:1+: near-black inks hid git's red and
--- green. Slots 7 and 15 are warm greys, since "white" must be dark here.
+-- (nvim's theme-mode uses the same steps). Text 14.1:1. ANSI hues: red, green
+-- and blue fully saturated, like delta's in lazygit (normals 4.5:1, brights
+-- 3.6:1); yellow, magenta and cyan are nvim's code hues (5:1, 4:1). Near-black
+-- inks hid git's red and green. Slots 7 and 15 are warm greys.
 -- Chrome stays dark in both themes; the active tab keeps its dark red.
 M.light = {
   foreground    = "#111110",
@@ -53,8 +54,8 @@ M.light = {
   cursor_fg     = "#FAF9F5",
   selection_bg  = "#D3A184",
   selection_fg  = "#111110",
-  ansi    = { "#252524", "#962318", "#285c08", "#6c4600", "#184c9c", "#702a92", "#065a5a", "#33332E" },
-  brights = { "#3d3d3c", "#b02a1c", "#2f6a0a", "#845600", "#1e5cb8", "#8634ae", "#076868", "#3F3D38" },
+  ansi    = { "#252524", "#af0e1c", "#006609", "#6c4600", "#0051c2", "#702a92", "#065a5a", "#33332E" },
+  brights = { "#3d3d3c", "#cb1020", "#00750a", "#845600", "#005de0", "#8634ae", "#076868", "#3F3D38" },
 
   tab_bar_bg         = "#262624",
   active_tab_bg      = "#7A2318",
