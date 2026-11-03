@@ -28,12 +28,18 @@ local function rg_excludes()
 	return table.concat(out, " ")
 end
 
-local function fd_excludes()
-	local out = {}
-	for _, dir in ipairs(EXCLUDE) do
-		out[#out + 1] = ("--exclude %s"):format(dir)
-	end
-	return table.concat(out, " ")
+-- rg prints in whatever order its threads finish, so one directory's hits
+-- were scattered through the list. Sorted by path they sit together.
+-- rg --sort=path does it single-threaded (3x slower on Discovery); sort(1)
+-- after a parallel walk costs next to nothing, but the list now arrives
+-- whole rather than streaming. -s keeps a file's lines in line order.
+local SORT_FILES = "LC_ALL=C sort"
+local SORT_GREP  = "LC_ALL=C sort -t: -k1,1 -s"
+
+-- The files picker's own command with the sort piped on; fzf-lua inserts its
+-- --hidden toggle after the first word, so the pipe survives it.
+local function sorted_files(rg_opts)
+    return { cmd = ("rg %s | %s"):format(rg_opts, SORT_FILES) }
 end
 
 local function neotree_directory()
@@ -88,15 +94,20 @@ return {
     keys = {
         -- Hidden files are already in (files defaults to hidden = true); what
         -- .gitignore hides is \fF.
-        { "<leader>ff", function() local opts = with_neotree_directory(); focus_edit_window(); require("fzf-lua").files(opts) end, desc = "Find Files" },
+        {
+            "<leader>ff",
+            function()
+                local opts = with_neotree_directory(sorted_files([[--color=never --files -g "!.git" -g "!.jj"]]))
+                focus_edit_window()
+                require("fzf-lua").files(opts)
+            end,
+            desc = "Find Files",
+        },
         {
             -- Ignore rules off, EXCLUDE back on: reaches .env and gitignored sub-repos.
             "<leader>fF",
             function()
-                local opts = with_neotree_directory({
-                    fd_opts = "--color=never --type f --type l --hidden --no-ignore " .. fd_excludes(),
-                    rg_opts = "--color=never --files --hidden --no-ignore " .. rg_excludes(),
-                })
+                local opts = with_neotree_directory(sorted_files("--color=never --files --hidden --no-ignore " .. rg_excludes()))
                 focus_edit_window()
                 require("fzf-lua").files(opts)
             end,
@@ -254,6 +265,13 @@ return {
                     end, { buffer = buf, silent = true, desc = "Focus the preview" })
                 end,
             },
+            -- On a typed query fzf ranks by score; among equal scores, keep the
+            -- sorted input order instead of shortest-path-first, so a
+            -- directory's files stay together.
+            files = { fzf_opts = { ["--tiebreak"] = "pathname,index" } },
+            -- grep and live_grep: \ft, \fT, \fs. Live grep sends the query to
+            -- rg and fzf does not re-rank, so the sorted order is what shows.
+            grep = { filter = SORT_GREP },
             lsp = {
                 -- Open at once and stream results; a timeout blocks until every server answers.
                 async_or_timeout = true,

@@ -96,7 +96,7 @@ They are also centred at a ratio of the editor rather than a fixed size, share t
 | `\ff`       | Normal                   | Find files **by name**.                      | Dotfiles included; `.gitignore` respected. Uses the Neo-tree directory when possible. |
 | `\fF`       | Normal                   | Find files by name, **ignored ones too**.    | The only one that reaches secrets, `.env` files, build output, `node_modules`. |
 | `\fg`       | Normal                   | Find Git-**tracked** files by name.          | Nothing untracked, nothing outside a repo.     |
-| `\ft`       | Normal                   | Live grep — search **file contents**.        | Same visibility as `\ff`, minus dotfiles.      |
+| `\ft`       | Normal                   | Live grep — search **file contents**.        | Same visibility as `\ff`, minus dotfiles. Results of `\ff`, `\fF`, `\ft` and `\fT` are sorted by path, so one directory's hits sit together; once you type into `\ff` / `\fF`, the best matches still come first. |
 | `\fT`       | Normal                   | Live grep **including hidden files**.        | Contents, not names. Excludes `.git`.          |
 | `\fb`       | Normal                   | List buffers.                                | Switch between open buffers.                   |
 | `\fh`       | Normal                   | Search help tags.                            | Opens Neovim help picker.                      |
