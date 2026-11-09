@@ -38,8 +38,9 @@ local dark = {
 	separator    = "#344055",
 	close_fg     = "#7f8ea3",
 
-	-- vim-window: the focused window is lifted and boxed in muted gold, the rest recede
-	active_bg        = "#1e1e2e",
+	-- vim-window: the focused window is boxed in muted gold, the rest recede.
+	-- The focused one is see-through, so it shows WezTerm's ground as a shell does.
+	active_bg        = "NONE",
 	inactive_bg      = "#080a0f",
 	inactive_cursorline = "#11141b",
 	active_border    = "#6a5324",
