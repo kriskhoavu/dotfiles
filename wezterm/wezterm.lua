@@ -8,7 +8,8 @@ require('lua.appearance')(config)
 require('lua.keys')(config)
 
 -- ── Misc ──────────────────────────────────────────────────────────────────────
-config.scrollback_lines          = 10000
+-- tmux keeps the history, so this buffer only serves panes without tmux.
+config.scrollback_lines          = 1000
 config.term                      = "xterm-256color"
 config.initial_cols              = 80
 config.initial_rows              = 25
@@ -18,6 +19,9 @@ config.window_close_confirmation = "NeverPrompt"
 config.front_end                 = "WebGpu"
 -- 60, not 120: key repeat is every 30ms, so 60 is already double that.
 config.max_fps                   = 60
+-- The right status (git branch, ahead/behind) every 5 s, not every 1 s: each
+-- update can start git and tmux on the UI thread. Its caches are 5 s anyway.
+config.status_update_interval    = 5000
 -- Paces the cursor blink, which repainted continuously: 17-21% CPU idle,
 -- 2-6% with this and the Constant ease in appearance.lua.
 config.animation_fps             = 1
