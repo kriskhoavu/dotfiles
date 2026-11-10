@@ -16,6 +16,7 @@ if not vim.uv.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
+require("bigfile")
 require("vim-helpers")
 require("vim-options")
 require("vim-window")
@@ -26,6 +27,7 @@ require("markdown-runner")
 require("file-history")
 require("restart-clean")
 require("org-git")
+require("tmux-nav")
 require("lazy").setup({
     { import = "plugins" },
     { import = "themes" },
@@ -41,14 +43,24 @@ vim.cmd.colorscheme("onedark")
 
 -- Auto-reload files changed outside of Neovim (autoread is on by default).
 -- checktime raises E11 in the command-line window.
-vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+-- FocusGained covers edits made in another tmux pane (focus-events is on).
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter" }, {
   callback = function()
     if vim.fn.getcmdwintype() == "" then vim.cmd.checktime() end
   end,
 })
 
--- Auto-save when leaving buffer or losing focus
-vim.api.nvim_create_autocmd({ "BufLeave", "FocusLost" }, {
-  pattern = "*",
-  command = "silent! wall",
+-- Auto-save. Leaving a buffer writes only that buffer, and only if it changed:
+-- :wall wrote every modified buffer, and each write starts a jdtls build and a
+-- Neo-tree git status on Discovery. Losing focus still writes them all.
+-- BufLeave stays so lazygit (\3) and Diffview see the edit just made.
+vim.api.nvim_create_autocmd("BufLeave", {
+  callback = function(args)
+    local bo = vim.bo[args.buf]
+    if bo.modified and bo.buftype == "" and bo.modifiable and not bo.readonly
+      and vim.api.nvim_buf_get_name(args.buf) ~= "" then
+      vim.api.nvim_buf_call(args.buf, function() vim.cmd("silent! update") end)
+    end
+  end,
 })
+vim.api.nvim_create_autocmd("FocusLost", { command = "silent! wall" })

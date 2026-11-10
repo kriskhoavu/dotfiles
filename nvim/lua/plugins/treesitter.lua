@@ -2,10 +2,14 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	event = { "BufReadPost", "BufNewFile" },
 	build = ":TSUpdate",
-	-- Building a parser shells out to the tree-sitter CLI, which lives in
-	-- Mason's bin directory; Mason only puts it on PATH once it has loaded.
-	dependencies = { "williamboman/mason.nvim" },
 	config = function()
+		-- Building a parser shells out to the tree-sitter CLI in Mason's bin
+		-- directory. Put it on PATH here instead of loading Mason for every file.
+		local mason_bin = vim.fn.stdpath("data") .. "/mason/bin"
+		if not vim.env.PATH:find(mason_bin, 1, true) then
+			vim.env.PATH = mason_bin .. ":" .. vim.env.PATH
+		end
+
 		local ts = require("nvim-treesitter")
 		ts.setup()
 
@@ -39,7 +43,7 @@ return {
 		vim.api.nvim_create_autocmd("FileType", {
 			callback = function(args)
 				local lang = vim.treesitter.language.get_lang(vim.bo[args.buf].filetype)
-				if not lang or not vim.tbl_contains(languages, lang) then
+				if vim.b[args.buf].bigfile or not lang or not vim.tbl_contains(languages, lang) then
 					return
 				end
 				-- A parser still compiling in the background is not an error here.

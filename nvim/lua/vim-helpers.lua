@@ -244,23 +244,4 @@ end, {})
 
 vim.keymap.set("n", "<leader>vt", ":ShowTree<CR>", { desc = "Show directory tree in floating window" })
 
--- Theme switcher
-local themes = { "tokyonight", "catppuccin", "darcula-solid" }
-local current_theme_idx = 1
-
-vim.api.nvim_create_user_command("ThemeToggle", function()
-    current_theme_idx = current_theme_idx % #themes + 1
-    vim.cmd.colorscheme(themes[current_theme_idx])
-    print("Theme: " .. themes[current_theme_idx])
-end, { desc = "Toggle between themes" })
-
-vim.api.nvim_create_user_command("Theme", function(opts)
-    local theme = opts.args
-    if theme and theme ~= "" then
-        vim.cmd.colorscheme(theme)
-        print("Theme: " .. theme)
-    else
-        print("Available: tokyonight, catppuccin, darcula-solid")
-    end
-end, { nargs = "?", complete = function() return themes end, desc = "Set theme" })
 

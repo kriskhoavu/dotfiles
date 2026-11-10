@@ -36,10 +36,10 @@ return {
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"williamboman/mason-lspconfig.nvim",
-			"hrsh7th/cmp-nvim-lsp", -- must be loaded before lsp capabilities are built
+			"saghen/blink.cmp", -- must be loaded before lsp capabilities are built
 		},
 		config = function()
-			local capabilities = require("cmp_nvim_lsp").default_capabilities()
+			local capabilities = require("blink.cmp").get_lsp_capabilities()
 			local simple_servers = { "ts_ls", "eslint", "yamlls", "bashls", "helm_ls" }
 
 			for _, server in ipairs(simple_servers) do

@@ -69,7 +69,7 @@ return {
       local config = {
         cmd = cmd,
         root_dir = root_dir,
-        capabilities = require("cmp_nvim_lsp").default_capabilities(),
+        capabilities = require("blink.cmp").get_lsp_capabilities(),
         init_options = { bundles = {} },
         settings = {
           java = {
@@ -80,7 +80,6 @@ return {
             },
             maxConcurrentBuilds = 4,
             autobuild = { enabled = true },
-            inlayHints = { parameterNames = { enabled = "all" } },
             references = { includeDecompiledSources = true },
             completion = {
               filteredTypes = { "com.sun.*", "io.micrometer.shaded.*", "java.awt.*", "jdk.*", "sun.*" },

@@ -12,6 +12,8 @@ return {
         render_modes = { "n", "c", "t" },
         anti_conceal = { enabled = true },
         debounce = 100,
+        -- In MB; matches lua/bigfile.lua.
+        max_file_size = 1.0,
 
         heading = {
             enabled = true,

@@ -20,9 +20,10 @@ return {
         "lewis6991/gitsigns.nvim",
         event = { "BufReadPre", "BufNewFile" },
         opts = {
-            -- Who last touched the line under the cursor, at the end of it.
-            -- Virtual text, so it never shifts the buffer's own columns.
-            current_line_blame = true,
+            -- Off by default: it runs git blame on the whole file per buffer and
+            -- again after each save, slow on Discovery's long history. \hB turns
+            -- it on, \hb blames one line.
+            current_line_blame = false,
             current_line_blame_opts = {
                 virt_text = true,
                 virt_text_pos = "eol",
@@ -33,6 +34,8 @@ return {
             current_line_blame_formatter = "  <author>, <author_time:%R> - <summary>",
 
             on_attach = function(bufnr)
+                -- false skips the attach: see lua/bigfile.lua.
+                if vim.b[bufnr].bigfile then return false end
                 local gs = package.loaded.gitsigns
                 local function map(mode, l, r, desc)
                     vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })

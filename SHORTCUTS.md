@@ -129,7 +129,6 @@ They are also centred at a ratio of the editor rather than a fixed size, share t
 | `\sd`          | Normal   | Split or move editor to the right.          | Splits inside Neovim. Also triggered by WezTerm `Ctrl+Cmd+Shift+D`.                                                      |
 | `\sa`          | Normal   | Close split, bring its file back left.      | The reverse of `\sd`. The left split keeps showing its file; the closed one stays in the tab bar (`Alt-h/l`).             |
 | `\vt`          | Normal   | Show directory tree in a floating window.   | Runs `tree -L 4`.                                                                                                        |
-| `:ThemeToggle` | Command  | Cycle the colour scheme.                    | Was `\tt`, but that key now opens a terminal tab (`floating-terminal.lua` loads later and wins), so the theme binding never fires. Run the command, or `:Theme <name>` to pick one. |
 
 ### Git In Neovim
 

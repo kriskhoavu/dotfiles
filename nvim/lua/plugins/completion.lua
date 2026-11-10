@@ -1,73 +1,38 @@
+-- blink.cmp: one plugin in place of nvim-cmp, LuaSnip, cmp_luasnip,
+-- cmp-nvim-lsp, cmp-buffer and cmp-path. Fuzzy matching runs in a prebuilt
+-- Rust binary (version = "1.*" downloads it); without it blink falls back to
+-- Lua and warns. Snippets use vim.snippet with friendly-snippets.
 return {
-	{
-		"L3MON4D3/LuaSnip",
-		event = "InsertEnter",
-		dependencies = { "saadparwaiz1/cmp_luasnip", "rafamadriz/friendly-snippets" },
-		config = function()
-			require("luasnip.loaders.from_vscode").lazy_load()
+	"saghen/blink.cmp",
+	version = "1.*",
+	event = "InsertEnter",
+	dependencies = { "rafamadriz/friendly-snippets" },
+	opts = {
+		-- Off in prompts and in files lua/bigfile.lua marks.
+		enabled = function()
+			return vim.bo.buftype ~= "prompt" and not vim.b.bigfile
 		end,
-	},
-	{
-		"hrsh7th/nvim-cmp",
-		event = "InsertEnter",
-		dependencies = {
-			"hrsh7th/cmp-nvim-lsp",
-			"hrsh7th/cmp-buffer",
-			"hrsh7th/cmp-path",
-			"L3MON4D3/LuaSnip",
-			"saadparwaiz1/cmp_luasnip",
+		keymap = {
+			preset = "none",
+			["<C-Space>"] = { "show", "show_documentation", "hide_documentation" },
+			["<C-e>"] = { "hide", "fallback" },
+			["<CR>"] = { "accept", "fallback" },
+			-- With no menu open these fall back to vim-tmux-navigator.
+			["<C-j>"] = { "select_next", "fallback" },
+			["<C-k>"] = { "select_prev", "fallback" },
+			["<C-f>"] = { "scroll_documentation_down", "fallback" },
+			["<C-b>"] = { "scroll_documentation_up", "fallback" },
+			["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+			["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
 		},
-		config = function()
-			local cmp = require("cmp")
-			local luasnip = require("luasnip")
-
-			cmp.setup({
-				snippet = {
-					expand = function(args)
-						luasnip.lsp_expand(args.body)
-					end,
-				},
-				window = {
-					completion = cmp.config.window.bordered(),
-					documentation = cmp.config.window.bordered(),
-				},
-				mapping = cmp.mapping.preset.insert({
-					["<C-e>"] = cmp.mapping.abort(),
-					["<C-Space>"] = cmp.mapping.complete(),
-					["<C-f>"] = cmp.mapping.scroll_docs(4),
-					["<C-b>"] = cmp.mapping.scroll_docs(-4),
-					["<C-k>"] = cmp.mapping.select_prev_item(),
-					["<C-j>"] = cmp.mapping.select_next_item(),
-					["<CR>"] = cmp.mapping.confirm({ select = true }),
-
-					["<Tab>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_next_item()
-						elseif luasnip.locally_jumpable(1) then
-							luasnip.jump(1)
-						else
-							fallback()
-						end
-					end, { "i", "s" }),
-
-					["<S-Tab>"] = cmp.mapping(function(fallback)
-						if cmp.visible() then
-							cmp.select_prev_item()
-						elseif luasnip.locally_jumpable(-1) then
-							luasnip.jump(-1)
-						else
-							fallback()
-						end
-					end, { "i", "s" }),
-				}),
-				sources = cmp.config.sources({
-					{ name = "nvim_lsp" },
-					{ name = "luasnip" },
-					{ name = "buffer" },
-					{ name = "path" },
-				}),
-			})
-		end,
+		completion = {
+			menu = { border = "rounded" },
+			documentation = { auto_show = true, window = { border = "rounded" } },
+		},
+		sources = {
+			default = { "lsp", "snippets", "buffer", "path" },
+		},
+		-- nvim-cmp had no command-line completion; keep it that way.
+		cmdline = { enabled = false },
 	},
 }
-

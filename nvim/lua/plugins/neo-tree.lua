@@ -192,8 +192,13 @@ return {
           return require("neo-tree.sources.manager").get_state(vim.b.neo_tree_source or "filesystem")
         end)
         local root = ok and state.path or vim.fn.getcwd()
-        local node = ok and state.tree and state.tree:get_node()
-        local selected = node and node.name or ""
+        -- get_node reads the cursor of the tree's window, which is already
+        -- gone (nil) while \1 closes it.
+        local found, node = false, nil
+        if ok and state.tree then
+          found, node = pcall(state.tree.get_node, state.tree)
+        end
+        local selected = found and node and node.name or ""
         local function esc(text)
           return (text:gsub("%%", "%%%%"))
         end
@@ -270,28 +275,21 @@ return {
           vim.cmd("Neotree filesystem reveal left")
           vim.cmd("wincmd l")
 
-          -- A restored terminal comes back unloaded, and an unloaded buffer
-          -- reports buftype "", so buftype alone misses it and every start
-          -- added another. Match the term:// name, keep one, wipe the husks.
-          local live, dead = nil, {}
+          -- A restored terminal comes back as an unloaded husk with buftype "",
+          -- so match the term:// name and wipe the husks.
+          local dead = {}
           for _, buf in ipairs(vim.api.nvim_list_bufs()) do
             if vim.api.nvim_buf_is_valid(buf)
-              and vim.api.nvim_buf_get_name(buf):match("^term://") then
-              if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "terminal" then
-                live = live or buf
-              else
-                dead[#dead + 1] = buf
-              end
+              and vim.api.nvim_buf_get_name(buf):match("^term://")
+              and not (vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "terminal") then
+              dead[#dead + 1] = buf
             end
           end
           for _, buf in ipairs(dead) do
             pcall(vim.api.nvim_buf_delete, buf, { force = true })
           end
-          if live then return end
-
-          require("term-env").without_tmux(function()
-            vim.cmd("terminal")
-          end)
+          -- No terminal opens here any more: builds belong in a tmux pane,
+          -- where long Gradle output does not pass through nvim. \9 opens one.
         end),
       })
     end,
