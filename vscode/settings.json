@@ -189,5 +189,6 @@
     "workbench.colorTheme": "One Dark Pro Darker",
     "chat.editing.autoAcceptDelay": 100,
     "git.enableSmartCommit": true,
+    "claudeCode.preferredLocation": "panel",
 
 }
