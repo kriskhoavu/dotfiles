@@ -271,7 +271,11 @@ return {
             files = { fzf_opts = { ["--tiebreak"] = "pathname,index" } },
             -- grep and live_grep: \ft, \fT, \fs. Live grep sends the query to
             -- rg and fzf does not re-rank, so the sorted order is what shows.
-            grep = { filter = SORT_GREP },
+            -- No icons and no `query -- *.glob`: either one routes every line
+            -- through a Lua child process (~15k lines/s), and with neither rg
+            -- pipes straight into fzf. "customer" on Discovery (18.8k hits)
+            -- went from 1.2s to 0.3s after the last key.
+            grep = { filter = SORT_GREP, file_icons = false, rg_glob = false },
             lsp = {
                 -- Open at once and stream results; a timeout blocks until every server answers.
                 async_or_timeout = true,
