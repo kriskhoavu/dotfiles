@@ -84,6 +84,9 @@ return {
         root_dir = root_dir,
         capabilities = require("blink.cmp").get_lsp_capabilities(),
         init_options = { bundles = {} },
+        -- A busy jdtls can ignore "shutdown" and outlive nvim. A second jdtls on
+        -- the same workspace then corrupts it. Force-stop after 3 s on exit.
+        exit_timeout = 3000,
         -- jdtls blocks workspace init until the client answers this. We load no
         -- extra bundles, so reply with an empty list at once.
         commands = {
