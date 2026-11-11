@@ -150,6 +150,11 @@ return {
         },
       }
 
+      -- jdtls runs the first import during initialize, before it receives
+      -- workspace/didChangeConfiguration. Send the settings at start too, or the
+      -- import ignores them (Gradle JDK, arguments, filters, offline mode).
+      config.init_options.settings = config.settings
+
       -- Strict root_dir match: prevent reuse of a parent-project jdtls client
       -- (e.g. discovery-sap/) when opening a nested project (discovery-sap/discovery/).
       local bufnr = vim.api.nvim_get_current_buf()
