@@ -56,11 +56,18 @@ return {
       local cmd = {
         jdtls_java,
         "-Xms1g",
-        "-Xmx4g",
-        "-XX:+UseZGC",
-        "-XX:ConcGCThreads=4",
+        "-Xmx6g",
+        -- Throughput GC (same flags as vscode-java): indexing is batch work,
+        -- so total speed matters more than short pauses.
+        "-XX:+UseParallelGC",
+        "-XX:GCTimeRatio=4",
+        "-XX:AdaptiveSizePolicyWeight=90",
         "-XX:+UseStringDeduplication",
-        "-XX:+TieredCompilation",
+        "-Dsun.zip.disableMemoryMapping=true",
+        -- Shared index for JDK and library jars: reused across workspaces, so a
+        -- wiped or new workspace does not index the same jars again.
+        "-Djdt.core.sharedIndexLocation=" .. vim.fn.stdpath("cache") .. "/jdtls-shared-index",
+        "-Xlog:disable",
         "--add-modules=ALL-SYSTEM",
         "--add-opens", "java.base/java.util=ALL-UNNAMED",
         "--add-opens", "java.base/java.lang=ALL-UNNAMED",
@@ -90,6 +97,11 @@ return {
               } or nil,
             },
             maxConcurrentBuilds = 4,
+            -- Folders jdtls leaves out of its resource tree (no refresh, no watch).
+            -- Do not add "build": generated sources live under build/generated.
+            project = {
+              resourceFilters = { "node_modules", "\\.git", "\\.gradle", "\\.idea", "\\.claude", "wiki", "plans" },
+            },
             autobuild = { enabled = true },
             references = { includeDecompiledSources = true },
             completion = {
@@ -106,7 +118,7 @@ return {
                 -- workspace is wiped, so bump versions with :JdtUpdateConfig in mind.
                 offline = { enabled = vim.fn.isdirectory(workspace_dir .. "/.metadata") == 1 },
                 -- Cache Gradle configuration so re-opens skip build script re-evaluation
-                arguments = "--configuration-cache --configuration-cache-problems=warn",
+                arguments = "--configuration-cache --configuration-cache-problems=warn --parallel",
               },
               maven = { enabled = true },
               exclusions = {
