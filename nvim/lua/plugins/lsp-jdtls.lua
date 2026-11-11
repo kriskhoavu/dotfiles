@@ -77,6 +77,11 @@ return {
         root_dir = root_dir,
         capabilities = require("blink.cmp").get_lsp_capabilities(),
         init_options = { bundles = {} },
+        -- jdtls blocks workspace init until the client answers this. We load no
+        -- extra bundles, so reply with an empty list at once.
+        commands = {
+          ["_java.reloadBundles.command"] = function() return {} end,
+        },
         settings = {
           java = {
             configuration = {
