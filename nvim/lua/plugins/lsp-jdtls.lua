@@ -22,6 +22,13 @@ return {
       vim.notify("jdtls: JAVA_HOME is not set. Java runtime config will be skipped.", vim.log.levels.WARN)
     end
 
+    -- jdtls 1.62+ needs Java 25 to run itself. Use the keg-only brew JDK so it
+    -- never becomes the system default. Projects still build with JAVA_HOME (21).
+    local jdtls_java = "/opt/homebrew/opt/openjdk@25/bin/java"
+    if vim.fn.executable(jdtls_java) == 0 then
+      jdtls_java = "java"
+    end
+
     local function setup_jdtls()
       -- Exclude build.gradle/pom.xml: they exist in every submodule, causing jdtls
       -- to root at a submodule dir instead of the project root in multi-module builds.
@@ -47,11 +54,10 @@ return {
       end
 
       local cmd = {
-        "java",
+        jdtls_java,
         "-Xms1g",
         "-Xmx4g",
         "-XX:+UseZGC",
-        "-XX:+ZGenerational",
         "-XX:ConcGCThreads=4",
         "-XX:+UseStringDeduplication",
         "-XX:+TieredCompilation",
@@ -87,6 +93,8 @@ return {
             import = {
               gradle = {
                 enabled = true,
+                -- Run the Gradle daemon on the project JDK, not on jdtls's Java 25
+                java = java_home and { home = java_home } or nil,
                 wrapper = { enabled = true, checksums = {} },
                 -- Use offline mode if workspace cache already exists (faster re-open).
                 -- A dependency the local cache lacks cannot resolve until the
