@@ -53,9 +53,11 @@ wezterm.on("update-right-status", function(window, pane)
   -- -c targets this pane's own client; untargeted, tmux answers for the last one used.
   local now = os.time()
   local t = tmux_panes[pid]
-  if not t or (now - t.time) >= TMUX_CHECK_TTL then
+  -- A new OSC 7 path (tmux hooks send one on session/window/pane switch) also
+  -- forces a refresh, or the cached tmux path would hide it for up to 5 s.
+  if not t or (now - t.time) >= TMUX_CHECK_TTL or t.osc ~= path then
     local proc = pane:get_foreground_process_info()
-    t = { is_tmux = proc and proc.name and proc.name:match("^tmux") and true or false, time = now }
+    t = { is_tmux = proc and proc.name and proc.name:match("^tmux") and true or false, time = now, osc = path }
     if t.is_tmux then
       local ok, out = wezterm.run_child_process { h.TMUX, "display-message", "-c", pane:get_tty_name() or "", "-p", "#{pane_current_path}" }
       local p = ok and out and out:gsub("%s+$", "")
